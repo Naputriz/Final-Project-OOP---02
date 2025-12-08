@@ -6,8 +6,12 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.utils.InputHandler;
+
+import java.util.Iterator;
 
 public class GameScreen extends ScreenAdapter {
     private SpriteBatch batch;
@@ -16,9 +20,13 @@ public class GameScreen extends ScreenAdapter {
     private OrthographicCamera camera; // Kamera game
     private Texture background; // Background sementara biar kelihatan gerak
 
+    // List untuk menampung semua peluru yang sedang terbang
+    private Array<Projectile> projectiles;
+
     @Override
     public void show() {
         batch = new SpriteBatch();
+        projectiles = new Array<>();
 
         // Sementara pake Ryze dulu
 
@@ -37,13 +45,24 @@ public class GameScreen extends ScreenAdapter {
         player.setPosition(0, 0);
 
         // Setup Input Handler dengan Kamera
-        inputHandler = new InputHandler(player, camera);
+        inputHandler = new InputHandler(player, camera, projectiles);
     }
 
     @Override
     public void render(float delta) {
         // UPDATE LOGIC
         inputHandler.update(delta);
+
+        // Update Projectiles
+        // Kita pakai Iterator biar aman menghapus peluru saat loop berjalan
+        Iterator<Projectile> iter = projectiles.iterator();
+        while(iter.hasNext()){
+            Projectile p = iter.next();
+            p.update(delta);
+            if(!p.active){
+                iter.remove(); // Hapus peluru yang mati/kejauhan
+            }
+        }
 
         // Update posisi kamera agar selalu mengikuti player
         camera.position.set(
@@ -69,6 +88,10 @@ public class GameScreen extends ScreenAdapter {
             }
         }
         player.render(batch);
+        // Render Projectiles
+        for (Projectile p : projectiles) {
+            p.render(batch);
+        }
         batch.end();
     }
 
@@ -84,5 +107,10 @@ public class GameScreen extends ScreenAdapter {
     public void dispose() {
         batch.dispose();
         player.dispose();
+        if (background != null) background.dispose();
+        // Dispose texture peluru jika ada
+        for (Projectile p : projectiles) {
+            p.dispose();
+        }
     }
 }
