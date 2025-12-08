@@ -6,7 +6,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.utils.InputHandler;
@@ -20,13 +23,16 @@ public class GameScreen extends ScreenAdapter {
     private OrthographicCamera camera; // Kamera game
     private Texture background; // Background sementara biar kelihatan gerak
 
-    // List untuk menampung semua peluru yang sedang terbang
-    private Array<Projectile> projectiles;
+    private Array<Projectile> projectiles; // List untuk menampung semua peluru yang sedang terbang
+    private Array<DummyEnemy> enemies;
+
+    private float spawnTimer = 0; // Timer buat spawn musuh tiap detik
 
     @Override
     public void show() {
         batch = new SpriteBatch();
         projectiles = new Array<>();
+        enemies = new Array<>();
 
         // Sementara pake Ryze dulu
 
@@ -36,7 +42,7 @@ public class GameScreen extends ScreenAdapter {
         camera.setToOrtho(false, 1280, 720);
 
         // Load background (optional, biar kelihatan gerak aja)
-        background = new Texture(Gdx.files.internal("libgdx.png")); // Pake gambar logo libgdx dulu gpp buat lantai
+        background = new Texture(Gdx.files.internal("FireflyPlaceholder.jpg")); // Pake gambar logo libgdx dulu gpp buat lantai
 
         // Spawn Player
         player = new Ryze(0, 0);
@@ -52,17 +58,10 @@ public class GameScreen extends ScreenAdapter {
     public void render(float delta) {
         // UPDATE LOGIC
         inputHandler.update(delta);
-
-        // Update Projectiles
-        // Kita pakai Iterator biar aman menghapus peluru saat loop berjalan
-        Iterator<Projectile> iter = projectiles.iterator();
-        while(iter.hasNext()){
-            Projectile p = iter.next();
-            p.update(delta);
-            if(!p.active){
-                iter.remove(); // Hapus peluru yang mati/kejauhan
-            }
-        }
+        updateProjectiles(delta);
+        updateEnemies(delta);
+        checkCollisions(); // Cek tabrakan
+        spawnEnemies(delta); // Spawn musuh baru
 
         // Update posisi kamera agar selalu mengikuti player
         camera.position.set(
@@ -92,7 +91,73 @@ public class GameScreen extends ScreenAdapter {
         for (Projectile p : projectiles) {
             p.render(batch);
         }
+
+        for (DummyEnemy enemy : enemies) {
+            enemy.render(batch);
+        }
+
         batch.end();
+    }
+
+    private void updateProjectiles(float delta) {
+        Iterator<Projectile> iter = projectiles.iterator();
+        while(iter.hasNext()){
+            Projectile p = iter.next();
+            p.update(delta);
+            if(!p.active){
+                iter.remove();
+            }
+        }
+    }
+
+    private void updateEnemies(float delta) {
+        for (DummyEnemy enemy : enemies) {
+            enemy.update(delta);
+        }
+    }
+
+    private void spawnEnemies(float delta) {
+        spawnTimer += delta;
+        if (spawnTimer > 2f) { // Spawn tiap 2 detik
+            // Spawn di posisi random sekitar player (radius 500-700 pixel)
+            float angle = MathUtils.random(360);
+            float distance = MathUtils.random(500, 700);
+            float x = player.getPosition().x + MathUtils.cosDeg(angle) * distance;
+            float y = player.getPosition().y + MathUtils.sinDeg(angle) * distance;
+
+            enemies.add(new DummyEnemy(x, y, player));
+            spawnTimer = 0;
+        }
+    }
+
+    private void checkCollisions() {
+        // Cek Peluru vs Musuh
+        Iterator<Projectile> pIter = projectiles.iterator();
+        while (pIter.hasNext()) {
+            Projectile p = pIter.next();
+            Rectangle pBounds = p.getBounds();
+
+            Iterator<DummyEnemy> eIter = enemies.iterator();
+            while (eIter.hasNext()) {
+                DummyEnemy e = eIter.next();
+
+                if (pBounds.overlaps(e.getBounds())) {
+                    p.active = false; // Matikan peluru (akan dihapus di updateProjectiles)
+                    eIter.remove();   // Hapus musuh (mati instan)
+                    System.out.println("Enemy Killed!");
+                    break; // Satu peluru cuma kena 1 musuh (biar gak nembus)
+                }
+            }
+        }
+
+        // Cek Musuh vs Player
+        Rectangle playerBounds = player.getBounds();
+        for (DummyEnemy e : enemies) {
+            if (e.getBounds().overlaps(playerBounds)) {
+                System.out.println("Player took damage!");
+                // Nanti disini kurangi HP player (Untuk skrg blm, testing enemy dlu)
+            }
+        }
     }
 
     @Override
