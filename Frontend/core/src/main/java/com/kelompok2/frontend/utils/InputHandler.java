@@ -5,21 +5,26 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.entities.GameCharacter;
+import com.kelompok2.frontend.entities.Projectile;
 
 public class InputHandler {
     private GameCharacter character;
     private Camera camera; // Referensi kamera untuk konversi koordinat mouse
+    private Array<Projectile> projectiles; // Referensi ke list peluru di GameScreen
 
 
-    public InputHandler(GameCharacter character, Camera camera) {
+    public InputHandler(GameCharacter character, Camera camera, Array<Projectile> projectiles) {
         this.character = character;
         this.camera = camera;
+        this.projectiles = projectiles;
     }
 
     public void update(float delta) {
         handleMovement(delta);
-        handleRotation();
+        handleDirection();
+        handleShooting();
         handleSkills();
     }
 
@@ -42,7 +47,7 @@ public class InputHandler {
         }
     }
 
-    private void handleRotation() {
+    private void handleDirection() {
         // Ambil posisi mouse di layar
         float mouseX = Gdx.input.getX();
         float mouseY = Gdx.input.getY();
@@ -59,6 +64,22 @@ public class InputHandler {
             character.setFacingRight(true); // Mouse di kanan -> hadap kanan
         } else {
             character.setFacingRight(false); // Mouse di kiri -> hadap kiri
+        }
+    }
+
+    private void handleShooting() {
+        // Klik Kiri untuk menembak
+        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
+            // Ambil posisi mouse
+            Vector3 mousePos = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+
+            // Titik awal peluru (dari tengah badan karakter)
+            float startX = character.getPosition().x + character.getWidth() / 2;
+            float startY = character.getPosition().y + character.getHeight() / 2;
+
+            // Spawn peluru baru dan masukkan ke list
+            Projectile p = new Projectile(startX, startY, mousePos.x, mousePos.y);
+            projectiles.add(p);
         }
     }
 
