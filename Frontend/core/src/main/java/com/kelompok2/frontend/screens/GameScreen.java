@@ -2,14 +2,18 @@ package com.kelompok2.frontend.screens;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.entities.DummyEnemy;
+import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.utils.InputHandler;
@@ -18,6 +22,7 @@ import java.util.Iterator;
 
 public class GameScreen extends ScreenAdapter {
     private SpriteBatch batch;
+    private ShapeRenderer shapeRenderer;
     private Ryze player;
     private InputHandler inputHandler;
     private OrthographicCamera camera; // Kamera game
@@ -31,6 +36,7 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void show() {
         batch = new SpriteBatch();
+        shapeRenderer = new ShapeRenderer();
         projectiles = new Array<>();
         enemies = new Array<>();
 
@@ -60,8 +66,17 @@ public class GameScreen extends ScreenAdapter {
         inputHandler.update(delta);
         updateProjectiles(delta);
         updateEnemies(delta);
-        checkCollisions(); // Cek tabrakan
+        checkCollisions(delta); // Cek tabrakan
         spawnEnemies(delta); // Spawn musuh baru
+
+        // Cek Game Over
+        if (player.isDead()) {
+            System.out.println("Game over lmao skill issue. Restarting...");
+            // Restart screen sederhana
+            ((Main)Gdx.app.getApplicationListener()).setScreen(new GameScreen());
+            return; // Stop render frame ini
+        }
+
 
         // Update posisi kamera agar selalu mengikuti player
         camera.position.set(
@@ -78,12 +93,18 @@ public class GameScreen extends ScreenAdapter {
         // 3. DRAW
         // Set projection matrix agar batch menggambar sesuai pandangan kamera
         batch.setProjectionMatrix(camera.combined);
+        shapeRenderer.setProjectionMatrix(camera.combined);
         batch.begin();
-        // Gambar background (tile sederhana agar kelihatan kita bergerak)
-        // Kita gambar grid 10x10 logo libgdx sebagai lantai
-        for(int x = -5; x < 5; x++) {
-            for(int y = -5; y < 5; y++) {
-                batch.draw(background, x * 500, y * 500, 500, 500);
+
+        float bgSize = 500;
+        int startX = (int)(camera.position.x - camera.viewportWidth/2) / (int)bgSize - 1;
+        int startY = (int)(camera.position.y - camera.viewportHeight/2) / (int)bgSize - 1;
+        int endX = (int)(camera.position.x + camera.viewportWidth/2) / (int)bgSize + 1;
+        int endY = (int)(camera.position.y + camera.viewportHeight/2) / (int)bgSize + 1;
+
+        for(int x = startX; x <= endX; x++) {
+            for(int y = startY; y <= endY; y++) {
+                batch.draw(background, x * bgSize, y * bgSize, bgSize, bgSize);
             }
         }
         player.render(batch);
@@ -97,6 +118,39 @@ public class GameScreen extends ScreenAdapter {
         }
 
         batch.end();
+        drawHealthBars();
+    }
+
+    private void drawHealthBars() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        // Render HP Player
+        drawBar(player);
+
+        // Render HP Musuh
+        for (DummyEnemy enemy : enemies) {
+            drawBar(enemy);
+        }
+
+        shapeRenderer.end();
+    }
+
+    private void drawBar(GameCharacter character) {
+        float x = character.getPosition().x;
+        float y = character.getPosition().y + character.getHeight() + 5; // Di atas kepala
+        float width = character.getWidth();
+        float height = 5; // Tebal bar
+
+        // Hitung persentase HP
+        float hpPercent = character.getHp() / character.getMaxHp();
+
+        // Gambar Background Merah (Darah kosong)
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(x, y, width, height);
+
+        // Gambar Foreground Hijau (Sisa darah)
+        shapeRenderer.setColor(Color.GREEN);
+        shapeRenderer.rect(x, y, width * hpPercent, height);
     }
 
     private void updateProjectiles(float delta) {
@@ -118,10 +172,10 @@ public class GameScreen extends ScreenAdapter {
 
     private void spawnEnemies(float delta) {
         spawnTimer += delta;
-        if (spawnTimer > 2f) { // Spawn tiap 2 detik
+        if (spawnTimer > 1.5f) { // Spawn tiap 2 detik
             // Spawn di posisi random sekitar player (radius 500-700 pixel)
             float angle = MathUtils.random(360);
-            float distance = MathUtils.random(500, 700);
+            float distance = MathUtils.random(600, 800);
             float x = player.getPosition().x + MathUtils.cosDeg(angle) * distance;
             float y = player.getPosition().y + MathUtils.sinDeg(angle) * distance;
 
@@ -130,7 +184,7 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
-    private void checkCollisions() {
+    private void checkCollisions(float delta) {
         // Cek Peluru vs Musuh
         Iterator<Projectile> pIter = projectiles.iterator();
         while (pIter.hasNext()) {
@@ -143,9 +197,12 @@ public class GameScreen extends ScreenAdapter {
 
                 if (pBounds.overlaps(e.getBounds())) {
                     p.active = false; // Matikan peluru (akan dihapus di updateProjectiles)
-                    eIter.remove();   // Hapus musuh (mati instan)
-                    System.out.println("Enemy Killed!");
-                    break; // Satu peluru cuma kena 1 musuh (biar gak nembus)
+                    e.takeDamage(25);
+                    if (e.isDead()) {
+                        eIter.remove();
+                        System.out.println("Enemy Killed!");
+                    }
+                    break;
                 }
             }
         }
@@ -154,7 +211,7 @@ public class GameScreen extends ScreenAdapter {
         Rectangle playerBounds = player.getBounds();
         for (DummyEnemy e : enemies) {
             if (e.getBounds().overlaps(playerBounds)) {
-                System.out.println("Player took damage!");
+                player.takeDamage(50 * delta);
                 // Nanti disini kurangi HP player (Untuk skrg blm, testing enemy dlu)
             }
         }
@@ -171,11 +228,13 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void dispose() {
         batch.dispose();
+        shapeRenderer.dispose();
         player.dispose();
         if (background != null) background.dispose();
         // Dispose texture peluru jika ada
         for (Projectile p : projectiles) {
             p.dispose();
         }
+        for (DummyEnemy e : enemies) e.dispose();
     }
 }

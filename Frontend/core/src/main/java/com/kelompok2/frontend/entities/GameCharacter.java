@@ -2,7 +2,6 @@ package com.kelompok2.frontend.entities;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
@@ -33,6 +32,20 @@ public abstract class GameCharacter {
 
         // Update posisi hitbox mengikuti gambar
         bounds.setPosition(position.x, position.y);
+    }
+
+    public void takeDamage(float amount) {
+        hp -= amount;
+        if (hp < 0) hp = 0;
+    }
+
+    public void heal(float amount) {
+        hp += amount;
+        if (hp > maxHp) hp = maxHp;
+    }
+
+    public boolean isDead() {
+        return hp <= 0;
     }
 
     public void setFacingRight(boolean isFacingRight) {
@@ -77,6 +90,7 @@ public abstract class GameCharacter {
     public Vector2 getPosition() { return position; } // Helper buat kamera
     public Rectangle getBounds() { return bounds; }
     public float getHp() { return hp; }
+    public float getMaxHp() { return maxHp; }
     public float getWidth() { return bounds.width; }
     public float getHeight() { return bounds.height; }
 }
