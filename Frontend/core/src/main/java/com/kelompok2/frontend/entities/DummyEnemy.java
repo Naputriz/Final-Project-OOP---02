@@ -33,6 +33,10 @@ public class DummyEnemy extends GameCharacter {
         // Dummy gak punya skill
     }
 
+    public float getXpReward(){
+        return 25f;
+    }
+
     // Logic AI: Kejar target
     public void update(float delta) {
         if (target != null) {

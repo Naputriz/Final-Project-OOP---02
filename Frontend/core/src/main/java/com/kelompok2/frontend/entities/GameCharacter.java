@@ -13,6 +13,9 @@ public abstract class GameCharacter {
     protected boolean isFacingRight;
     protected Texture texture; // Sprite karakter
     protected Rectangle bounds; // Hitbox untuk collision
+    protected int level;
+    protected float currentXp;
+    protected float xpToNextLevel;
 
     public GameCharacter(float x, float y, float speed, float maxHp) {
         this.position = new Vector2(x, y);
@@ -21,6 +24,9 @@ public abstract class GameCharacter {
         this.hp = maxHp;
         this.isFacingRight = true; // Default menghadap kanan
         this.bounds = new Rectangle(x, y, 32, 32); // Default size 32x32
+        this.level = 1;
+        this.currentXp = 0;
+        this.xpToNextLevel = 100;
     }
 
     // Method abstract buat innate skill
@@ -42,6 +48,21 @@ public abstract class GameCharacter {
     public void heal(float amount) {
         hp += amount;
         if (hp > maxHp) hp = maxHp;
+    }
+
+    public void gainXp(float xpAmount){
+        this.currentXp += xpAmount;
+        if(this.currentXp >= this.xpToNextLevel){
+            levelUp();
+        }
+    }
+
+    protected void levelUp() {
+        this.currentXp -= this.xpToNextLevel;
+        this.level++;
+        this.xpToNextLevel = (float) Math.ceil(this.xpToNextLevel * 1.2f);
+        this.maxHp += 20;
+        System.out.println(this.getClass().getSimpleName() + " Level Up! lv: " + level);
     }
 
     public boolean isDead() {
@@ -93,4 +114,13 @@ public abstract class GameCharacter {
     public float getMaxHp() { return maxHp; }
     public float getWidth() { return bounds.width; }
     public float getHeight() { return bounds.height; }
+    public int getLevel(){
+        return level;
+    }
+    public float getCurrentXp(){
+        return currentXp;
+    }
+    public float getXpToNextLevel(){
+        return xpToNextLevel;
+    }
 }

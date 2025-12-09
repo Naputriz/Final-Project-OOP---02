@@ -127,6 +127,9 @@ public class GameScreen extends ScreenAdapter {
         // Render HP Player
         drawBar(player);
 
+        // Render XP player
+        drawXpBar(player);
+
         // Render HP Musuh
         for (DummyEnemy enemy : enemies) {
             drawBar(enemy);
@@ -135,20 +138,49 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.end();
     }
 
+    private void drawXpBar(GameCharacter character) {
+        float x = character.getPosition().x;
+        // XP Bar tepat di atas kepala (+2 pixel)
+        float y = character.getPosition().y + character.getHeight() + 2;
+
+        float width = character.getWidth();
+        float height = 4; // Tinggi XP bar
+
+        // Cek dividen 0 untuk mencegah crash (ArithmeticException/NaN)
+        float maxXp = character.getXpToNextLevel();
+        float xpPercent = (maxXp > 0) ? character.getCurrentXp() / maxXp : 0;
+
+        // Background (Abu-abu Tua)
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(x, y, width, height);
+
+        // Isi XP (Cyan/Biru Muda)
+        shapeRenderer.setColor(Color.CYAN);
+        shapeRenderer.rect(x, y, width * xpPercent, height);
+    }
+
     private void drawBar(GameCharacter character) {
         float x = character.getPosition().x;
-        float y = character.getPosition().y + character.getHeight() + 5; // Di atas kepala
-        float width = character.getWidth();
-        float height = 5; // Tebal bar
 
-        // Hitung persentase HP
+        // --- PERBAIKAN POSISI ---
+        // Jika karakter adalah Player (Ryze), HP bar harus lebih tinggi
+        // karena ada XP bar di bawahnya.
+        // XP bar mulai di +2 dengan tinggi 4 (total +6). Beri jarak 2px lagi -> +8.
+        float offset = (character instanceof Ryze) ? 8 : 5;
+
+        float y = character.getPosition().y + character.getHeight() + offset;
+        // ------------------------
+
+        float width = character.getWidth();
+        float height = 5;
+
         float hpPercent = character.getHp() / character.getMaxHp();
 
-        // Gambar Background Merah (Darah kosong)
+        // Background Merah
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(x, y, width, height);
 
-        // Gambar Foreground Hijau (Sisa darah)
+        // Foreground Hijau
         shapeRenderer.setColor(Color.GREEN);
         shapeRenderer.rect(x, y, width * hpPercent, height);
     }
@@ -200,6 +232,7 @@ public class GameScreen extends ScreenAdapter {
                     e.takeDamage(25);
                     if (e.isDead()) {
                         eIter.remove();
+                        player.gainXp(e.getXpReward());
                         System.out.println("Enemy Killed!");
                     }
                     break;
