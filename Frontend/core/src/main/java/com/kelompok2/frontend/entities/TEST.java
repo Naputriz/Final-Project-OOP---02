@@ -5,35 +5,30 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
-public class Ryze extends GameCharacter {
+public class TEST extends GameCharacter {
 
-    public Ryze(float x, float y) {
-        super(x, y, 200f, 100f); // Stats sementara, HP ama Speed dulu buat testing
+    public TEST(float x, float y) {
+        super(x, y, 300f, 100f);
 
-        // Sementara, nanti diganti
-        this.texture = new Texture(Gdx.files.internal("ryze_placeholder.png"));
+        this.texture = new Texture(Gdx.files.internal("kotaro.png"));
 
-        // Ukuran hitbox
         this.bounds.setSize(256, 256);
 
-        this.autoAttack = false;
-        this.attackCooldown = 0;
+        this.autoAttack = true;
+        this.attackCooldown = 0.1f;
     }
 
     @Override
     public void attack(Vector2 targetPos, Array<Projectile> projectiles) {
-        // Bullet spawn point
         float startX = this.position.x + this.getWidth() / 2;
         float startY = this.position.y + this.getHeight() / 2;
 
-        // Create projectile logic
         Projectile p = new Projectile(startX, startY, targetPos.x, targetPos.y);
         projectiles.add(p);
     }
 
     @Override
     public void performInnateSkill() {
-        // Implementasi skill Spectral Body nanti di sini
-        System.out.println("Ryze pake skill");
+        System.out.println("Test is using skill");
     }
 }

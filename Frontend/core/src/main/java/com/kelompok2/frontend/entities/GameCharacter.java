@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 
 public abstract class GameCharacter {
     protected Vector2 position;
@@ -14,6 +15,10 @@ public abstract class GameCharacter {
     protected Texture texture; // Sprite karakter
     protected Rectangle bounds; // Hitbox untuk collision
 
+    protected float attackCooldown; // Cooldown value
+    protected float attackTimer; // Cooldown timer
+    protected boolean autoAttack; // True = Hold, False = Click
+
     public GameCharacter(float x, float y, float speed, float maxHp) {
         this.position = new Vector2(x, y);
         this.speed = speed;
@@ -21,10 +26,39 @@ public abstract class GameCharacter {
         this.hp = maxHp;
         this.isFacingRight = true; // Default menghadap kanan
         this.bounds = new Rectangle(x, y, 32, 32); // Default size 32x32
+
+        this.attackCooldown = 0.5f;
+        this.attackTimer = 0;
+        this.autoAttack = false;
     }
+
+    // Abstract untuk attack
+    public abstract void attack(Vector2 targetPos, Array<Projectile> projectiles);
 
     // Method abstract buat innate skill
     public abstract void performInnateSkill();
+
+    // Update untuk mengurangi timer
+    public void update(float delta){
+        if (attackTimer > 0) {
+            attackTimer -= delta;
+        }
+    }
+
+    // Check bisa attack jika timer habis
+    public boolean canAttack(){
+        return attackTimer <= 0;
+    }
+
+    // Reset timer
+    public void resetAttackTimer(){
+        this.attackTimer = attackCooldown;
+    }
+
+    // Cek tipe attack
+    public boolean isAutoAttack() {
+        return autoAttack;
+    }
 
     public void move(float deltaX, float deltaY) {
         position.x += deltaX * speed;

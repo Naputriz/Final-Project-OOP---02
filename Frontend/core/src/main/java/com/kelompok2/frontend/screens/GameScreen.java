@@ -63,6 +63,7 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         // UPDATE LOGIC
+        player.update(delta);
         inputHandler.update(delta);
         updateProjectiles(delta);
         updateEnemies(delta);
@@ -211,8 +212,10 @@ public class GameScreen extends ScreenAdapter {
         Rectangle playerBounds = player.getBounds();
         for (DummyEnemy e : enemies) {
             if (e.getBounds().overlaps(playerBounds)) {
-                player.takeDamage(50 * delta);
-                // Nanti disini kurangi HP player (Untuk skrg blm, testing enemy dlu)
+                if (e.canAttack()) {
+                    player.takeDamage(10);
+                    e.resetAttackTimer();
+                }
             }
         }
     }

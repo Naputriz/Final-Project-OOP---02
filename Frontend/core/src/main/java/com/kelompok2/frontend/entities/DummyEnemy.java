@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 
 public class DummyEnemy extends GameCharacter {
     private GameCharacter target;
@@ -18,6 +19,8 @@ public class DummyEnemy extends GameCharacter {
 
         // Ukuran musuh
         this.bounds.setSize(32, 32);
+
+        this.attackCooldown = 1.0f;
     }
 
     private void createTexture() {
@@ -29,12 +32,19 @@ public class DummyEnemy extends GameCharacter {
     }
 
     @Override
+    public void attack(Vector2 targetPos, Array<Projectile> projectiles) {
+        // Melee = no proj, implement melee maybe
+    }
+
+    @Override
     public void performInnateSkill() {
         // Dummy gak punya skill
     }
 
     // Logic AI: Kejar target
     public void update(float delta) {
+        super.update(delta);
+
         if (target != null) {
             Vector2 direction = new Vector2(
                 target.getPosition().x - position.x,

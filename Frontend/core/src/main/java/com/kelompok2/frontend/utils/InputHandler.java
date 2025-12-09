@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.entities.GameCharacter;
@@ -68,18 +69,26 @@ public class InputHandler {
     }
 
     private void handleShooting() {
-        // Klik Kiri untuk menembak
-        if (Gdx.input.isButtonJustPressed(Input.Buttons.LEFT)) {
-            // Ambil posisi mouse
-            Vector3 mousePos = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+        boolean intentToShoot;
 
-            // Titik awal peluru (dari tengah badan karakter)
-            float startX = character.getPosition().x + character.getWidth() / 2;
-            float startY = character.getPosition().y + character.getHeight() / 2;
+        if (character.isAutoAttack()) {
+            // Auto (True): button is HELD
+            intentToShoot = Gdx.input.isButtonPressed(Input.Buttons.LEFT);
+        } else {
+            // Manual (False): button is CLICKED
+            intentToShoot = Gdx.input.isButtonJustPressed(Input.Buttons.LEFT);
+        }
 
-            // Spawn peluru baru dan masukkan ke list
-            Projectile p = new Projectile(startX, startY, mousePos.x, mousePos.y);
-            projectiles.add(p);
+        if (intentToShoot && character.canAttack()) {
+            // Mouse position
+            Vector3 mousePos3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+            Vector2 target = new Vector2(mousePos3.x, mousePos3.y);
+
+            // Call character attack
+            character.attack(target, projectiles);
+
+            // Reset cooldown
+            character.resetAttackTimer();
         }
     }
 
