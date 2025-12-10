@@ -15,6 +15,9 @@ public class Projectile {
     private Rectangle bounds;
     public boolean active; // Penanda apakah peluru masih aktif
 
+    private float distanceTraveled = 0f;
+    private float maxDistance = 1000f; // Max range of the bullet
+
     public Projectile(float startX, float startY, float targetX, float targetY) {
         this.position = new Vector2(startX, startY);
         this.active = true;
@@ -37,13 +40,21 @@ public class Projectile {
     }
 
     public void update(float delta) {
+
+        // Calculate movement for this frame
+        float moveX = velocity.x * delta;
+        float moveY = velocity.y * delta;
+
         // Gerakkan peluru
-        position.mulAdd(velocity, delta);
+        position.add(moveX, moveY);
         bounds.setPosition(position.x, position.y);
+
+        // Track distance
+        distanceTraveled += Math.sqrt(moveX*moveX + moveY*moveY);
 
         // Hapus peluru kalau sudah jalan terlalu jauh
         // Nanti diganti logika collision tembok (maybe)
-        if (position.dst(0,0) > 2000) {
+        if (distanceTraveled > maxDistance) {
             active = false;
         }
     }
