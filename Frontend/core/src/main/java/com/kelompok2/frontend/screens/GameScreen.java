@@ -72,9 +72,9 @@ public class GameScreen extends ScreenAdapter {
 
         // Cek Game Over
         if (player.isDead()) {
-            System.out.println("Game over lmao skill issue. Restarting...");
+            System.out.println("Game over lmao skill issue. Returning to Menu......");
             // Restart screen sederhana
-            ((Main)Gdx.app.getApplicationListener()).setScreen(new GameScreen());
+            ((Main)Gdx.app.getApplicationListener()).setScreen(new MainMenuScreen((Main) Gdx.app.getApplicationListener()));
             return; // Stop render frame ini
         }
 
