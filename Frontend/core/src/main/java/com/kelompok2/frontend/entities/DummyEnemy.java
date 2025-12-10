@@ -50,9 +50,16 @@ public class DummyEnemy extends GameCharacter {
         super.update(delta);
 
         if (target != null) {
+            // titik tengah visual player
+            float targetCenterX = target.getPosition().x + target.getVisualWidth() / 2;
+            float targetFeetY = target.getPosition().y;
+
+            // titik tengah visual dummy enemy
+            float myCenterX = this.position.x + getVisualWidth() / 2;
+            float myFeetY = this.position.y;
             Vector2 direction = new Vector2(
-                target.getPosition().x - position.x,
-                target.getPosition().y - position.y
+                targetCenterX - myCenterX,
+                targetFeetY - myFeetY
             ).nor(); // Normalisasi biar speed konstan
 
             move(direction.x * delta, direction.y * delta);

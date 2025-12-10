@@ -14,6 +14,10 @@ public abstract class GameCharacter {
     protected boolean isFacingRight;
     protected Texture texture; // Sprite karakter
     protected Rectangle bounds; // Hitbox untuk collision
+    protected float renderWidth = -1;  // -1 artinya belum diset (default ikut bounds)
+    protected float renderHeight = -1;
+    protected float boundsOffsetX = 0;
+    protected float boundsOffsetY = 0;
     protected int level;
     protected float currentXp;
     protected float xpToNextLevel;
@@ -70,8 +74,8 @@ public abstract class GameCharacter {
         position.x += deltaX * speed;
         position.y += deltaY * speed;
 
-        // Update posisi hitbox mengikuti gambar
-        bounds.setPosition(position.x, position.y);
+        // Position sekarang merepresentasikan posisi pojok kiri-bawah GAMBAR (Visual), bukan Hitbox
+        bounds.setPosition(position.x + boundsOffsetX, position.y + boundsOffsetY);
     }
 
     public void takeDamage(float amount) {
@@ -115,13 +119,16 @@ public abstract class GameCharacter {
             // Jika isFacingRight true (mau hadap kanan), flipX harus true (dibalik)
             // Jika isFacingRight false (mau hadap kiri), flipX false (jangan dibalik, pakai asli)
             boolean flipX = isFacingRight;
+            // [LOGIKA BARU] Gunakan renderWidth/Height jika ada. Jika tidak, pakai bounds.
+            float drawWidth = (renderWidth > 0) ? renderWidth : bounds.width;
+            float drawHeight = (renderHeight > 0) ? renderHeight : bounds.height;
             // Gambar dirender seukuran hitbox
             batch.draw(
                 texture,
                 position.x,
                 position.y,
-                bounds.width,
-                bounds.height,
+                drawWidth,
+                drawHeight,
                 0,
                 0,
                 texture.getWidth(),
@@ -138,7 +145,7 @@ public abstract class GameCharacter {
 
     public void setPosition(float x, float y) {
         this.position.set(x, y);
-        this.bounds.setPosition(x, y);
+        this.bounds.setPosition(x + boundsOffsetX, y + boundsOffsetY);
     }
 
     // Getter Setter standar
@@ -156,5 +163,11 @@ public abstract class GameCharacter {
     }
     public float getXpToNextLevel(){
         return xpToNextLevel;
+    }
+    public float getVisualWidth() {
+        return (renderWidth > 0) ? renderWidth : bounds.width;
+    }
+    public float getVisualHeight() {
+        return (renderHeight > 0) ? renderHeight : bounds.height;
     }
 }

@@ -81,8 +81,8 @@ public class GameScreen extends ScreenAdapter {
 
         // Update posisi kamera agar selalu mengikuti player
         camera.position.set(
-            player.getPosition().x + player.getWidth() / 2,
-            player.getPosition().y + player.getHeight() / 2,
+            player.getPosition().x + player.getVisualWidth() / 2,
+            player.getPosition().y + player.getVisualHeight() / 2,
             0
         );
         camera.update(); // Apply perubahan kamera
@@ -142,9 +142,9 @@ public class GameScreen extends ScreenAdapter {
     private void drawXpBar(GameCharacter character) {
         float x = character.getPosition().x;
         // XP Bar tepat di atas kepala (+2 pixel)
-        float y = character.getPosition().y + character.getHeight() + 2;
+        float y = character.getPosition().y + character.getVisualHeight() + 2;
 
-        float width = character.getWidth();
+        float width = character.getVisualWidth();
         float height = 4; // Tinggi XP bar
 
         // Cek dividen 0 untuk mencegah crash (ArithmeticException/NaN)
@@ -169,10 +169,10 @@ public class GameScreen extends ScreenAdapter {
         // XP bar mulai di +2 dengan tinggi 4 (total +6). Beri jarak 2px lagi -> +8.
         float offset = (character instanceof Ryze) ? 8 : 5;
 
-        float y = character.getPosition().y + character.getHeight() + offset;
+        float y = character.getPosition().y + character.getVisualHeight() + offset;
         // ------------------------
 
-        float width = character.getWidth();
+        float width = character.getVisualWidth();
         float height = 5;
 
         float hpPercent = character.getHp() / character.getMaxHp();

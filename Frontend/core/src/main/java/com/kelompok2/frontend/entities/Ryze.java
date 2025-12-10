@@ -12,9 +12,20 @@ public class Ryze extends GameCharacter {
 
         // Sementara, nanti diganti
         this.texture = new Texture(Gdx.files.internal("ryze_placeholder.png"));
+        float visualSize = 256f;
+        this.renderWidth = visualSize;
+        this.renderHeight = visualSize;
+        // Ukuran hitbox 1/3 dari visualnya (hanya badan yang dianggap hitbox)
+        float hitboxWidth = visualSize / 3f;
+        float hitboxHeight = visualSize * (2f/3f);
 
-        // Ukuran hitbox
-        this.bounds.setSize(256, 256);
+        this.bounds.setSize(hitboxWidth, hitboxHeight);
+
+        this.boundsOffsetX = (visualSize - hitboxWidth) / 2f;
+        this.boundsOffsetY = 0;
+
+        // Update posisi bounds awal
+        setPosition(x, y);
 
         this.autoAttack = false;
         this.attackCooldown = 0;
@@ -23,8 +34,8 @@ public class Ryze extends GameCharacter {
     @Override
     public void attack(Vector2 targetPos, Array<Projectile> projectiles) {
         // Bullet spawn point
-        float startX = this.position.x + this.getWidth() / 2;
-        float startY = this.position.y + this.getHeight() / 2;
+        float startX = this.position.x + this.getVisualWidth() / 2;
+        float startY = this.position.y + this.getVisualHeight() / 2;
 
         // Create projectile logic
         Projectile p = new Projectile(startX, startY, targetPos.x, targetPos.y);
