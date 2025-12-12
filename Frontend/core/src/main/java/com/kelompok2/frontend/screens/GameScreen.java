@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
+import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.utils.InputHandler;
@@ -29,6 +30,7 @@ public class GameScreen extends ScreenAdapter {
     private Texture background; // Background sementara biar kelihatan gerak
 
     private Array<Projectile> projectiles; // List untuk menampung semua peluru yang sedang terbang
+    private Array<MeleeAttack> meleeAttacks; // List untuk menampung semua melee attacks yang sedang aktif
     private Array<DummyEnemy> enemies;
 
     private float spawnTimer = 0; // Timer buat spawn musuh tiap detik
@@ -38,17 +40,19 @@ public class GameScreen extends ScreenAdapter {
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         projectiles = new Array<>();
+        meleeAttacks = new Array<>();
         enemies = new Array<>();
 
         // Sementara pake Ryze dulu
 
-        //  Setup Kamera
+        // Setup Kamera
         camera = new OrthographicCamera();
         // Set ukuran viewport kamera (seberapa luas dunia yang terlihat)
         camera.setToOrtho(false, 1280, 720);
 
         // Load background (optional, biar kelihatan gerak aja)
-        background = new Texture(Gdx.files.internal("FireflyPlaceholder.jpg")); // Pake gambar logo libgdx dulu gpp buat lantai
+        background = new Texture(Gdx.files.internal("FireflyPlaceholder.jpg")); // Pake gambar logo libgdx dulu gpp buat
+                                                                                // lantai
 
         // Spawn Player
         player = new Ryze(0, 0);
@@ -56,8 +60,8 @@ public class GameScreen extends ScreenAdapter {
         // Taruh player di tengah map
         player.setPosition(0, 0);
 
-        // Setup Input Handler dengan Kamera
-        inputHandler = new InputHandler(player, camera, projectiles);
+        // Setup Input Handler dengan Kamera dan MeleeAttacks array
+        inputHandler = new InputHandler(player, camera, projectiles, meleeAttacks);
     }
 
     @Override
@@ -66,6 +70,7 @@ public class GameScreen extends ScreenAdapter {
         player.update(delta);
         inputHandler.update(delta);
         updateProjectiles(delta);
+        updateMeleeAttacks(delta); // Update melee attacks
         updateEnemies(delta);
         checkCollisions(delta); // Cek tabrakan
         spawnEnemies(delta); // Spawn musuh baru
@@ -74,17 +79,16 @@ public class GameScreen extends ScreenAdapter {
         if (player.isDead()) {
             System.out.println("Game over lmao skill issue. Returning to Menu......");
             // Restart screen sederhana
-            ((Main)Gdx.app.getApplicationListener()).setScreen(new MainMenuScreen((Main) Gdx.app.getApplicationListener()));
+            ((Main) Gdx.app.getApplicationListener())
+                    .setScreen(new MainMenuScreen((Main) Gdx.app.getApplicationListener()));
             return; // Stop render frame ini
         }
 
-
         // Update posisi kamera agar selalu mengikuti player
         camera.position.set(
-            player.getPosition().x + player.getVisualWidth() / 2,
-            player.getPosition().y + player.getVisualHeight() / 2,
-            0
-        );
+                player.getPosition().x + player.getVisualWidth() / 2,
+                player.getPosition().y + player.getVisualHeight() / 2,
+                0);
         camera.update(); // Apply perubahan kamera
 
         // 2. CLEAR SCREEN
@@ -98,13 +102,13 @@ public class GameScreen extends ScreenAdapter {
         batch.begin();
 
         float bgSize = 500;
-        int startX = (int)(camera.position.x - camera.viewportWidth/2) / (int)bgSize - 1;
-        int startY = (int)(camera.position.y - camera.viewportHeight/2) / (int)bgSize - 1;
-        int endX = (int)(camera.position.x + camera.viewportWidth/2) / (int)bgSize + 1;
-        int endY = (int)(camera.position.y + camera.viewportHeight/2) / (int)bgSize + 1;
+        int startX = (int) (camera.position.x - camera.viewportWidth / 2) / (int) bgSize - 1;
+        int startY = (int) (camera.position.y - camera.viewportHeight / 2) / (int) bgSize - 1;
+        int endX = (int) (camera.position.x + camera.viewportWidth / 2) / (int) bgSize + 1;
+        int endY = (int) (camera.position.y + camera.viewportHeight / 2) / (int) bgSize + 1;
 
-        for(int x = startX; x <= endX; x++) {
-            for(int y = startY; y <= endY; y++) {
+        for (int x = startX; x <= endX; x++) {
+            for (int y = startY; y <= endY; y++) {
                 batch.draw(background, x * bgSize, y * bgSize, bgSize, bgSize);
             }
         }
@@ -119,6 +123,10 @@ public class GameScreen extends ScreenAdapter {
         }
 
         batch.end();
+
+        // Render melee attack hitboxes (untuk visual feedback)
+        renderMeleeAttacks();
+
         drawHealthBars();
     }
 
@@ -188,10 +196,22 @@ public class GameScreen extends ScreenAdapter {
 
     private void updateProjectiles(float delta) {
         Iterator<Projectile> iter = projectiles.iterator();
-        while(iter.hasNext()){
+        while (iter.hasNext()) {
             Projectile p = iter.next();
             p.update(delta);
-            if(!p.active){
+            if (!p.active) {
+                iter.remove();
+            }
+        }
+    }
+
+    // Hapus mellee attack yang gak aktif / di luar durasi
+    private void updateMeleeAttacks(float delta) {
+        Iterator<MeleeAttack> iter = meleeAttacks.iterator();
+        while (iter.hasNext()) {
+            MeleeAttack m = iter.next();
+            m.update(delta);
+            if (!m.isActive()) {
                 iter.remove();
             }
         }
@@ -201,6 +221,17 @@ public class GameScreen extends ScreenAdapter {
         for (DummyEnemy enemy : enemies) {
             enemy.update(delta);
         }
+    }
+
+    // Box dulu, diganti animasi ntar
+    private void renderMeleeAttacks() {
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        for (MeleeAttack m : meleeAttacks) {
+            if (m.isActive()) {
+                m.render(shapeRenderer);
+            }
+        }
+        shapeRenderer.end();
     }
 
     private void spawnEnemies(float delta) {
@@ -230,7 +261,7 @@ public class GameScreen extends ScreenAdapter {
 
                 if (pBounds.overlaps(e.getBounds())) {
                     p.active = false; // Matikan peluru (akan dihapus di updateProjectiles)
-                    e.takeDamage(25);
+                    e.takeDamage(p.getDamage()); // Gunakan damage dari projectile
                     if (e.isDead()) {
                         eIter.remove();
                         player.gainXp(e.getXpReward());
@@ -241,7 +272,31 @@ public class GameScreen extends ScreenAdapter {
             }
         }
 
-        // Cek Musuh vs Player
+        // Cek Melee Attacks vs Musuh
+        for (MeleeAttack m : meleeAttacks) {
+            if (!m.isActive())
+                continue; // Skip jika sudah tidak aktif
+
+            Rectangle mBounds = m.getBounds();
+            Iterator<DummyEnemy> eIter = enemies.iterator();
+            while (eIter.hasNext()) {
+                DummyEnemy e = eIter.next();
+
+                // Cek collision dan apakah enemy belum pernah terkena attack ini
+                if (mBounds.overlaps(e.getBounds()) && m.canHit(e)) {
+                    e.takeDamage(m.getDamage());
+                    m.markAsHit(e); // Tandai enemy sudah terkena
+
+                    if (e.isDead()) {
+                        eIter.remove();
+                        player.gainXp(e.getXpReward());
+                        System.out.println("Enemy Killed by Melee!");
+                    }
+                }
+            }
+        }
+
+        // Cek Musuh vs Player (collision damage)
         Rectangle playerBounds = player.getBounds();
         for (DummyEnemy e : enemies) {
             if (e.getBounds().overlaps(playerBounds)) {
@@ -266,11 +321,13 @@ public class GameScreen extends ScreenAdapter {
         batch.dispose();
         shapeRenderer.dispose();
         player.dispose();
-        if (background != null) background.dispose();
+        if (background != null)
+            background.dispose();
         // Dispose texture peluru jika ada
         for (Projectile p : projectiles) {
             p.dispose();
         }
-        for (DummyEnemy e : enemies) e.dispose();
+        for (DummyEnemy e : enemies)
+            e.dispose();
     }
 }
