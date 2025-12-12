@@ -41,18 +41,33 @@ public class MeleeAttackStrategy implements AttackStrategy {
             attacker.setFacingRight(false);
         }
 
-        // Hitung posisi hitbox MULAI DARI UJUNG karakter
-        // Hitbox harus di luar bounds karakter, tidak overlap
+        // Hitung posisi hitbox yang DIMULAI DARI EDGE collision bounds karakter
+        // (bukan visual bounds, tapi hitbox asli untuk collision)
+        // Ini agar bisa hit musuh dekat tanpa overlap dengan karakter sendiri
 
-        // Jarak dari center ke edge karakter (radius visual)
-        float characterRadius = Math.max(attacker.getVisualWidth(), attacker.getVisualHeight()) / 2;
+        // Ambil posisi dan ukuran collision bounds karakter
+        float boundsX = attacker.getBounds().x;
+        float boundsY = attacker.getBounds().y;
+        float boundsWidth = attacker.getBounds().width;
+        float boundsHeight = attacker.getBounds().height;
 
-        // Mulai hitbox dari ujung karakter + sedikit gap (10px)
-        float startOffset = characterRadius + 10f;
+        // Center dari collision bounds
+        float boundsCenterX = boundsX + boundsWidth / 2;
+        float boundsCenterY = boundsY + boundsHeight / 2;
 
-        // Posisi awal hitbox (ujung karakter)
-        float hitboxStartX = centerX + (direction.x * startOffset);
-        float hitboxStartY = centerY + (direction.y * startOffset);
+        // Jarak dari center bounds ke edge bounds dalam arah attack
+        // (menggunakan proyeksi direction ke ukuran bounds)
+        float radiusX = boundsWidth / 2;
+        float radiusY = boundsHeight / 2;
+
+        // Offset dari center bounds ke edge bounds di arah attack
+        float edgeOffsetX = Math.abs(direction.x) * radiusX;
+        float edgeOffsetY = Math.abs(direction.y) * radiusY;
+        float edgeOffset = (float) Math.sqrt(edgeOffsetX * edgeOffsetX + edgeOffsetY * edgeOffsetY);
+
+        // Titik awal hitbox: dari edge collision bounds + 5px gap kecil
+        float hitboxStartX = boundsCenterX + (direction.x * (edgeOffset + 5));
+        float hitboxStartY = boundsCenterY + (direction.y * (edgeOffset + 5));
 
         // Extend hitbox sejauh 'range' dari titik awal
         float hitboxCenterX = hitboxStartX + (direction.x * range / 2);
