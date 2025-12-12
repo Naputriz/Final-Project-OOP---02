@@ -28,7 +28,7 @@ public class Ryze extends GameCharacter {
         // Update posisi bounds awal
         setPosition(x, y);
 
-        this.attackStrategy = new MeleeAttackStrategy(100f, 80f, 1.0f, 0.2f);
+        this.attackStrategy = new MeleeAttackStrategy(150f, 120f, 1.0f, 0.2f);
 
         this.autoAttack = false;
         this.attackCooldown = 0.4f; // Cooldown agak lama untuk scythe swing

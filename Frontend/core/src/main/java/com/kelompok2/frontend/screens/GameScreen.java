@@ -331,8 +331,6 @@ public class GameScreen extends ScreenAdapter {
         batch.dispose();
         shapeRenderer.dispose();
         player.dispose();
-        if (background != null)
-            background.dispose();
         // Dispose texture peluru jika ada
         for (Projectile p : projectiles) {
             p.dispose();
@@ -340,4 +338,5 @@ public class GameScreen extends ScreenAdapter {
         for (DummyEnemy e : enemies)
             e.dispose();
     }
+
 }
