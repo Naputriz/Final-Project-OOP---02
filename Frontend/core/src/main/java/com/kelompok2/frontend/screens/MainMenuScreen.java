@@ -11,11 +11,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kelompok2.frontend.Main;
+import com.kelompok2.frontend.managers.AssetManager;
+import com.kelompok2.frontend.managers.GameManager;
 
 public class MainMenuScreen extends ScreenAdapter {
     private final Main game;
     private Stage stage; // Panggung untuk meletakkan UI
-    private Skin skin;   // Gaya visual tombol/font
+    private Skin skin; // Gaya visual tombol/font
     private Texture logoTexture;
 
     // Variabel untuk Window Settings (Pop-up)
@@ -39,7 +41,8 @@ public class MainMenuScreen extends ScreenAdapter {
         mainTable.setFillParent(true); // Memenuhi layar
         // mainTable.setDebug(true); // Uncomment baris ini untuk melihat garis layout
         stage.addActor(mainTable);
-        logoTexture = new Texture("maestra_trials_logo_pixel.png");
+        // Load logo melalui AssetManager (Singleton Pattern)
+        logoTexture = AssetManager.getInstance().loadTexture("maestra_trials_logo_pixel.png");
 
         // --- KOMPONEN UI ---
         logoTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
@@ -57,10 +60,10 @@ public class MainMenuScreen extends ScreenAdapter {
 
         // --- MENYUSUN LAYOUT ---
         mainTable.add(logoImage)
-            .width(1000).height(200) // Atur UKURAN LOGO di sini (sesuaikan pixelnya)
-            .padTop(50)             // Jarak dari atas layar
-            .padBottom(50)          // Jarak antara logo dan tombol
-            .row();                 // Pindah baris ke bawah
+                .width(1000).height(200) // Atur UKURAN LOGO di sini (sesuaikan pixelnya)
+                .padTop(50) // Jarak dari atas layar
+                .padBottom(50) // Jarak antara logo dan tombol
+                .row(); // Pindah baris ke bawah
         mainTable.add(titleLabel).padBottom(50).row();
         mainTable.add(playButton).width(200).height(50).padBottom(20).row();
         mainTable.add(settingsButton).width(200).height(50).padBottom(20).row();
@@ -72,6 +75,9 @@ public class MainMenuScreen extends ScreenAdapter {
         playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                // Reset GameManager untuk game baru
+                GameManager.getInstance().reset();
+
                 // Pindah screen
                 game.setScreen(new GameScreen());
                 // Dispose menu saat ini agar hemat memori
@@ -107,9 +113,8 @@ public class MainMenuScreen extends ScreenAdapter {
         settingsWindow.setVisible(false); // Default tersembunyi
         settingsWindow.setSize(300, 200);
         settingsWindow.setPosition(
-            Gdx.graphics.getWidth() / 2f - 150,
-            Gdx.graphics.getHeight() / 2f - 100
-        );
+                Gdx.graphics.getWidth() / 2f - 150,
+                Gdx.graphics.getHeight() / 2f - 100);
 
         // Isi window setting
         Label volumeLabel = new Label("Volume Musik: 100%", skin);
@@ -155,6 +160,7 @@ public class MainMenuScreen extends ScreenAdapter {
     public void dispose() {
         stage.dispose();
         skin.dispose();
-        if (logoTexture != null) logoTexture.dispose();
+        if (logoTexture != null)
+            logoTexture.dispose();
     }
 }

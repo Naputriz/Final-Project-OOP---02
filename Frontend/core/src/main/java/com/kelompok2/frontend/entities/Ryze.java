@@ -1,8 +1,7 @@
 package com.kelompok2.frontend.entities;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
 import com.kelompok2.frontend.strategies.MeleeAttackStrategy;
+import com.kelompok2.frontend.managers.AssetManager;
 
 public class Ryze extends GameCharacter {
 
@@ -12,8 +11,8 @@ public class Ryze extends GameCharacter {
         this.arts = 10f; // Low Arts
         this.def = 5f; // Low Defence
 
-        // Sementara, nanti diganti
-        this.texture = new Texture(Gdx.files.internal("ryze_placeholder.png"));
+        // Load texture melalui AssetManager
+        this.texture = AssetManager.getInstance().loadTexture("ryze_placeholder.png");
         float visualSize = 256f;
         this.renderWidth = visualSize;
         this.renderHeight = visualSize;

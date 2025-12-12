@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.strategies.AttackStrategy;
+import com.kelompok2.frontend.managers.GameManager;
 
 public abstract class GameCharacter {
     protected Vector2 position;
@@ -117,6 +118,10 @@ public abstract class GameCharacter {
         this.level++;
         this.xpToNextLevel = (float) Math.ceil(this.xpToNextLevel * 1.2f);
         this.maxHp += 20;
+
+        // Sync dengan GameManager (Singleton Pattern)
+        GameManager.getInstance().incrementLevel();
+
         System.out.println(this.getClass().getSimpleName() + " Level Up! lv: " + level);
     }
 

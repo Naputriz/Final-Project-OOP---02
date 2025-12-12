@@ -18,6 +18,8 @@ import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.utils.InputHandler;
+import com.kelompok2.frontend.managers.AssetManager;
+import com.kelompok2.frontend.managers.GameManager;
 
 import java.util.Iterator;
 
@@ -50,15 +52,17 @@ public class GameScreen extends ScreenAdapter {
         // Set ukuran viewport kamera (seberapa luas dunia yang terlihat)
         camera.setToOrtho(false, 1280, 720);
 
-        // Load background (optional, biar kelihatan gerak aja)
-        background = new Texture(Gdx.files.internal("FireflyPlaceholder.jpg")); // Pake gambar logo libgdx dulu gpp buat
-                                                                                // lantai
+        // Load background melalui AssetManager (Singleton Pattern)
+        background = AssetManager.getInstance().loadTexture("FireflyPlaceholder.jpg");
 
         // Spawn Player
         player = new Ryze(0, 0);
 
         // Taruh player di tengah map
         player.setPosition(0, 0);
+
+        // Inisialisasi GameManager untuk game baru (Singleton Pattern)
+        GameManager.getInstance().startNewGame("Ryze"); // TODO: Nanti diganti dari character selection
 
         // Setup Input Handler dengan Kamera dan MeleeAttacks array
         inputHandler = new InputHandler(player, camera, projectiles, meleeAttacks);
@@ -75,9 +79,15 @@ public class GameScreen extends ScreenAdapter {
         checkCollisions(delta); // Cek tabrakan
         spawnEnemies(delta); // Spawn musuh baru
 
+        // Update GameManager state
+        GameManager.getInstance().updateGameTime(delta);
+
         // Cek Game Over
         if (player.isDead()) {
-            System.out.println("Game over lmao skill issue. Returning to Menu......");
+            GameManager.getInstance().setGameOver(true);
+            System.out.println("Game over! Final Level: " + GameManager.getInstance().getCurrentLevel() +
+                    ", Time: " + String.format("%.1f", GameManager.getInstance().getGameTime()) + "s");
+            // TODO: Kirim data ke backend di sini (Level, Character Name, Time)
             // Restart screen sederhana
             ((Main) Gdx.app.getApplicationListener())
                     .setScreen(new MainMenuScreen((Main) Gdx.app.getApplicationListener()));
