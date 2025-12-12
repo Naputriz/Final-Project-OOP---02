@@ -202,219 +202,49 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ## 6. Design Pattern & Pillar OOP
 
-### A. Pillar OOP (Modules 1-3)
+### A. Pillar OOP
+* **Class & Object:** Main blueprints for Player, Enemy, Projectile, and Item.
+* **Encapsulation:** Using private variables for sensitive stats (HP, ATK, Arts) accessible only via getter/setter methods.
+* **Inheritance:**
+    * **Parent Class:** `GameCharacter`.
+    * **Child Classes:** `Enemy` and characters in the roster.
+* **Polymorphism & Abstraction:**
+    * Abstract method `performInnateSkill()` in `GameCharacter` class, overridden with different behaviors by each character.
 
-#### 1. Class & Object (Module 1)
-* **Implementation:** All game entities are represented as classes with instantiated objects
-* **Examples:**
-    * `GameCharacter` class → `Ryze`, `DummyEnemy` objects
-    * `Projectile` class → Individual projectile instances
-    * `MeleeAttack` class → Temporary attack hitbox objects
-    * `GameManager` singleton instance
-    * `AssetManager` singleton instance
+### B. Backend Integration
+* Receives HTTP POST requests upon Game Over to save the score and leaderboard data (Player Name, Highest Level, Character Used) into the database.
 
-#### 2. Encapsulation (Module 2)
-* **Implementation:** Private fields with public getter/setter methods
-* **Examples:**
-    * `GameCharacter` class:
-        * Private: `hp`, `maxHp`, `atk`, `arts`, `def`, `level`
-        * Public getters: `getHp()`, `getMaxHp()`, `getAtk()`, etc.
-    * `AssetManager` class:
-        * Private: `textureCache` (HashMap)
-        * Public methods: `loadTexture()`, `dispose()`
+### C. Design Patterns
+7 Design Patterns are implemented to keep the code structured and scalable.
 
-#### 3. Inheritance (Module 2)
-* **Implementation:** Parent-child class relationships
-* **Class Hierarchy:**
-    ```
-    GameCharacter (abstract parent)
-    ├── Ryze
-    ├── Whisperwind (planned)
-    ├── Aelita (planned)
-    ├── Aegis (planned)
-    └── DummyEnemy
-    ```
+1.  **Singleton Pattern**
+    * **Implementation:** `GameManager` and `AssetManager`.
+    * **Function:** Ensures only one instance manages global data (score, level) and loads assets once to save memory.
 
-#### 4. Polymorphism & Abstraction (Module 3)
-* **Implementation:** Abstract methods overridden by subclasses
-* **Examples:**
-    * Abstract method in `GameCharacter`: `performInnateSkill()`
-    * Overridden in `Ryze`: Implements Spectral Body skill logic
-    * Overridden in `DummyEnemy`: Empty implementation (no skill)
-    * Interface `AttackStrategy`: Implemented by `MeleeAttackStrategy` and `RangedAttackStrategy`
+2.  **Factory Method Pattern**
+    * **Implementation:** `EnemyFactory`.
+    * **Function:** Dynamically creates enemy objects based on the level difficulty.
 
----
+3.  **Object Pool Pattern**
+    * **Implementation:** `ProjectilePool` and `EnemyPool`.
+    * **Function:**
+        * **ProjectilePool:** Manages projectiles to prevent memory load from constant firing.
+        * **EnemyPool:** Manages enemy objects to prevent lag from excessive Garbage Collection as enemy count increases. Dead enemies are deactivated and stored for reuse with reset stats.
 
-### B. Backend Integration (Modules 5-6)
+4.  **Command Pattern**
+    * **Implementation:** `InputHandler`.
+    * **Function:** Separates keyboard logic from character logic. Inputs (WASD, Attack, Skills) are wrapped in command objects, facilitating keybinding changes.
 
-#### Spring Boot & RESTful API (Module 5)
-* **Planned Implementation:** Backend server to handle game data
-* **Endpoints:**
-    * `POST /api/scores` - Submit game over data
-    * `GET /api/leaderboard` - Retrieve top scores
+5.  **Observer Pattern**
+    * **Implementation:** HUD System.
+    * **Function:** The Health Bar UI acts as an Observer monitoring the Player. When Player HP drops, the Player notifies the UI to update, removing the need for manual checking every frame.
 
-#### Spring Data JPA & CRUD (Module 6)
-* **Planned Implementation:** Database operations for persistent storage
-* **Entities:**
-    * `Player` entity (username, highestLevel, characterUsed, timestamp)
-    * Repository: `PlayerRepository` extends `JpaRepository`
+6.  **State Pattern**
+    * **Implementation:** `EntityState` & `GameState`.
+    * **Function:**
+        * **Character:** Manages animations to prevent overlap (IDLE, RUN, ATTACK, HURT, DEAD).
+        * **Game:** Manages active screens (MainMenu, Gameplay, Pause, GameOver).
 
----
-
-### C. Design Patterns (Modules 7-11)
-
-10 Design Patterns are implemented to keep the code structured and scalable.
-
-#### 1. Singleton Pattern (Module 7) ✅ **IMPLEMENTED**
-* **Classes:** `GameManager`, `AssetManager`
-* **Implementation Details:**
-    * Private static instance field
-    * Private constructor to prevent external instantiation
-    * Public `getInstance()` method (thread-safe with `synchronized`)
-* **Location:**
-    * `com.kelompok2.frontend.managers.GameManager`
-    * `com.kelompok2.frontend.managers.AssetManager`
-* **Function:**
-    * `GameManager`: Manages global game state (level, time, character name, game over status)
-    * `AssetManager`: Caches textures to prevent duplicate loading and reduce memory usage
-
-#### 2. Factory Method Pattern (Module 8) ✅ **IMPLEMENTED**
-* **Classes:** `EnemyFactory`, `EnemyType` enum
-* **Implementation Details:**
-    * Static factory method `createEnemy(type, x, y, target)`
-    * Returns different enemy instances based on EnemyType
-    * `getRandomEnemyType(level)` for difficulty scaling
-* **Location:**
-    * `com.kelompok2.frontend.factories.EnemyFactory`
-    * `com.kelompok2.frontend.factories.EnemyType`
-* **Function:** 
-    * Dynamically creates enemy objects without exposing creation logic
-    * Enables level-based difficulty scaling (currently all DUMMY, ready for expansion)
-* **Future Use:** Will create FAST, TANK, and RANGED enemy types as gameplay expands
-
-#### 3. Object Pool Pattern (Module 8) ✅ **IMPLEMENTED**
-* **Classes:** `ProjectilePool`, `EnemyPool`
-* **Implementation Details:**
-    * Maintains pools of available and active objects
-    * `obtain()` method retrieves from pool or creates new if empty
-    * `free(object)` method returns object to available pool
-    * Auto-frees inactive/dead objects during update()
-* **Location:**
-    * `com.kelompok2.frontend.pools.ProjectilePool`
-    * `com.kelompok2.frontend.pools.EnemyPool`
-* **Function:**
-    * `ProjectilePool`: Reuses projectile objects to prevent constant allocation/deallocation
-    * `EnemyPool`: Reuses enemy objects to reduce Garbage Collection lag
-* **Performance Impact:** Significant reduction in GC overhead, especially with many projectiles/enemies
-
-#### 4. Command Pattern (Module 9) 🔧 **PARTIALLY IMPLEMENTED**
-* **Class:** `InputHandler`
-* **Current Implementation:**
-    * Handles input processing for player controls
-    * Separates input logic from game logic
-* **Planned Enhancement:**
-    * Wrap each input action in command objects (e.g., `MoveCommand`, `AttackCommand`, `SkillCommand`)
-    * Enable rebindable controls by changing command mappings
-* **Location:** `com.kelompok2.frontend.utils.InputHandler`
-
-#### 5. Observer Pattern (Module 9) ⏳ **PLANNED**
-* **Implementation:** HUD System with observer-subject relationship
-* **Components:**
-    * **Subject:** `GameCharacter` (maintains list of observers)
-    * **Observer:** `HealthBarUI`, `XPBarUI` (implements `Observer` interface)
-* **Function:**
-    * When player HP changes, automatically notify all UI observers
-    * UI updates without manual polling every frame
-* **Future Use:** Cleaner UI code, easier to add new UI elements
-
-#### 6. State Pattern (Module 10) ⏳ **PLANNED**
-* **Classes:** `EntityState`, `GameState`
-* **Implementation Details:**
-    * Each state is a separate class implementing common interface
-    * Context object switches between states
-* **States:**
-    * **Character States:** `IdleState`, `RunState`, `AttackState`, `HurtState`, `DeadState`
-    * **Game States:** `MainMenuState`, `GameplayState`, `PauseState`, `GameOverState`
-* **Function:**
-    * Manage animations to prevent overlap
-    * Control screen transitions
-* **Future Use:** Clean state transitions, easier animation management
-
-#### 7. Strategy Pattern (Module 10) ✅ **IMPLEMENTED**
-* **Interface:** `AttackStrategy`
-* **Implementations:** `MeleeAttackStrategy`, `RangedAttackStrategy`
-* **Implementation Details:**
-    * Interface defines `execute()` method
-    * Each strategy implements different attack behavior
-    * Assigned to `GameCharacter` via `setAttackStrategy()`
-* **Location:**
-    * `com.kelompok2.frontend.strategies.AttackStrategy` (interface)
-    * `com.kelompok2.frontend.strategies.MeleeAttackStrategy` (Ryze's scythe swing)
-    * `com.kelompok2.frontend.strategies.RangedAttackStrategy` (Projectile shooting)
-* **Function:**
-    * Allows characters to change attack behavior dynamically
-    * Lootable skills can change Q button behavior without modifying Player class
-    * Different scaling formulas for different skills (ATK vs Arts scaling)
-
-#### 8. Iterator Pattern (Module 4) 🔧 **IN USE (via Collections)**
-* **Implementation:** Java Collections Framework
-* **Usage:**
-    * `Array<Projectile>` with iterator for update/collision loops
-    * `Array<DummyEnemy>` with iterator for safe removal during iteration
-    * `HashMap<String, Texture>` in AssetManager for cached textures
-* **Location:** Throughout `GameScreen.java` collision detection and update loops
-* **Function:**
-    * Safe iteration with removal (using `Iterator.remove()`)
-    * Prevents `ConcurrentModificationException`
-
-#### 9. Template Method Pattern (Module 11) 🔧 **PARTIALLY IMPLEMENTED**
-* **Class:** `GameCharacter` (abstract template)
-* **Current Implementation:**
-    * `update(delta)` method in GameCharacter provides template structure
-    * Subclasses like `DummyEnemy` override and extend with specific behavior
-    * Common timer updates handled in base class
-* **Implementation Details:**
-    * Define skeleton of character update algorithm in base class
-    * Subclasses override specific steps
-* **Planned Enhancement - Template Methods:**
-    * Add more hook methods: `onLevelUp()`, `onDeath()`, `onSkillUse()`
-    * Formalize the template structure with protected abstract/hook methods
-* **Location:** `com.kelompok2.frontend.entities.GameCharacter`
-* **Future Use:**
-    * Common character behavior in base class
-    * Specific behaviors (death effects, level-up bonuses) in subclasses
-    * Reduces code duplication
-
-#### 10. Facade Pattern (Module 11) ⏳ **PLANNED**
-* **Class:** `GameFacade`
-* **Implementation Details:**
-    * Provides simplified interface to complex subsystems
-    * Hides complexity from Main/Launcher classes
-* **Subsystems to Wrap:**
-    * GameManager (state management)
-    * AssetManager (resource loading)
-    * InputHandler (controls)
-    * AudioManager (sound/music)
-* **Future Use:**
-    * Simplified game initialization: `GameFacade.initialize()`
-    * Easier testing and maintenance
-    * Reduced coupling between subsystems
-
----
-
-### D. Design Pattern Summary
-
-| Pattern | Status | Classes | Module |
-|---------|--------|---------|--------|
-| Singleton | ✅ Implemented | GameManager, AssetManager | 7 |
-| Strategy | ✅ Implemented | AttackStrategy, MeleeAttackStrategy, RangedAttackStrategy | 10 |
-| Factory Method | ✅ Implemented | EnemyFactory, EnemyType | 8 |
-| Object Pool | ✅ Implemented | ProjectilePool, EnemyPool | 8 |
-| Command | 🔧 Partial | InputHandler | 9 |
-| Iterator | 🔧 In Use | Java Collections (Array, HashMap) | 4 |
-| Template Method | 🔧 Partial | GameCharacter | 11 |
-| Observer | ⏳ Planned | HUD System | 9 |
-| State | ⏳ Planned | EntityState, GameState | 10 |
-| Facade | ⏳ Planned | GameFacade | 11 |
-
-**Total:** 10 Patterns (4 implemented, 3 partially/in-use, 3 planned)
+7.  **Strategy Pattern**
+    * **Implementation:** Skill System.
+    * **Function:** Changes skill attack behavior dynamically. Picking up a new skill item changes the behavior of the Q button without modifying the Player class code. It also simplifies implementing innate skills with different scaling.
