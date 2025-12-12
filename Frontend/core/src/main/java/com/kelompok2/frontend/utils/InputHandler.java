@@ -9,18 +9,19 @@ import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
+import com.kelompok2.frontend.pools.ProjectilePool;
 
 public class InputHandler {
     private GameCharacter character;
     private Camera camera; // Referensi kamera untuk konversi koordinat mouse
-    private Array<Projectile> projectiles; // Referensi ke list peluru di GameScreen
+    private ProjectilePool projectilePool; // Pool projectiles (Object Pool Pattern)
     private Array<MeleeAttack> meleeAttacks; // Referensi ke list melee attacks di GameScreen
 
     public InputHandler(GameCharacter character, Camera camera,
-            Array<Projectile> projectiles, Array<MeleeAttack> meleeAttacks) {
+            ProjectilePool projectilePool, Array<MeleeAttack> meleeAttacks) {
         this.character = character;
         this.camera = camera;
-        this.projectiles = projectiles;
+        this.projectilePool = projectilePool;
         this.meleeAttacks = meleeAttacks;
     }
 
@@ -91,8 +92,8 @@ public class InputHandler {
             Vector3 mousePos3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
             Vector2 target = new Vector2(mousePos3.x, mousePos3.y);
 
-            // Call character attack dengan melee attacks support
-            character.attack(target, projectiles, meleeAttacks);
+            // Call character attack dengan pool support
+            character.attack(target, projectilePool.getActiveProjectiles(), meleeAttacks);
 
             // Reset cooldown
             character.resetAttackTimer();

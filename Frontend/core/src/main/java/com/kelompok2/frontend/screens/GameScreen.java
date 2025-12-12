@@ -20,6 +20,10 @@ import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.utils.InputHandler;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.managers.GameManager;
+import com.kelompok2.frontend.pools.ProjectilePool;
+import com.kelompok2.frontend.pools.EnemyPool;
+import com.kelompok2.frontend.factories.EnemyFactory;
+import com.kelompok2.frontend.factories.EnemyType;
 
 import java.util.Iterator;
 
@@ -31,9 +35,9 @@ public class GameScreen extends ScreenAdapter {
     private OrthographicCamera camera; // Kamera game
     private Texture background; // Background sementara biar kelihatan gerak
 
-    private Array<Projectile> projectiles; // List untuk menampung semua peluru yang sedang terbang
+    private ProjectilePool projectilePool; // Object Pool untuk projectiles (Object Pool Pattern)
     private Array<MeleeAttack> meleeAttacks; // List untuk menampung semua melee attacks yang sedang aktif
-    private Array<DummyEnemy> enemies;
+    private EnemyPool enemyPool; // Object Pool untuk enemies (Object Pool Pattern)
 
     private float spawnTimer = 0; // Timer buat spawn musuh tiap detik
 
@@ -41,11 +45,10 @@ public class GameScreen extends ScreenAdapter {
     public void show() {
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
-        projectiles = new Array<>();
-        meleeAttacks = new Array<>();
-        enemies = new Array<>();
 
-        // Sementara pake Ryze dulu
+        // Inisialisasi Object Pools (Object Pool Pattern)
+        projectilePool = new ProjectilePool(50); // Pool 50 projectiles
+        meleeAttacks = new Array<>();
 
         // Setup Kamera
         camera = new OrthographicCamera();
@@ -61,11 +64,14 @@ public class GameScreen extends ScreenAdapter {
         // Taruh player di tengah map
         player.setPosition(0, 0);
 
-        // Inisialisasi GameManager untuk game baru (Singleton Pattern)
+        // Inisialisasi EnemyPool setelah player dibuat
+        enemyPool = new EnemyPool(player, 30); // Pool 30 enemies
+
+        // Inisialisasi GameManager untuk game baru
         GameManager.getInstance().startNewGame("Ryze"); // TODO: Nanti diganti dari character selection
 
-        // Setup Input Handler dengan Kamera dan MeleeAttacks array
-        inputHandler = new InputHandler(player, camera, projectiles, meleeAttacks);
+        // Setup Input Handler dengan Kamera, ProjectilePool, dan MeleeAttacks array
+        inputHandler = new InputHandler(player, camera, projectilePool, meleeAttacks);
     }
 
     @Override
@@ -73,9 +79,12 @@ public class GameScreen extends ScreenAdapter {
         // UPDATE LOGIC
         player.update(delta);
         inputHandler.update(delta);
-        updateProjectiles(delta);
-        updateMeleeAttacks(delta); // Update melee attacks
-        updateEnemies(delta);
+
+        // Update pools
+        projectilePool.update(delta); // Auto-frees inactive projectiles
+        updateMeleeAttacks(delta);
+        enemyPool.update(delta); // Auto-frees dead enemies
+
         checkCollisions(delta); // Cek tabrakan
         spawnEnemies(delta); // Spawn musuh baru
 
@@ -123,14 +132,10 @@ public class GameScreen extends ScreenAdapter {
             }
         }
         player.render(batch);
-        // Render Projectiles
-        for (Projectile p : projectiles) {
-            p.render(batch);
-        }
 
-        for (DummyEnemy enemy : enemies) {
-            enemy.render(batch);
-        }
+        // Render menggunakan pools
+        projectilePool.render(batch);
+        enemyPool.render(batch);
 
         batch.end();
 
@@ -149,8 +154,8 @@ public class GameScreen extends ScreenAdapter {
         // Render XP player
         drawXpBar(player);
 
-        // Render HP Musuh
-        for (DummyEnemy enemy : enemies) {
+        // Render HP Musuh dari pool
+        for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
             drawBar(enemy);
         }
 
@@ -204,16 +209,6 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.rect(x, y, width * hpPercent, height);
     }
 
-    private void updateProjectiles(float delta) {
-        Iterator<Projectile> iter = projectiles.iterator();
-        while (iter.hasNext()) {
-            Projectile p = iter.next();
-            p.update(delta);
-            if (!p.active) {
-                iter.remove();
-            }
-        }
-    }
 
     // Hapus mellee attack yang gak aktif / di luar durasi
     private void updateMeleeAttacks(float delta) {
@@ -224,12 +219,6 @@ public class GameScreen extends ScreenAdapter {
             if (!m.isActive()) {
                 iter.remove();
             }
-        }
-    }
-
-    private void updateEnemies(float delta) {
-        for (DummyEnemy enemy : enemies) {
-            enemy.update(delta);
         }
     }
 
@@ -246,34 +235,41 @@ public class GameScreen extends ScreenAdapter {
 
     private void spawnEnemies(float delta) {
         spawnTimer += delta;
-        if (spawnTimer > 1.5f) { // Spawn tiap 2 detik
-            // Spawn di posisi random sekitar player (radius 500-700 pixel)
+        if (spawnTimer > 1.5f) { // Spawn tiap 1.5 detik
+            // Spawn di posisi random sekitar player (radius 600-800 pixel)
             float angle = MathUtils.random(360);
             float distance = MathUtils.random(600, 800);
             float x = player.getPosition().x + MathUtils.cosDeg(angle) * distance;
             float y = player.getPosition().y + MathUtils.sinDeg(angle) * distance;
 
-            enemies.add(new DummyEnemy(x, y, player));
+            // Gunakan Factory Method untuk mendapatkan tipe enemy berdasarkan level
+            int currentLevel = GameManager.getInstance().getCurrentLevel();
+            EnemyType type = EnemyFactory.getRandomEnemyType(currentLevel);
+
+            // Dapatkan enemy dari pool
+            // Factory type akan digunakan saat ada lebih banyak tipe enemy
+            DummyEnemy enemy = enemyPool.obtain(x, y);
+
             spawnTimer = 0;
+
         }
     }
 
     private void checkCollisions(float delta) {
+        // Ambil active arrays dari pools
+        Array<Projectile> activeProjectiles = projectilePool.getActiveProjectiles();
+        Array<DummyEnemy> activeEnemies = enemyPool.getActiveEnemies();
+
         // Cek Peluru vs Musuh
-        Iterator<Projectile> pIter = projectiles.iterator();
-        while (pIter.hasNext()) {
-            Projectile p = pIter.next();
+        for (Projectile p : activeProjectiles) {
             Rectangle pBounds = p.getBounds();
 
-            Iterator<DummyEnemy> eIter = enemies.iterator();
-            while (eIter.hasNext()) {
-                DummyEnemy e = eIter.next();
-
+            for (DummyEnemy e : activeEnemies) {
                 if (pBounds.overlaps(e.getBounds())) {
-                    p.active = false; // Matikan peluru (akan dihapus di updateProjectiles)
-                    e.takeDamage(p.getDamage()); // Gunakan damage dari projectile
+                    p.active = false; // Matikan peluru (pool akan auto-free)
+                    e.takeDamage(p.getDamage());
                     if (e.isDead()) {
-                        eIter.remove();
+                        // Pool akan auto-free enemy yang mati di update()
                         player.gainXp(e.getXpReward());
                         System.out.println("Enemy Killed!");
                     }
@@ -285,20 +281,16 @@ public class GameScreen extends ScreenAdapter {
         // Cek Melee Attacks vs Musuh
         for (MeleeAttack m : meleeAttacks) {
             if (!m.isActive())
-                continue; // Skip jika sudah tidak aktif
+                continue;
 
             Rectangle mBounds = m.getBounds();
-            Iterator<DummyEnemy> eIter = enemies.iterator();
-            while (eIter.hasNext()) {
-                DummyEnemy e = eIter.next();
-
-                // Cek collision dan apakah enemy belum pernah terkena attack ini
+            for (DummyEnemy e : activeEnemies) {
                 if (mBounds.overlaps(e.getBounds()) && m.canHit(e)) {
                     e.takeDamage(m.getDamage());
-                    m.markAsHit(e); // Tandai enemy sudah terkena
+                    m.markAsHit(e);
 
                     if (e.isDead()) {
-                        eIter.remove();
+                        // Pool akan auto-free enemy yang mati
                         player.gainXp(e.getXpReward());
                         System.out.println("Enemy Killed by Melee!");
                     }
@@ -308,7 +300,7 @@ public class GameScreen extends ScreenAdapter {
 
         // Cek Musuh vs Player (collision damage)
         Rectangle playerBounds = player.getBounds();
-        for (DummyEnemy e : enemies) {
+        for (DummyEnemy e : activeEnemies) {
             if (e.getBounds().overlaps(playerBounds)) {
                 if (e.canAttack()) {
                     player.takeDamage(10);
@@ -331,12 +323,11 @@ public class GameScreen extends ScreenAdapter {
         batch.dispose();
         shapeRenderer.dispose();
         player.dispose();
-        // Dispose texture peluru jika ada
-        for (Projectile p : projectiles) {
-            p.dispose();
-        }
-        for (DummyEnemy e : enemies)
-            e.dispose();
+
+        // Dispose pools
+        projectilePool.dispose();
+        enemyPool.dispose();
+
     }
 
 }

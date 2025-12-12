@@ -58,6 +58,30 @@ Maestra Trials is a roguelike game where the player selects a character to enter
     * The "ultimate" is a one-time use skill.
     * Upon defeat, the boss becomes a playable character.
 
+### UI/UX Mechanics
+
+#### Main Menu
+* **Main Menu Screen:**
+    * Displays game logo ("MAESTRA TRIALS")
+    * **Menu Options:**
+        * **MULAI** (Start) - Goes to Character Selection
+        * **PENGATURAN** (Settings) - Opens settings menu (keybinds, audio)
+        * **KELUAR** (Logout/Exit) - Exits the game
+    * Note: Future versions may include login system (Username + Password)
+
+#### Character Selection
+* **Character Selection Screen:**
+    * **Character Grid:** Displays character portraits in a grid layout
+    * **Character Preview:**
+        * Character portrait/photo on hover or selection
+        * Idle animation plays when hovering over character
+    * **Character Information Panel:**
+        * **Stats Display:** Shows HP, ATK, Arts, DEF, SPEED
+        * **Innate Skill Description:** Description of character's unique E skill
+        * **Role Indicator:** Shows character role (Physical Attacker, Arts Attacker, Tank, Healing Attacker)
+    * **Confirm Button:** Starts the game with selected character
+
+
 ---
 
 ## 4. Character Roster
@@ -171,6 +195,8 @@ Each character has a unique innate skill but has a second skill slot that can be
 * **Basic Attack:** Shoot icicles.
 * **Innate Skill (Glacial Breath):** Shoots in a cone hitbox, freezing enemies on hit (Duration: 3 seconds or until hit again).
 * **Cooldown:** 10 seconds.
+
+---
 
 ---
 
