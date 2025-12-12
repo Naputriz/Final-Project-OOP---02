@@ -2,8 +2,7 @@ package com.kelompok2.frontend.entities;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.strategies.RangedAttackStrategy;
 
 public class TEST extends GameCharacter {
 
@@ -14,17 +13,11 @@ public class TEST extends GameCharacter {
 
         this.bounds.setSize(256, 256);
 
+        // TEST menggunakan ranged attack
+        this.attackStrategy = new RangedAttackStrategy();
+
         this.autoAttack = true;
         this.attackCooldown = 0.1f;
-    }
-
-    @Override
-    public void attack(Vector2 targetPos, Array<Projectile> projectiles) {
-        float startX = this.position.x + this.getWidth() / 2;
-        float startY = this.position.y + this.getHeight() / 2;
-
-        Projectile p = new Projectile(startX, startY, targetPos.x, targetPos.y);
-        projectiles.add(p);
     }
 
     @Override

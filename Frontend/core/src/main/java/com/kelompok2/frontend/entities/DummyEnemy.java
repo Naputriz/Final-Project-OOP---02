@@ -3,9 +3,7 @@ package com.kelompok2.frontend.entities;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
 
 public class DummyEnemy extends GameCharacter {
     private GameCharacter target;
@@ -32,16 +30,11 @@ public class DummyEnemy extends GameCharacter {
     }
 
     @Override
-    public void attack(Vector2 targetPos, Array<Projectile> projectiles) {
-        // Melee = no proj, implement melee maybe
-    }
-
-    @Override
     public void performInnateSkill() {
         // Dummy gak punya skill
     }
 
-    public float getXpReward(){
+    public float getXpReward() {
         return 25f;
     }
 
@@ -58,9 +51,8 @@ public class DummyEnemy extends GameCharacter {
             float myCenterX = this.position.x + getVisualWidth() / 2;
             float myFeetY = this.position.y;
             Vector2 direction = new Vector2(
-                targetCenterX - myCenterX,
-                targetFeetY - myFeetY
-            ).nor(); // Normalisasi biar speed konstan
+                    targetCenterX - myCenterX,
+                    targetFeetY - myFeetY).nor(); // Normalisasi biar speed konstan
 
             move(direction.x * delta, direction.y * delta);
         }

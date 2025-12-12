@@ -14,14 +14,16 @@ public class Projectile {
     private Texture texture;
     private Rectangle bounds;
     public boolean active; // Penanda apakah peluru masih aktif
+    private float damage; // Damage yang diberikan peluru (scaling dari Arts)
 
     private float distanceTraveled = 0f;
     private float maxDistance = 1000f; // Max range of the bullet
 
-    public Projectile(float startX, float startY, float targetX, float targetY) {
+    public Projectile(float startX, float startY, float targetX, float targetY, float damage) {
         this.position = new Vector2(startX, startY);
         this.active = true;
         this.bounds = new Rectangle(startX, startY, 10, 10); // Ukuran peluru
+        this.damage = damage;
 
         // Hitung arah peluru (Matematika Vektor)
         Vector2 direction = new Vector2(targetX - startX, targetY - startY).nor();
@@ -29,6 +31,10 @@ public class Projectile {
 
         // Bikin gambar kotak kuning sederhana
         createTexture();
+    }
+
+    public Projectile(float startX, float startY, float targetX, float targetY) {
+        this(startX, startY, targetX, targetY, 25f);
     }
 
     private void createTexture() {
@@ -50,7 +56,7 @@ public class Projectile {
         bounds.setPosition(position.x, position.y);
 
         // Track distance
-        distanceTraveled += Math.sqrt(moveX*moveX + moveY*moveY);
+        distanceTraveled += Math.sqrt(moveX * moveX + moveY * moveY);
 
         // Hapus peluru kalau sudah jalan terlalu jauh
         // Nanti diganti logika collision tembok (maybe)
@@ -65,6 +71,10 @@ public class Projectile {
 
     public Rectangle getBounds() {
         return bounds;
+    }
+
+    public float getDamage() {
+        return damage;
     }
 
     public void dispose() {
