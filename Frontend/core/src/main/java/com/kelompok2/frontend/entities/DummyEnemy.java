@@ -38,6 +38,16 @@ public class DummyEnemy extends GameCharacter {
         return 25f;
     }
 
+    public void reset(float x, float y, GameCharacter newTarget) {
+        this.position.set(x, y);
+        this.bounds.setPosition(x, y);
+        this.target = newTarget;
+
+        // Reset stats ke kondisi awal
+        this.hp = this.maxHp;
+        this.attackTimer = 0;
+    }
+
     // Logic AI: Kejar target
     public void update(float delta) {
         super.update(delta);

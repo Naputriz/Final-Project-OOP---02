@@ -37,12 +37,31 @@ public class Projectile {
         this(startX, startY, targetX, targetY, 25f);
     }
 
+    // Constructor untuk Object Pool (menerima Vector2 direction langsung)
+    public Projectile(float startX, float startY, Vector2 direction, float damage) {
+        this.position = new Vector2(startX, startY);
+        this.active = true;
+        this.bounds = new Rectangle(startX, startY, 10, 10);
+        this.damage = damage;
+        this.velocity = direction.cpy().nor().scl(speed);
+        createTexture();
+    }
+
     private void createTexture() {
         Pixmap pixmap = new Pixmap(10, 10, Pixmap.Format.RGBA8888);
         pixmap.setColor(Color.YELLOW);
         pixmap.fill();
         this.texture = new Texture(pixmap);
         pixmap.dispose();
+    }
+
+    public void reset(float x, float y, Vector2 direction, float newDamage) {
+        this.position.set(x, y);
+        this.velocity = direction.cpy().nor().scl(speed);
+        this.bounds.setPosition(x, y);
+        this.damage = newDamage;
+        this.active = true;
+        this.distanceTraveled = 0f;
     }
 
     public void update(float delta) {
