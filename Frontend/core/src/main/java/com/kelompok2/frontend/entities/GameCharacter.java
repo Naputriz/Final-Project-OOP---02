@@ -63,6 +63,12 @@ public abstract class GameCharacter {
     // Method abstract buat innate skill
     public abstract void performInnateSkill();
 
+    // Overload untuk skills yang aim ke mouse position
+    public void performInnateSkill(Vector2 targetPos) {
+        // Default: call basic skill (untuk backward compatibility)
+        performInnateSkill();
+    }
+
     // Update untuk mengurangi timer
     public void update(float delta) {
         if (attackTimer > 0) {

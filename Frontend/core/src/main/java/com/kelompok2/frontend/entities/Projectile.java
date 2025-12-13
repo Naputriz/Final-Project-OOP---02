@@ -15,21 +15,27 @@ public class Projectile {
     private Rectangle bounds;
     public boolean active; // Penanda apakah peluru masih aktif
     private float damage; // Damage yang diberikan peluru (scaling dari Arts)
+    private Color color = Color.YELLOW; // Warna projectile (default kuning)
 
     private float distanceTraveled = 0f;
     private float maxDistance = 1000f; // Max range of the bullet
 
     public Projectile(float startX, float startY, float targetX, float targetY, float damage) {
+        this(startX, startY, targetX, targetY, damage, Color.YELLOW);
+    }
+
+    public Projectile(float startX, float startY, float targetX, float targetY, float damage, Color color) {
         this.position = new Vector2(startX, startY);
         this.active = true;
         this.bounds = new Rectangle(startX, startY, 10, 10); // Ukuran peluru
         this.damage = damage;
+        this.color = color;
 
         // Hitung arah peluru (Matematika Vektor)
         Vector2 direction = new Vector2(targetX - startX, targetY - startY).nor();
         this.velocity = direction.scl(speed);
 
-        // Bikin gambar kotak kuning sederhana
+        // Bikin gambar kotak dengan warna custom
         createTexture();
     }
 
@@ -49,10 +55,19 @@ public class Projectile {
 
     private void createTexture() {
         Pixmap pixmap = new Pixmap(10, 10, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.YELLOW);
+        pixmap.setColor(color); // Gunakan warna custom
         pixmap.fill();
         this.texture = new Texture(pixmap);
         pixmap.dispose();
+    }
+
+    public void setColor(Color newColor) {
+        this.color = newColor;
+        // Recreate texture dengan warna baru
+        if (texture != null) {
+            texture.dispose();
+        }
+        createTexture();
     }
 
     public void reset(float x, float y, Vector2 direction, float newDamage) {

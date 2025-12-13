@@ -17,6 +17,8 @@ import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.entities.Ryze;
+import com.kelompok2.frontend.entities.Isolde;
+import com.kelompok2.frontend.entities.GlacialBreath;
 import com.kelompok2.frontend.utils.InputHandler;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.managers.GameManager;
@@ -30,7 +32,7 @@ import java.util.Iterator;
 public class GameScreen extends ScreenAdapter {
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
-    private Ryze player;
+    private GameCharacter player; // Changed to GameCharacter untuk support multiple characters
     private InputHandler inputHandler;
     private OrthographicCamera camera; // Kamera game
     private Texture background; // Background sementara biar kelihatan gerak
@@ -58,8 +60,8 @@ public class GameScreen extends ScreenAdapter {
         // Load background melalui AssetManager (Singleton Pattern)
         background = AssetManager.getInstance().loadTexture("FireflyPlaceholder.jpg");
 
-        // Spawn Player
-        player = new Ryze(0, 0);
+        // Spawn Player - Currently Isolde (The Frost Kaiser)
+        player = new Isolde(0, 0);
 
         // Taruh player di tengah map
         player.setPosition(0, 0);
@@ -68,7 +70,7 @@ public class GameScreen extends ScreenAdapter {
         enemyPool = new EnemyPool(player, 30); // Pool 30 enemies
 
         // Inisialisasi GameManager untuk game baru
-        GameManager.getInstance().startNewGame("Ryze"); // TODO: Nanti diganti dari character selection
+        GameManager.getInstance().startNewGame("Isolde"); // TODO: Nanti diganti dari character selection
 
         // Setup Input Handler dengan Kamera, ProjectilePool, dan MeleeAttacks array
         inputHandler = new InputHandler(player, camera, projectilePool, meleeAttacks);
@@ -142,6 +144,9 @@ public class GameScreen extends ScreenAdapter {
         // Render melee attack hitboxes (untuk visual feedback)
         renderMeleeAttacks();
 
+        // Render Glacial Breath cones (untuk visual feedback)
+        renderGlacialBreaths();
+
         drawHealthBars();
     }
 
@@ -209,7 +214,6 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.rect(x, y, width * hpPercent, height);
     }
 
-
     // Hapus mellee attack yang gak aktif / di luar durasi
     private void updateMeleeAttacks(float delta) {
         Iterator<MeleeAttack> iter = meleeAttacks.iterator();
@@ -228,6 +232,21 @@ public class GameScreen extends ScreenAdapter {
         for (MeleeAttack m : meleeAttacks) {
             if (m.isActive()) {
                 m.render(shapeRenderer);
+            }
+        }
+        shapeRenderer.end();
+    }
+
+    // Render Glacial Breath cones untuk visual feedback
+    private void renderGlacialBreaths() {
+        if (!(player instanceof Isolde))
+            return;
+
+        Isolde isolde = (Isolde) player;
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        for (GlacialBreath gb : isolde.getGlacialBreaths()) {
+            if (gb.isActive()) {
+                gb.render(shapeRenderer);
             }
         }
         shapeRenderer.end();
@@ -293,6 +312,30 @@ public class GameScreen extends ScreenAdapter {
                         // Pool akan auto-free enemy yang mati
                         player.gainXp(e.getXpReward());
                         System.out.println("Enemy Killed by Melee!");
+                    }
+                }
+            }
+        }
+
+        // Cek Glacial Breath (Isolde's skill) vs Musuh
+        if (player instanceof Isolde) {
+            Isolde isolde = (Isolde) player;
+            for (GlacialBreath gb : isolde.getGlacialBreaths()) {
+                if (!gb.isActive())
+                    continue;
+
+                for (DummyEnemy e : activeEnemies) {
+                    if (gb.canHit(e)) {
+                        e.takeDamage(gb.getDamage());
+                        e.freeze(); // Apply freeze status!
+                        gb.markAsHit(e);
+
+                        if (e.isDead()) {
+                            player.gainXp(e.getXpReward());
+                            System.out.println("Enemy Killed by Glacial Breath!");
+                        } else {
+                            System.out.println("Enemy frozen for 3 seconds!");
+                        }
                     }
                 }
             }
