@@ -102,7 +102,12 @@ public class InputHandler {
 
     private void handleSkills() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
-            character.performInnateSkill();
+            // Get mouse position in world coordinates
+            Vector3 mousePos3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+            Vector2 mousePos = new Vector2(mousePos3.x, mousePos3.y);
+
+            // Call skill with mouse position untuk aiming
+            character.performInnateSkill(mousePos);
         }
     }
 }
