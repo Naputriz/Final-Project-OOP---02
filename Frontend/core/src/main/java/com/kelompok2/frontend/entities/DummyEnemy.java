@@ -13,6 +13,17 @@ public class DummyEnemy extends GameCharacter {
     private float freezeTimer = 0f;
     private static final float FREEZE_DURATION = 3.0f; // 3 detik freeze
 
+    // Insanity status effect (untuk Mind Fracture)
+    private boolean insane = false;
+    private float insanityTimer = 0f;
+    private static final float INSANITY_DURATION = 5.0f; // 5 detik insanity
+    private static final float INSANITY_ATK_BUFF = 10f; // +10 ATK saat insane
+    private static final float INSANITY_ARTS_BUFF = 10f; // +10 Arts saat insane
+
+    // Random movement untuk Insanity
+    private Vector2 randomDirection = new Vector2();
+    private float directionChangeTimer = 0f;
+
     public DummyEnemy(float x, float y, GameCharacter target) {
         super(x, y, 150f, 50f); // Speed 150 (lebih lambat dari player), HP 50
         this.target = target;
@@ -36,17 +47,20 @@ public class DummyEnemy extends GameCharacter {
 
     @Override
     public void render(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
-        // Apply blue tint jika frozen
+        // Apply blue tint jika frozen, purple tint jika insane
         if (frozen) {
             // Modulasi warna batch ke cyan semi-transparent
             batch.setColor(0.5f, 0.8f, 1f, 0.7f); // Light blue overlay
+        } else if (insane) {
+            // Modulasi warna batch ke purple untuk Insanity
+            batch.setColor(0.8f, 0.3f, 0.8f, 0.8f); // Purple overlay
         }
 
         // Call parent render
         super.render(batch);
 
         // Reset warna batch ke normal
-        if (frozen) {
+        if (frozen || insane) {
             batch.setColor(Color.WHITE);
         }
     }
@@ -72,6 +86,10 @@ public class DummyEnemy extends GameCharacter {
         // Reset freeze status
         this.frozen = false;
         this.freezeTimer = 0;
+
+        // Reset insanity status
+        this.insane = false;
+        this.insanityTimer = 0;
     }
 
     public void freeze() {
@@ -81,6 +99,41 @@ public class DummyEnemy extends GameCharacter {
 
     public boolean isFrozen() {
         return frozen;
+    }
+
+    public void applyInsanity() {
+        this.insane = true;
+        this.insanityTimer = INSANITY_DURATION;
+        // Generate initial random direction
+        generateRandomDirection();
+        System.out.println("[Enemy] Insanity applied! Moving randomly for 5 seconds");
+    }
+
+    public boolean isInsane() {
+        return insane;
+    }
+
+    private void generateRandomDirection() {
+        float angle = (float) (Math.random() * Math.PI * 2);
+        randomDirection.set(
+                (float) Math.cos(angle),
+                (float) Math.sin(angle)).nor();
+    }
+
+    @Override
+    public float getAtk() {
+        if (insane) {
+            return super.getAtk() + INSANITY_ATK_BUFF;
+        }
+        return super.getAtk();
+    }
+
+    @Override
+    public float getArts() {
+        if (insane) {
+            return super.getArts() + INSANITY_ARTS_BUFF;
+        }
+        return super.getArts();
     }
 
     @Override
@@ -110,6 +163,28 @@ public class DummyEnemy extends GameCharacter {
             return;
         }
 
+        // Update insanity timer
+        if (insane) {
+            insanityTimer -= delta;
+            if (insanityTimer <= 0) {
+                insane = false;
+                insanityTimer = 0;
+                System.out.println("[Enemy] Insanity ended");
+            }
+
+            // Random movement saat insane
+            directionChangeTimer -= delta;
+            if (directionChangeTimer <= 0) {
+                generateRandomDirection();
+                directionChangeTimer = 0.5f; // Change direction every 0.5 seconds
+            }
+
+            // Move in random direction
+            move(randomDirection.x * delta, randomDirection.y * delta);
+            return;
+        }
+
+        // Normal AI: chase player (jika tidak frozen dan tidak insane)
         if (target != null) {
             // titik tengah visual player
             float targetCenterX = target.getPosition().x + target.getVisualWidth() / 2;

@@ -22,7 +22,7 @@ public class Ryze extends GameCharacter {
 
         // Load texture melalui AssetManager
         this.texture = AssetManager.getInstance().loadTexture("ryze_placeholder.png");
-        float visualSize = 256f;
+        float visualSize = 128f; // Reduced size for better gameplay visibility
         this.renderWidth = visualSize;
         this.renderHeight = visualSize;
         // Ukuran hitbox 1/3 dari visualnya (hanya badan yang dianggap hitbox)
@@ -106,5 +106,14 @@ public class Ryze extends GameCharacter {
         skillTimer = skillCooldown;
 
         System.out.println("[Ryze] Spectral Body activated! Invulnerable for 3 seconds!");
+    }
+
+    // Getter untuk skill cooldown bar
+    public float getSkillTimer() {
+        return skillTimer;
+    }
+
+    public float getSkillCooldown() {
+        return skillCooldown;
     }
 }
