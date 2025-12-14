@@ -195,56 +195,141 @@ Each character has a unique innate skill but has a second skill slot that can be
 * **Basic Attack:** Shoot icicles.
 * **Innate Skill (Glacial Breath):** Shoots in a cone hitbox, freezing enemies on hit (Duration: 3 seconds or until hit again).
 * **Cooldown:** 10 seconds.
+* **Implementation Status:** ✅ Fully implemented as playable character
 
 ---
 
+## 7. Implementation Status
+
+### ✅ Completed Features
+
+#### Core Systems
+- **Character Selection Screen**
+  - Character grid with portraits (3 characters: Ryze, Isolde, Insania)
+  - Character preview with animated sprites
+  - Stats panel displaying HP, ATK, Arts, DEF, Speed
+  - Skill panel showing innate skill description
+  - Mouse hover detection for character preview
+  - Click to select and start game
+  - Centered UI layout optimized for 1920x1080 fullscreen
+
+- **Main Menu**
+  - Basic menu structure with Start, Settings, Exit options
+  - Title display
+  - Navigation to character selection
+
+- **Gameplay Systems**
+  - Top-down 2D combat
+  - Player movement (WASD)
+  - Basic attack system (Left Click)
+  - Innate skills (E key)
+  - Enemy spawning and AI
+  - Collision detection
+  - Health and XP systems
+  - Level-up progression
+
+#### Playable Characters
+1. **Ryze - The Ghost of Insania** ✅
+   - Melee scythe attacks
+   - Spectral Body skill (3s invulnerability, 15s cooldown)
+   - Visual size: 128px
+
+2. **Isolde - The Frost Kaiser** ✅
+   - Ranged icicle attacks
+   - Glacial Breath skill (cone freeze, 10s cooldown)
+   - Animated sprite (10x10 frames)
+   - Visual size: 128px
+
+3. **Insania - The Chaos Kaiser** ✅
+   - Melee Mad Claw attacks (auto-attack enabled)
+   - Mind Fracture skill (AoE insanity debuff, 10s cooldown)
+   - Animated sprite (8x5 frames)
+   - Visual size: 128px
+   - Bonus damage to insane enemies
+
+#### UI/UX Features
+- **HUD System:**
+  - HP bar (green) above player
+  - XP bar (cyan) showing level progress
+  - **Skill Cooldown bar** (yellow-orange) showing innate skill readiness
+- **Fullscreen Mode:** Game runs in native fullscreen (1920x1080)
+- **Centered Character Selection:** All UI elements properly centered for widescreen displays
+
+#### Design Patterns Implemented
+1. **Singleton Pattern** - GameManager, AssetManager
+2. **Factory Method Pattern** - EnemyFactory
+3. **Object Pool Pattern** - ProjectilePool, EnemyPool
+4. **Command Pattern** - InputHandler
+5. **Strategy Pattern** - AttackStrategy (MeleeAttackStrategy, RangedAttackStrategy)
+
+### 🚧 Outstanding TODOs
+
+#### Character System Scalability
+- **TODO:** Make character selection more scalable (avoid manual addition per character)
+  - Location: `CharacterSelectionScreen.java:83`
+  - Current: Hardcoded array of 3 characters
+  - Goal: Load characters dynamically from configuration/data file
+
+- **TODO:** Extract CharacterInfo as separate class
+  - Location: `CharacterSelectionScreen.java:350`
+  - Current: Inner class in CharacterSelectionScreen
+  - Goal: Standalone class for better organization
+
+#### Skill Cooldown System Scalability
+- **TODO:** Make skill cooldown detection more scalable
+  - Location: `GameScreen.java:246, 262`
+  - Current: instanceof checks for each character type
+  - Goal: Use interface or base class method for skill cooldown access
+
+#### Backend Integration
+- **TODO:** Send game data to backend on Game Over
+  - Location: `GameScreen.java:121`
+  - Data to send: Level, Character Name, Time
+  - Implementation: HTTP POST request to backend API
+
+#### Enemy System Expansion
+- **TODO:** Support multiple enemy types beyond DummyEnemy
+  - Location: `GameScreen.java:459`, `EnemyFactory.java`
+  - Current: Only DummyEnemy implemented
+  - Planned: FastEnemy, TankEnemy, RangedEnemy
+
+#### Asset Management
+- **TODO:** Add texture preloading for frequently used assets
+  - Location: `AssetManager.java:56`
+  - Goal: Improve loading performance
+
+#### UI Responsiveness
+- **TODO:** Test and adjust character selection layout for different screen resolutions
+  - Location: `CharacterSelectionScreen.java:35`
+  - Current: Optimized for 1920x1080 only
+  - Goal: Responsive layout for various resolutions
+
+### 📋 Pending Features (From Original GDD)
+
+#### Characters Not Yet Implemented
+- Whisperwind - The Silent Caster
+- Aelita - The Evergreen Healer
+- Aegis - The Impenetrable Shield
+- Lumi - The Pale Renegade
+- Alice - The Reckless Princess
+- Alex - The Calculating Prince
+- Raiden - The Speed Demon
+- Artorias - King of Lumina
+- Funami - The White Raven
+
+#### Boss Characters Not Playable Yet
+- Blaze - The Flame Kaiser (Boss)
+- Insania - The Chaos Kaiser (Currently playable, not as boss)
+
+#### Systems Not Yet Implemented
+- Level-up effect selection system
+- Secondary skill slot (Q key)
+- Skill looting from enemies/bosses
+- Boss spawning and ultimate looting
+- Observer Pattern for HUD
+- State Pattern for animations/game states
+- Settings menu (keybinds, audio)
+- Backend score submission
+- Leaderboard system
+
 ---
-
-## 6. Design Pattern & Pillar OOP
-
-### A. Pillar OOP
-* **Class & Object:** Main blueprints for Player, Enemy, Projectile, and Item.
-* **Encapsulation:** Using private variables for sensitive stats (HP, ATK, Arts) accessible only via getter/setter methods.
-* **Inheritance:**
-    * **Parent Class:** `GameCharacter`.
-    * **Child Classes:** `Enemy` and characters in the roster.
-* **Polymorphism & Abstraction:**
-    * Abstract method `performInnateSkill()` in `GameCharacter` class, overridden with different behaviors by each character.
-
-### B. Backend Integration
-* Receives HTTP POST requests upon Game Over to save the score and leaderboard data (Player Name, Highest Level, Character Used) into the database.
-
-### C. Design Patterns
-7 Design Patterns are implemented to keep the code structured and scalable.
-
-1.  **Singleton Pattern**
-    * **Implementation:** `GameManager` and `AssetManager`.
-    * **Function:** Ensures only one instance manages global data (score, level) and loads assets once to save memory.
-
-2.  **Factory Method Pattern**
-    * **Implementation:** `EnemyFactory`.
-    * **Function:** Dynamically creates enemy objects based on the level difficulty.
-
-3.  **Object Pool Pattern**
-    * **Implementation:** `ProjectilePool` and `EnemyPool`.
-    * **Function:**
-        * **ProjectilePool:** Manages projectiles to prevent memory load from constant firing.
-        * **EnemyPool:** Manages enemy objects to prevent lag from excessive Garbage Collection as enemy count increases. Dead enemies are deactivated and stored for reuse with reset stats.
-
-4.  **Command Pattern**
-    * **Implementation:** `InputHandler`.
-    * **Function:** Separates keyboard logic from character logic. Inputs (WASD, Attack, Skills) are wrapped in command objects, facilitating keybinding changes.
-
-5.  **Observer Pattern**
-    * **Implementation:** HUD System.
-    * **Function:** The Health Bar UI acts as an Observer monitoring the Player. When Player HP drops, the Player notifies the UI to update, removing the need for manual checking every frame.
-
-6.  **State Pattern**
-    * **Implementation:** `EntityState` & `GameState`.
-    * **Function:**
-        * **Character:** Manages animations to prevent overlap (IDLE, RUN, ATTACK, HURT, DEAD).
-        * **Game:** Manages active screens (MainMenu, Gameplay, Pause, GameOver).
-
-7.  **Strategy Pattern**
-    * **Implementation:** Skill System.
-    * **Function:** Changes skill attack behavior dynamically. Picking up a new skill item changes the behavior of the Q button without modifying the Player class code. It also simplifies implementing innate skills with different scaling.

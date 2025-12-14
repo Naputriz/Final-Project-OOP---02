@@ -75,11 +75,7 @@ public class MainMenuScreen extends ScreenAdapter {
         playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                // Reset GameManager untuk game baru
-                GameManager.getInstance().reset();
-
-                // Pindah screen
-                game.setScreen(new GameScreen());
+                game.setScreen(new CharacterSelectionScreen(game));
                 // Dispose menu saat ini agar hemat memori
                 dispose();
             }

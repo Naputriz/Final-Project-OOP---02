@@ -6,37 +6,39 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.strategies.MeleeAttackStrategy;
 import com.kelompok2.frontend.managers.AssetManager;
-import com.kelompok2.frontend.strategies.RangedAttackStrategy;
 
-public class Isolde extends GameCharacter {
+public class Insania extends GameCharacter {
 
     // Animation system untuk spritesheet
     private Animation<TextureRegion> idleAnimation;
     private float stateTime; // Timer untuk tracking animation frame
 
-    // Glacial Breath skill cooldown
+    // Mind Fracture skill tracking
     private float skillCooldown = 10f; // 10 seconds cooldown
     private float skillTimer = 0f;
+    private float skillRadius = 300f; // Radius untuk Mind Fracture AoE
+    private boolean mindFractureJustActivated = false; // Flag untuk GameScreen
+    private float circleDisplayTimer = 0f; // Timer untuk display circle
+    private static final float CIRCLE_DISPLAY_DURATION = 0.5f; // Show circle for 0.5s
 
-    // Active Glacial Breath attacks
-    private Array<GlacialBreath> glacialBreaths;
+    public Insania(float x, float y) {
+        super(x, y, 180f, 110f);
 
-    public Isolde(float x, float y) {
-        super(x, y, 180f, 120f);
+        // Set stats sesuai role Hybrid Attacker
+        this.atk = 35f; // High ATK - primary damage
+        this.arts = 25f; // Moderate Arts - untuk skill
+        this.def = 5f; // Low Defence - glass cannon style
 
-        // Set stats sesuai role Arts Attacker
-        this.atk = 15f; // Low ATK
-        this.arts = 40f; // High Arts
-        this.def = 10f; // Moderate Defence
+        // Load spritesheet melalui AssetManager
+        // InsaniaPlaceHolderSprite adalah spritesheet 8x5 untuk animasi
+        // Nanti diganti juga (Sama kayak Frost, ini character Arknights, mati kita kalo pake di versi akhir)
+        Texture spritesheet = AssetManager.getInstance().loadTexture("InsaniaPlaceHolderSprite.png");
 
-        // Placeholder (Ini karakter Arknight cok mati kita kalo pake ini di versi akhir)
-        Texture spritesheet = AssetManager.getInstance().loadTexture("FrostPlaceholderSprite.png");
-
-        // Split spritesheet menjadi individual frames (10 kolom x 10 baris)
-        int FRAME_COLS = 10;
-        int FRAME_ROWS = 10;
+        // Split spritesheet menjadi individual frames (8 kolom x 5 baris)
+        int FRAME_COLS = 8;
+        int FRAME_ROWS = 5;
         TextureRegion[][] tmp = TextureRegion.split(
                 spritesheet,
                 spritesheet.getWidth() / FRAME_COLS,
@@ -58,11 +60,11 @@ public class Isolde extends GameCharacter {
         // Initialize state time
         stateTime = 0f;
 
-        // Set texture ke frame pertama untuk bounds calculation
+        // Set texture ke spritesheet untuk bounds calculation
         this.texture = spritesheet;
 
         // Ukuran visual dan hitbox
-        float visualSize = 128f; // Reduced size for better gameplay visibility
+        float visualSize = 128f;
         this.renderWidth = visualSize;
         this.renderHeight = visualSize;
 
@@ -78,17 +80,13 @@ public class Isolde extends GameCharacter {
         // Update posisi bounds awal
         setPosition(x, y);
 
-        // Ranged Attack Strategy - Shoot icicles (projectile dengan Arts scaling)
-        // RangedAttackStrategy(damageMultiplier, color) - Light blue untuk frost theme
-        // Damage lowered to 0.5x untuk testing freeze mechanics
-        this.attackStrategy = new RangedAttackStrategy(0.5f, new Color(0.5f, 0.8f, 1f, 1f)); // Light blue/cyan
+        // Melee Attack Strategy - Mad Claw (Physical Scaling)
+        // MeleeAttackStrategy(range, width, damageMultiplier, cooldown)
+        // Damage scales from ATK (physical melee)
+        this.attackStrategy = new MeleeAttackStrategy(120f, 100f, 1.0f, 0.3f);
 
-        // Auto attack (hold to shoot continuously)
         this.autoAttack = true;
-        this.attackCooldown = 0.8f; // Cooldown 0.8 detik untuk ranged
-
-        // Initialize glacial breaths array
-        glacialBreaths = new Array<>();
+        this.attackCooldown = 0.5f; // Medium cooldown untuk Mad Claw
     }
 
     @Override
@@ -101,13 +99,9 @@ public class Isolde extends GameCharacter {
             skillTimer -= delta;
         }
 
-        // Update active glacial breaths
-        for (int i = glacialBreaths.size - 1; i >= 0; i--) {
-            GlacialBreath gb = glacialBreaths.get(i);
-            gb.update(delta);
-            if (!gb.isActive()) {
-                glacialBreaths.removeIndex(i);
-            }
+        // Update circle display timer
+        if (circleDisplayTimer > 0) {
+            circleDisplayTimer -= delta;
         }
     }
 
@@ -116,7 +110,7 @@ public class Isolde extends GameCharacter {
         // Get frame saat ini dari animation
         TextureRegion currentFrame = idleAnimation.getKeyFrame(stateTime);
 
-        // Hitung posisi render (position sudah correct, tidak perlu offset lagi)
+        // Hitung posisi render
         float renderX = position.x;
         float renderY = position.y;
 
@@ -140,39 +134,32 @@ public class Isolde extends GameCharacter {
     }
 
     @Override
-    public void performInnateSkill(Vector2 mousePos) {
+    public void performInnateSkill(com.badlogic.gdx.math.Vector2 mousePos) {
         // Check cooldown
         if (skillTimer > 0) {
-            System.out.println("[Isolde] Glacial Breath on cooldown: " +
+            System.out.println("[Insania] Mind Fracture on cooldown: " +
                     String.format("%.1f", skillTimer) + "s remaining");
             return;
         }
 
-        // Calculate direction dari posisi player ke mouse cursor
-        float playerCenterX = position.x + getVisualWidth() / 2;
-        float playerCenterY = position.y + getVisualHeight() / 2;
-        Vector2 direction = new Vector2(
-                mousePos.x - playerCenterX,
-                mousePos.y - playerCenterY).nor();
-
-        // Calculate damage (Arts scaling × 0.3 - heavily reduced for freeze testing)
-        // Damage: 40 Arts × 0.3 = 12 damage (won't one-shot with basic attack combo)
-        // Bakal dinaikin di versi akhir
-        float damage = this.arts * 0.3f;
-
-        // Create Glacial Breath cone attack (0.5s duration) aiming toward mouse
-        GlacialBreath glacialBreath = new GlacialBreath(this, direction, damage, 0.5f);
-        glacialBreaths.add(glacialBreath);
-
-        // Reset cooldown
+        // Activate Mind Fracture - AoE centered on Insania
         skillTimer = skillCooldown;
+        mindFractureJustActivated = true; // Set flag untuk GameScreen
+        circleDisplayTimer = CIRCLE_DISPLAY_DURATION; // Show circle for 0.5s
 
-        System.out.println("[Isolde] Glacial Breath activated! Damage: " + damage +
-                " (aimed at mouse)");
+        System.out.println("[Insania] Mind Fracture activated! Applying Insanity in 300px radius!");
     }
 
-    public Array<GlacialBreath> getGlacialBreaths() {
-        return glacialBreaths;
+    public boolean shouldShowMindFractureCircle() {
+        return circleDisplayTimer > 0;
+    }
+
+    public boolean hasJustUsedMindFracture() {
+        return circleDisplayTimer > 0; // Active for full circle duration
+    }
+
+    public float getSkillRadius() {
+        return skillRadius;
     }
 
     // Getter untuk skill cooldown bar

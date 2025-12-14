@@ -18,6 +18,7 @@ import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.entities.Isolde;
+import com.kelompok2.frontend.entities.Insania;
 import com.kelompok2.frontend.entities.GlacialBreath;
 import com.kelompok2.frontend.utils.InputHandler;
 import com.kelompok2.frontend.managers.AssetManager;
@@ -43,8 +44,12 @@ public class GameScreen extends ScreenAdapter {
 
     private float spawnTimer = 0; // Timer buat spawn musuh tiap detik
 
-    @Override
-    public void show() {
+    private Main game; // Reference to the main game class
+    private String selectedCharacter; // The character selected by the player
+
+    public GameScreen(Main game, String selectedCharacter) {
+        this.game = game;
+        this.selectedCharacter = selectedCharacter;
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
 
@@ -60,8 +65,23 @@ public class GameScreen extends ScreenAdapter {
         // Load background melalui AssetManager (Singleton Pattern)
         background = AssetManager.getInstance().loadTexture("FireflyPlaceholder.jpg");
 
-        // Spawn Player - Currently Isolde (The Frost Kaiser)
-        player = new Isolde(0, 0);
+        // Spawn Player - based on character selection
+        switch (selectedCharacter) {
+            case "Ryze":
+                player = new Ryze(0, 0);
+                break;
+            case "Isolde":
+                player = new Isolde(0, 0);
+                break;
+            case "Insania":
+                player = new Insania(0, 0);
+                break;
+            default:
+                // Default to Isolde if unknown
+                player = new Isolde(0, 0);
+                selectedCharacter = "Isolde";
+                break;
+        }
 
         // Taruh player di tengah map
         player.setPosition(0, 0);
@@ -70,7 +90,7 @@ public class GameScreen extends ScreenAdapter {
         enemyPool = new EnemyPool(player, 30); // Pool 30 enemies
 
         // Inisialisasi GameManager untuk game baru
-        GameManager.getInstance().startNewGame("Isolde"); // TODO: Nanti diganti dari character selection
+        GameManager.getInstance().startNewGame(selectedCharacter);
 
         // Setup Input Handler dengan Kamera, ProjectilePool, dan MeleeAttacks array
         inputHandler = new InputHandler(player, camera, projectilePool, meleeAttacks);
@@ -147,6 +167,9 @@ public class GameScreen extends ScreenAdapter {
         // Render Glacial Breath cones (untuk visual feedback)
         renderGlacialBreaths();
 
+        // Render Mind Fracture circle (untuk visual feedback)
+        renderMindFracture();
+
         drawHealthBars();
     }
 
@@ -158,6 +181,9 @@ public class GameScreen extends ScreenAdapter {
 
         // Render XP player
         drawXpBar(player);
+
+        // Render Skill Cooldown player
+        drawSkillCooldownBar(player);
 
         // Render HP Musuh dari pool
         for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
@@ -192,10 +218,11 @@ public class GameScreen extends ScreenAdapter {
         float x = character.getPosition().x;
 
         // --- PERBAIKAN POSISI ---
-        // Jika karakter adalah Player (Ryze), HP bar harus lebih tinggi
-        // karena ada XP bar di bawahnya.
-        // XP bar mulai di +2 dengan tinggi 4 (total +6). Beri jarak 2px lagi -> +8.
-        float offset = (character instanceof Ryze) ? 8 : 5;
+        // XP bar: +2 with height 4 = +6
+        // Skill bar: +7 with height 4 = +11
+        // Total offset: +13
+        boolean isPlayer = (character instanceof Ryze || character instanceof Isolde || character instanceof Insania);
+        float offset = isPlayer ? 13 : 5;
 
         float y = character.getPosition().y + character.getVisualHeight() + offset;
         // ------------------------
@@ -212,6 +239,51 @@ public class GameScreen extends ScreenAdapter {
         // Foreground Hijau
         shapeRenderer.setColor(Color.GREEN);
         shapeRenderer.rect(x, y, width * hpPercent, height);
+    }
+
+    private void drawSkillCooldownBar(GameCharacter character) {
+        // Only draw for player characters with skill cooldown
+        // TODO: Bikin ini lebih scalable biar ga perlu tambah satu2 setiap tambah karakter
+        if (!(character instanceof Ryze || character instanceof Isolde || character instanceof Insania)) {
+            return;
+        }
+
+        float x = character.getPosition().x;
+        // Skill Cooldown Bar below XP bar (+7 pixel from top)
+        float y = character.getPosition().y + character.getVisualHeight() + 7;
+
+        float width = character.getVisualWidth();
+        float height = 4; // Same height as XP bar
+
+        // Get skill cooldown data from player
+        float skillTimer = 0f;
+        float skillCooldown = 1f; // Default to avoid division by zero
+
+        // TODO: Bikin ini lebih scalable biar ga perlu tambah satu2 setiap tambah karakter
+        if (character instanceof Ryze) {
+            Ryze ryze = (Ryze) character;
+            skillTimer = ryze.getSkillTimer();
+            skillCooldown = ryze.getSkillCooldown();
+        } else if (character instanceof Isolde) {
+            Isolde isolde = (Isolde) character;
+            skillTimer = isolde.getSkillTimer();
+            skillCooldown = isolde.getSkillCooldown();
+        } else if (character instanceof Insania) {
+            Insania insania = (Insania) character;
+            skillTimer = insania.getSkillTimer();
+            skillCooldown = insania.getSkillCooldown();
+        }
+
+        // Calculate percentage remaining (skill is ready when timer = 0)
+        float cooldownPercent = (skillCooldown > 0) ? (skillCooldown - skillTimer) / skillCooldown : 1f;
+
+        // Background (Dark gray)
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(x, y, width, height);
+
+        // Foreground (Yellow/Orange for skill cooldown)
+        shapeRenderer.setColor(new Color(1f, 0.8f, 0f, 1f)); // Yellow-orange
+        shapeRenderer.rect(x, y, width * cooldownPercent, height);
     }
 
     // Hapus mellee attack yang gak aktif / di luar durasi
@@ -250,6 +322,29 @@ public class GameScreen extends ScreenAdapter {
             }
         }
         shapeRenderer.end();
+    }
+
+    // Render Mind Fracture visual circle untuk Insania
+    private void renderMindFracture() {
+        if (!(player instanceof Insania))
+            return;
+
+        Insania insania = (Insania) player;
+        if (insania.shouldShowMindFractureCircle()) {
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+            // Get player center position
+            float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
+            float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
+
+            // Draw semi-transparent purple circle outline (thicker for visibility)
+            Gdx.gl.glLineWidth(3); // Thicker line
+            shapeRenderer.setColor(0.8f, 0.3f, 0.8f, 0.7f); // Purple semi-transparent outline
+            shapeRenderer.circle(playerCenterX, playerCenterY, insania.getSkillRadius(), 50);
+            Gdx.gl.glLineWidth(1); // Reset line width
+
+            shapeRenderer.end();
+        }
     }
 
     private void spawnEnemies(float delta) {
@@ -305,7 +400,15 @@ public class GameScreen extends ScreenAdapter {
             Rectangle mBounds = m.getBounds();
             for (DummyEnemy e : activeEnemies) {
                 if (mBounds.overlaps(e.getBounds()) && m.canHit(e)) {
-                    e.takeDamage(m.getDamage());
+                    float damage = m.getDamage();
+
+                    // Insania deals bonus damage to insane enemies
+                    if (player instanceof Insania && e.isInsane()) {
+                        damage *= 1.5f; // 50% bonus damage
+                        System.out.println("[Insania] Bonus damage to insane enemy! " + damage);
+                    }
+
+                    e.takeDamage(damage);
                     m.markAsHit(e);
 
                     if (e.isDead()) {
@@ -341,6 +444,39 @@ public class GameScreen extends ScreenAdapter {
             }
         }
 
+        // Cek Mind Fracture (Insania's skill) - AoE Insanity debuff
+        if (player instanceof Insania) {
+            Insania insania = (Insania) player;
+            if (insania.hasJustUsedMindFracture()) {
+                // Get player center position
+                float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
+                float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
+                float skillRadius = insania.getSkillRadius();
+
+                int enemiesAffected = 0;
+
+                // Apply Insanity to all enemies in radius
+                // TODO: Bikin ini buat semua musuh, bukan DummyEnemy doang
+                for (DummyEnemy e : activeEnemies) {
+                    float enemyCenterX = e.getPosition().x + e.getVisualWidth() / 2;
+                    float enemyCenterY = e.getPosition().y + e.getVisualHeight() / 2;
+
+                    // Calculate distance to enemy
+                    float dx = enemyCenterX - playerCenterX;
+                    float dy = enemyCenterY - playerCenterY;
+                    float distance = (float) Math.sqrt(dx * dx + dy * dy);
+
+                    // Apply Insanity jika dalam radius
+                    if (distance <= skillRadius) {
+                        e.applyInsanity();
+                        enemiesAffected++;
+                    }
+                }
+
+                System.out.println("[Mind Fracture] " + enemiesAffected + " enemies affected!");
+            }
+        }
+
         // Cek Musuh vs Player (collision damage)
         Rectangle playerBounds = player.getBounds();
         for (DummyEnemy e : activeEnemies) {
@@ -348,6 +484,41 @@ public class GameScreen extends ScreenAdapter {
                 if (e.canAttack()) {
                     player.takeDamage(10);
                     e.resetAttackTimer();
+                }
+            }
+        }
+
+        // Cek Friendly Fire - Insane enemies damage other enemies
+        for (int i = 0; i < activeEnemies.size; i++) {
+            DummyEnemy insaneEnemy = activeEnemies.get(i);
+
+            // Skip jika enemy ini tidak insane
+            if (!insaneEnemy.isInsane())
+                continue;
+
+            // Check collision dengan musuh lain
+            for (int j = 0; j < activeEnemies.size; j++) {
+                if (i == j)
+                    continue; // Skip self
+
+                DummyEnemy targetEnemy = activeEnemies.get(j);
+
+                // Check collision
+                if (insaneEnemy.getBounds().overlaps(targetEnemy.getBounds())) {
+                    if (insaneEnemy.canAttack()) {
+                        // Friendly fire damage (use insane enemy's buffed ATK)
+                        float damage = insaneEnemy.getAtk();
+                        targetEnemy.takeDamage(damage);
+                        insaneEnemy.resetAttackTimer();
+
+                        System.out.println("[Friendly Fire] Insane enemy dealt " + damage + " damage!");
+
+                        if (targetEnemy.isDead()) {
+                            // Enemy killed by friendly fire
+                            player.gainXp(targetEnemy.getXpReward());
+                            System.out.println("[Friendly Fire] Enemy killed by friendly fire!");
+                        }
+                    }
                 }
             }
         }
