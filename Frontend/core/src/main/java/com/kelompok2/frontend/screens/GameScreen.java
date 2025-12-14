@@ -116,12 +116,17 @@ public class GameScreen extends ScreenAdapter {
         // Cek Game Over
         if (player.isDead()) {
             GameManager.getInstance().setGameOver(true);
-            System.out.println("Game over! Final Level: " + GameManager.getInstance().getCurrentLevel() +
-                    ", Time: " + String.format("%.1f", GameManager.getInstance().getGameTime()) + "s");
-            // TODO: Kirim data ke backend di sini (Level, Character Name, Time)
-            // Restart screen sederhana
+
+            int finalLvl = GameManager.getInstance().getCurrentLevel();
+            float finalTime = GameManager.getInstance().getGameTime();
+
+            System.out.println("Game over! Switching to GameOverScreen...");
+
+            // --- PERUBAHAN DI SINI ---
+            // Panggil GameOverScreen alih-alih MainMenuScreen
             ((Main) Gdx.app.getApplicationListener())
-                    .setScreen(new MainMenuScreen((Main) Gdx.app.getApplicationListener()));
+                .setScreen(new GameOverScreen(game, selectedCharacter, finalLvl, finalTime));
+
             return; // Stop render frame ini
         }
 
