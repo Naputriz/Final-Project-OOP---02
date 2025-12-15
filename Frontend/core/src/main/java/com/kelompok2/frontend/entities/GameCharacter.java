@@ -29,6 +29,7 @@ public abstract class GameCharacter {
     protected float attackCooldown; // Cooldown value
     protected float attackTimer; // Cooldown timer
     protected boolean autoAttack; // True = Hold, False = Click
+    protected boolean levelUpPending; // Flag untuk menandakan level up yang belum dipilih effectnya
 
     // Strategy Pattern untuk attack behavior
     protected AttackStrategy attackStrategy;
@@ -123,7 +124,11 @@ public abstract class GameCharacter {
         this.currentXp -= this.xpToNextLevel;
         this.level++;
         this.xpToNextLevel = (float) Math.ceil(this.xpToNextLevel * 1.2f);
-        this.maxHp += 20;
+        // TIDAK lagi auto-increase maxHp, akan ditangani oleh LevelUpEffect yang
+        // dipilih
+
+        // Set flag bahwa level-up belum dipilih effectnya
+        this.levelUpPending = true;
 
         // Sync dengan GameManager (Singleton Pattern)
         GameManager.getInstance().incrementLevel();
@@ -234,6 +239,32 @@ public abstract class GameCharacter {
 
     public float getDef() {
         return def;
+    }
+
+    // Setters untuk stats (digunakan oleh LevelUpEffect)
+    public void setAtk(float atk) {
+        this.atk = atk;
+    }
+
+    public void setArts(float arts) {
+        this.arts = arts;
+    }
+
+    public void setDef(float def) {
+        this.def = def;
+    }
+
+    public void setMaxHp(float maxHp) {
+        this.maxHp = maxHp;
+    }
+
+    // Getter dan setter untuk level-up pending flag
+    public boolean isLevelUpPending() {
+        return levelUpPending;
+    }
+
+    public void setLevelUpPending(boolean levelUpPending) {
+        this.levelUpPending = levelUpPending;
     }
 
     // Setter untuk attack strategy (Strategy Pattern)

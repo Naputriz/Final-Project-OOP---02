@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kelompok2.frontend.Main;
+import com.kelompok2.frontend.managers.AudioManager;
 
 public class GameOverScreen extends ScreenAdapter {
     private final Main game;
@@ -41,13 +42,17 @@ public class GameOverScreen extends ScreenAdapter {
         table.setFillParent(true);
         stage.addActor(table);
 
+        // Stop any music and play game over sound
+        AudioManager.getInstance().stopMusic();
+        AudioManager.getInstance().playSound("Audio/game-over-voice.mp3");
+
         // --- UI COMPONENTS ---
         Label titleLabel = new Label("GAME OVER", skin);
         titleLabel.setFontScale(3f);
         titleLabel.setColor(Color.RED);
 
         Label scoreLabel = new Label(String.format("Character: %s\nLevel Reached: %d\nTime Survived: %.1fs",
-            lastCharacter, finalLevel, finalTime), skin);
+                lastCharacter, finalLevel, finalTime), skin);
         scoreLabel.setAlignment(com.badlogic.gdx.utils.Align.center);
 
         TextButton restartButton = new TextButton("RESTART", skin);

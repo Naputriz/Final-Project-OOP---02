@@ -32,7 +32,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     private int hoveredIndex = 0; // Currently hovered character
     private int selectedIndex = -1; // Selected character (-1 = none)
 
-    // UI layout constants (centered for 1920x1080) (Belum gw cek buat dimensi lain, kalo ga centered nanti ubah)
+    // UI layout constants (centered for 1920x1080) (Belum gw cek buat dimensi lain,
+    // kalo ga centered nanti ubah)
     private static final float GRID_X = 400; // Centered left side
     private static final float GRID_Y = 400; // Centered vertically
     private static final float PORTRAIT_SIZE = 100;
@@ -81,18 +82,19 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void initializeCharacters() {
         // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        characters = new CharacterInfo[3];
+        characters = new CharacterInfo[4]; // Updated to 4 characters
 
         // Ryze - The Ghost of Insania
+        Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
         characters[0] = new CharacterInfo(
                 "Ryze",
                 "The Ghost of Insania",
                 100, 30, 10, 5, 200,
                 "Spectral Body",
                 "Invulnerability for 3 seconds.\nCooldown: 15s",
-                "ryze_placeholder.png",
-                null, // No spritesheet animation
-                1, 1);
+                "Ryze/pcgp-ryze-idle.png",
+                ryzeSheet,
+                3, 3, 8, 0.1f); // 8 frames in 3x3 grid
 
         // Isolde - The Frost Kaiser
         Texture isoldeSheet = AssetManager.getInstance().loadTexture("FrostPlaceholderSprite.png");
@@ -104,19 +106,31 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 "Cone attack that freezes enemies.\nDamage: Arts x1.0, Cooldown: 10s",
                 "FrostPlaceholderSprite.png",
                 isoldeSheet,
-                10, 10);
+                10, 10, 100, 0.1f); // 100 frames in 10x10 grid
 
         // Insania - The Chaos Kaiser
-        Texture insaniaSheet = AssetManager.getInstance().loadTexture("InsaniaPlaceHolderSprite.png");
+        Texture insaniaSheet = AssetManager.getInstance().loadTexture("Insania/pcgp-insania-idle.png");
         characters[2] = new CharacterInfo(
                 "Insania",
                 "The Chaos Kaiser",
                 110, 35, 25, 5, 180,
                 "Mind Fracture",
                 "AoE Insanity debuff. Enemies move\nrandomly and attack each other.\nDuration: 5s, Cooldown: 10s",
-                "InsaniaPlaceHolderSprite.png",
+                "Insania/pcgp-insania-idle.png",
                 insaniaSheet,
-                8, 5);
+                2, 2, 4, 0.2f); // 4 frames in 2x2 grid, slower animation (0.2s per frame)
+
+        // Blaze - The Flame Kaiser
+        Texture blazeSheet = AssetManager.getInstance().loadTexture("BlazeCharacterPlaceholder.png");
+        characters[3] = new CharacterInfo(
+                "Blaze",
+                "The Flame Kaiser",
+                110, 25, 40, 5, 180,
+                "Hellfire Pillar",
+                "Summons a damage pillar at cursor.\\nDamage: High, Cooldown: 5s",
+                "BlazeCharacterPlaceholder.png",
+                blazeSheet,
+                4, 23, 92, 0.1f); // 4 columns × 23 rows = 92 frames
     }
 
     @Override
@@ -360,7 +374,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
         CharacterInfo(String name, String title, float hp, float atk, float arts, float def, float speed,
                 String skillName, String skillDescription, String texturePath,
-                Texture spritesheet, int cols, int rows) {
+                Texture spritesheet, int cols, int rows, int actualFrameCount, float frameDuration) {
             this.name = name;
             this.title = title;
             this.hp = hp;
@@ -380,15 +394,16 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                         spritesheet.getWidth() / cols,
                         spritesheet.getHeight() / rows);
 
-                TextureRegion[] frames = new TextureRegion[cols * rows];
+                // Use only actualFrameCount frames to avoid empty cells
+                TextureRegion[] frames = new TextureRegion[actualFrameCount];
                 int index = 0;
-                for (int i = 0; i < rows; i++) {
-                    for (int j = 0; j < cols; j++) {
+                for (int i = 0; i < rows && index < actualFrameCount; i++) {
+                    for (int j = 0; j < cols && index < actualFrameCount; j++) {
                         frames[index++] = tmp[i][j];
                     }
                 }
 
-                animation = new Animation<>(0.1f, frames);
+                animation = new Animation<>(frameDuration, frames);
                 animation.setPlayMode(Animation.PlayMode.LOOP);
             }
         }

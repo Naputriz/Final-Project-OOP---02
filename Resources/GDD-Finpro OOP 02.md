@@ -181,13 +181,17 @@ Each character has a unique innate skill but has a second skill slot that can be
     * Insane enemies have increased Arts/ATK but move randomly and can friendly fire.
     * Insania deals extra damage to enemies with "Insanity".
     * **Cooldown:** 10 seconds (Arts scaling).
+* **Implementation Status:** ✅ Fully implemented as playable character
 
 #### Blaze - The Flame Kaiser
 * **Role:** Arts Attacker.
 * **Stats:** Moderate HP, Moderate ATK, High Arts, Low Defence, Moderate Speed.
 * **Basic Attack:** Flame Punch (Scaling: 0.7 ATK, 0.3 Arts).
-* **Innate Skill (Hellfire Pillar):** Summons a pillar at the cursor location, dealing high damage.
+* **Innate Skill (Hellfire Pillar):** Summons a pillar at the cursor location, dealing high damage (Arts × 2.0/sec).
 * **Cooldown:** 5 seconds.
+* **Duration:** 2 seconds active.
+* **Radius:** 40 pixels (80px diameter).
+* **Implementation Status:** ✅ Fully implemented as playable character
 
 #### Isolde - The Frost Kaiser
 * **Role:** Arts Attacker.
@@ -205,7 +209,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 #### Core Systems
 - **Character Selection Screen**
-  - Character grid with portraits (3 characters: Ryze, Isolde, Insania)
+  - Character grid with portraits (4 characters: Ryze, Isolde, Insania, Blaze)
   - Character preview with animated sprites
   - Stats panel displaying HP, ATK, Arts, DEF, Speed
   - Skill panel showing innate skill description
@@ -217,57 +221,148 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Basic menu structure with Start, Settings, Exit options
   - Title display
   - Navigation to character selection
+  - Background music (Menu BGM)
 
 - **Gameplay Systems**
   - Top-down 2D combat
   - Player movement (WASD)
-  - Basic attack system (Left Click)
-  - Innate skills (E key)
+  - Basic attack system (Left Click) with auto-attack
+  - Innate skills (E key) with cooldown tracking
   - Enemy spawning and AI
   - Collision detection
   - Health and XP systems
-  - Level-up progression
+  - Level-up progression with effect selection screen
 
-#### Playable Characters
+- **Audio System** ✨ NEW
+  - AudioManager (Singleton pattern)
+  - Background music system (BGM)
+    - Main Menu BGM
+    - Battle BGM
+  - Sound effects (SFX)
+    - Game Over sound effect
+  - Volume control
+  - Music state management (play, stop, pause, resume)
+  - Asset caching for audio files
+
+- **Animation System** ✨ NEW
+  - State Pattern implementation
+    - IdleState for stationary characters
+    - RunningState for moving characters
+  - Automatic state transitions based on movement
+  - Support for multi-frame sprite sheets
+  - Configurable frame duration
+
+- **Attack Sprite Animations** ✨ NEW
+  - Slash animation (for Ryze, Blaze)
+  - Scratch animation (for Insania)
+  - 360° rotation based on mouse direction
+  - Vertical flip for left-facing attacks to maintain correct orientation
+  - 7 frames per animation (3×3 grid layout)
+
+#### Playable Characters (4 Total)
+
 1. **Ryze - The Ghost of Insania** ✅
-   - Melee scythe attacks
+   - Role: Physical Attacker
+   - Stats: Moderate HP (100), High ATK (35), Low Arts (10), Low Defence (15), High Speed (200)
+   - Melee scythe attacks with slash animation
    - Spectral Body skill (3s invulnerability, 15s cooldown)
+   - State-based animations:
+     - Idle: 8 frames (3×3 grid)
+     - Running: 10 frames (3×4 grid)
    - Visual size: 128px
 
 2. **Isolde - The Frost Kaiser** ✅
+   - Role: Arts Attacker
+   - Stats: Moderate HP (100), Low ATK (15), High Arts (40), Moderate Defence (20), Moderate Speed (180)
    - Ranged icicle attacks
    - Glacial Breath skill (cone freeze, 10s cooldown)
-   - Animated sprite (10x10 frames)
+   - Animated sprite (10×10 frames)
    - Visual size: 128px
 
 3. **Insania - The Chaos Kaiser** ✅
-   - Melee Mad Claw attacks (auto-attack enabled)
-   - Mind Fracture skill (AoE insanity debuff, 10s cooldown)
-   - Animated sprite (8x5 frames)
+   - Role: Physical/Arts Hybrid
+   - Stats: Moderate HP (115), High ATK (30), Moderate Arts (25), Low Defence (10), Moderate Speed (180)
+   - Melee Mad Claw attacks with scratch animation (auto-attack enabled)
+   - Mind Fracture skill (AoE insanity debuff, damage: Arts × 0.5, 10s cooldown)
+   - State-based animations:
+     - Idle: 4 frames (2×2 grid)
    - Visual size: 128px
    - Bonus damage to insane enemies
 
+4. **Blaze - The Flame Kaiser** ✅ NEW
+   - Role: Arts Attacker
+   - Stats: Moderate HP (110), Moderate ATK (25), High Arts (40), Low Defence (5), Moderate Speed (180)
+   - Hybrid damage basic attack: Flame Punch (0.7 ATK + 0.3 Arts)
+   - Melee attacks with slash animation (auto-attack enabled)
+   - Hellfire Pillar skill (E key):
+     - Cursor-targeted placement
+     - Continuous AoE damage (Arts × 2.0/sec)
+     - Duration: 2 seconds
+     - Cooldown: 5 seconds
+     - Radius: 40 pixels
+     - Visual: Orange semi-transparent circle
+   - State-based animations:
+     - Idle: 92 frames (4×23 grid)
+     - Running: 92 frames (4×23 grid)
+   - Visual size: 128px
+
 #### UI/UX Features
 - **HUD System:**
-  - HP bar (green) above player
-  - XP bar (cyan) showing level progress
-  - **Skill Cooldown bar** (yellow-orange) showing innate skill readiness
+  - HP bar (green) - Top position, furthest from character
+  - Skill Cooldown bar (yellow-orange) - Middle position
+  - XP bar (cyan) - Bottom position, closest to character
+  - All bars properly positioned at +25, +19, +13 offsets respectively
+  - Fixed rendering order for all characters
 - **Fullscreen Mode:** Game runs in native fullscreen (1920x1080)
 - **Centered Character Selection:** All UI elements properly centered for widescreen displays
+- **Level-Up Screen:**
+  - Pause game on level-up
+  - Display 3 random effect cards
+  - Hover and click to select effect
+  - Semi-transparent overlay
+  - Effect descriptions
 
 #### Design Patterns Implemented
-1. **Singleton Pattern** - GameManager, AssetManager
-2. **Factory Method Pattern** - EnemyFactory
-3. **Object Pool Pattern** - ProjectilePool, EnemyPool
-4. **Command Pattern** - InputHandler
-5. **Strategy Pattern** - AttackStrategy (MeleeAttackStrategy, RangedAttackStrategy)
 
-### 🚧 Outstanding TODOs
+1. **Singleton Pattern** ✅
+   - GameManager - Central game state management
+   - AssetManager - Centralized asset loading and caching
+   - AudioManager - Audio playback and volume control
+
+2. **Strategy Pattern** ✅
+   - AttackStrategy interface
+   - MeleeAttackStrategy (Ryze, Insania, Blaze)
+   - RangedAttackStrategy (Isolde)
+
+3. **State Pattern** ✅ NEW
+   - AnimationState interface
+   - IdleState - For stationary characters
+   - RunningState - For moving characters
+   - Automatic transitions based on movement
+
+4. **Factory Method Pattern** ✅
+   - EnemyFactory - Enemy type selection based on level
+   - EnemyType enum for different enemy varieties
+
+5. **Object Pool Pattern** ✅
+   - ProjectilePool - Reuses projectile instances
+   - EnemyPool - Reuses enemy instances
+   - Automatic return to pool on death/deactivation
+
+6. **Command Pattern** ✅
+   - LevelUpEffect interface
+   - IncreaseMaxHPEffect, IncreaseAtkEffect, IncreaseArtsEffect
+   - IncreaseDefenseEffect, RecoverHPEffect, NewSkillEffect
+
+**📄 See full design patterns documentation:** `design_patterns_documentation.md`
+
+### 🚧 Current TODOs (Scalability Issues)
 
 #### Character System Scalability
 - **TODO:** Make character selection more scalable (avoid manual addition per character)
   - Location: `CharacterSelectionScreen.java:83`
-  - Current: Hardcoded array of 3 characters
+  - Location: `GameScreen.java:71-88` (character spawn switch)
+  - Current: Hardcoded array of 4 characters
   - Goal: Load characters dynamically from configuration/data file
 
 - **TODO:** Extract CharacterInfo as separate class
@@ -277,29 +372,29 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 #### Skill Cooldown System Scalability
 - **TODO:** Make skill cooldown detection more scalable
-  - Location: `GameScreen.java:246, 262`
+  - Location: `GameScreen.java:250-258, 278-311`
   - Current: instanceof checks for each character type
   - Goal: Use interface or base class method for skill cooldown access
 
+#### HUD Bar Position Scalability
+- **TODO:** Make isPlayer check more maintainable
+  - Location: `GameScreen.java:253`
+  - Current: `instanceof Ryze || instanceof Isolde || instanceof Insania || instanceof Blaze`
+  - Goal: Use marker interface or base class property
+
 #### Backend Integration
 - **TODO:** Send game data to backend on Game Over
-  - Location: `GameScreen.java:121`
   - Data to send: Level, Character Name, Time
   - Implementation: HTTP POST request to backend API
 
 #### Enemy System Expansion
 - **TODO:** Support multiple enemy types beyond DummyEnemy
-  - Location: `GameScreen.java:459`, `EnemyFactory.java`
+  - Location: `EnemyFactory.java`
   - Current: Only DummyEnemy implemented
   - Planned: FastEnemy, TankEnemy, RangedEnemy
 
-#### Asset Management
-- **TODO:** Add texture preloading for frequently used assets
-  - Location: `AssetManager.java:56`
-  - Goal: Improve loading performance
-
 #### UI Responsiveness
-- **TODO:** Test and adjust character selection layout for different screen resolutions
+- **TODO:** Test and adjust layout for different screen resolutions
   - Location: `CharacterSelectionScreen.java:35`
   - Current: Optimized for 1920x1080 only
   - Goal: Responsive layout for various resolutions
@@ -317,19 +412,56 @@ Each character has a unique innate skill but has a second skill slot that can be
 - Artorias - King of Lumina
 - Funami - The White Raven
 
-#### Boss Characters Not Playable Yet
-- Blaze - The Flame Kaiser (Boss)
-- Insania - The Chaos Kaiser (Currently playable, not as boss)
+#### Boss System Not Yet Implemented
+- Boss spawning every X minutes
+- Boss "ultimate" looting mechanic
+- Boss-to-playable-character unlocking
+- Insania as boss (currently only playable)
+- Blaze as boss (currently only playable)
+- Isolde as boss (currently only playable)
 
 #### Systems Not Yet Implemented
-- Level-up effect selection system
 - Secondary skill slot (Q key)
 - Skill looting from enemies/bosses
-- Boss spawning and ultimate looting
-- Observer Pattern for HUD
-- State Pattern for animations/game states
-- Settings menu (keybinds, audio)
+- Settings menu (keybinds, audio controls)
 - Backend score submission
 - Leaderboard system
+- Login system
+
+#### Recommended Future Design Patterns
+1. **Observer Pattern** - For HUD event system (decouple UI from game logic)
+2. **Template Method Pattern** - For character initialization process
+3. **Decorator Pattern** - For buff/debuff system
+4. **Builder Pattern** - For character configuration from data files
+5. **Facade Pattern** - For game service unification
+
+**📄 See design patterns documentation for detailed implementations**
+
+---
+
+## 8. Technical Implementation Details
+
+### Audio Assets
+- **BGM (Music):**
+  - `MainMenuTheme.mp3` - Main menu background music
+  - `BattleTheme.mp3` - In-game battle music
+- **SFX (Sound Effects):**
+  - `GameOver.wav` - Game over sound effect
+
+### Visual Assets
+- **Character Spritesheets:**
+  - `RyzeStillplaceholder.png` (Idle: 3×3, 8 frames)
+  - `RyzeRunPlaceholder.png` (Run: 3×4, 10 frames)
+  - `InsaniaIdlePlaceholder.png` (Idle: 2×2, 4 frames)
+  - `BlazeCharacterPlaceholder.png` (Idle/Run: 4×23, 92 frames)
+- **Attack Animations:**
+  - `Slash Animation.png` (7 frames, 3×3 grid) - Used by Ryze, Blaze
+  - `Scratch Animation.png` (7 frames, 3×3 grid) - Used by Insania
+
+### Architecture Highlights
+- **Separation of Concerns:** Managers handle specific domains (Audio, Assets, Game State)
+- **Loose Coupling:** Strategy and State patterns allow runtime behavior changes
+- **Resource Efficiency:** Object pooling prevents memory spikes during gameplay
+- **Scalable Commands:** Level-up effects as self-contained commands
 
 ---
