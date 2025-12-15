@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.entities.DummyEnemy;
@@ -19,10 +20,12 @@ import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.entities.Isolde;
 import com.kelompok2.frontend.entities.Insania;
+import com.kelompok2.frontend.entities.Blaze;
 import com.kelompok2.frontend.entities.GlacialBreath;
 import com.kelompok2.frontend.utils.InputHandler;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.managers.GameManager;
+import com.kelompok2.frontend.managers.AudioManager;
 import com.kelompok2.frontend.pools.ProjectilePool;
 import com.kelompok2.frontend.pools.EnemyPool;
 import com.kelompok2.frontend.factories.EnemyFactory;
@@ -46,6 +49,8 @@ public class GameScreen extends ScreenAdapter {
 
     private Main game; // Reference to the main game class
     private String selectedCharacter; // The character selected by the player
+
+    private boolean isPaused = false; // Flag untuk pause state (saat level-up screen)
 
     public GameScreen(Main game, String selectedCharacter) {
         this.game = game;
@@ -76,6 +81,9 @@ public class GameScreen extends ScreenAdapter {
             case "Insania":
                 player = new Insania(0, 0);
                 break;
+            case "Blaze":
+                player = new Blaze(0, 0);
+                break;
             default:
                 // Default to Isolde if unknown
                 player = new Isolde(0, 0);
@@ -94,10 +102,24 @@ public class GameScreen extends ScreenAdapter {
 
         // Setup Input Handler dengan Kamera, ProjectilePool, dan MeleeAttacks array
         inputHandler = new InputHandler(player, camera, projectilePool, meleeAttacks);
+
+        // Play battle BGM
+        AudioManager.getInstance().playMusic("Audio/battleThemeA.mp3", true);
     }
 
     @Override
     public void render(float delta) {
+        // Cek level-up pending, jika ya tampilkan LevelUpScreen
+        if (player.isLevelUpPending() && !isPaused) {
+            pauseForLevelUp();
+            return;
+        }
+
+        // Skip update jika game di-pause
+        if (isPaused) {
+            return;
+        }
+
         // UPDATE LOGIC
         player.update(delta);
         inputHandler.update(delta);
@@ -125,7 +147,7 @@ public class GameScreen extends ScreenAdapter {
             // --- PERUBAHAN DI SINI ---
             // Panggil GameOverScreen alih-alih MainMenuScreen
             ((Main) Gdx.app.getApplicationListener())
-                .setScreen(new GameOverScreen(game, selectedCharacter, finalLvl, finalTime));
+                    .setScreen(new GameOverScreen(game, selectedCharacter, finalLvl, finalTime));
 
             return; // Stop render frame ini
         }
@@ -175,6 +197,9 @@ public class GameScreen extends ScreenAdapter {
         // Render Mind Fracture circle (untuk visual feedback)
         renderMindFracture();
 
+        // Render Hellfire Pillar circle (untuk visual feedback)
+        renderHellfirePillar();
+
         drawHealthBars();
     }
 
@@ -200,8 +225,8 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawXpBar(GameCharacter character) {
         float x = character.getPosition().x;
-        // XP Bar tepat di atas kepala (+2 pixel)
-        float y = character.getPosition().y + character.getVisualHeight() + 2;
+        // XP Bar at bottom (closest to character)
+        float y = character.getPosition().y + character.getVisualHeight() + 13;
 
         float width = character.getVisualWidth();
         float height = 4; // Tinggi XP bar
@@ -223,11 +248,10 @@ public class GameScreen extends ScreenAdapter {
         float x = character.getPosition().x;
 
         // --- PERBAIKAN POSISI ---
-        // XP bar: +2 with height 4 = +6
-        // Skill bar: +7 with height 4 = +11
-        // Total offset: +13
-        boolean isPlayer = (character instanceof Ryze || character instanceof Isolde || character instanceof Insania);
-        float offset = isPlayer ? 13 : 5;
+        // HP bar at top (furthest from character)
+        boolean isPlayer = (character instanceof Ryze || character instanceof Isolde || character instanceof Insania
+                || character instanceof Blaze);
+        float offset = isPlayer ? 25 : 5;
 
         float y = character.getPosition().y + character.getVisualHeight() + offset;
         // ------------------------
@@ -248,14 +272,17 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawSkillCooldownBar(GameCharacter character) {
         // Only draw for player characters with skill cooldown
-        // TODO: Bikin ini lebih scalable biar ga perlu tambah satu2 setiap tambah karakter
-        if (!(character instanceof Ryze || character instanceof Isolde || character instanceof Insania)) {
+        // TODO: Bikin ini lebih scalable biar ga perlu tambah satu2 setiap tambah
+        // Skip rendering for characters without skills
+        if (!(character instanceof Ryze || character instanceof Isolde || character instanceof Insania
+                || character instanceof Blaze)) {
             return;
         }
 
         float x = character.getPosition().x;
-        // Skill Cooldown Bar below XP bar (+7 pixel from top)
-        float y = character.getPosition().y + character.getVisualHeight() + 7;
+        // Skill Cooldown Bar in middle (below HP, above XP)
+        // HP at +13 (height 5) ends at +18, Skill starts at +19
+        float y = character.getPosition().y + character.getVisualHeight() + 19;
 
         float width = character.getVisualWidth();
         float height = 4; // Same height as XP bar
@@ -264,7 +291,11 @@ public class GameScreen extends ScreenAdapter {
         float skillTimer = 0f;
         float skillCooldown = 1f; // Default to avoid division by zero
 
-        // TODO: Bikin ini lebih scalable biar ga perlu tambah satu2 setiap tambah karakter
+        // Debug: Check what character type we have
+        System.out.println("[DEBUG] Character class in cooldown bar: " + character.getClass().getSimpleName());
+
+        // TODO: Bikin ini lebih scalable biar ga perlu tambah satu2 setiap tambah
+        // karakter
         if (character instanceof Ryze) {
             Ryze ryze = (Ryze) character;
             skillTimer = ryze.getSkillTimer();
@@ -277,10 +308,20 @@ public class GameScreen extends ScreenAdapter {
             Insania insania = (Insania) character;
             skillTimer = insania.getSkillTimer();
             skillCooldown = insania.getSkillCooldown();
+        } else if (character instanceof Blaze) {
+            Blaze blaze = (Blaze) character;
+            skillTimer = blaze.getSkillTimer();
+            skillCooldown = blaze.getSkillCooldown();
         }
 
         // Calculate percentage remaining (skill is ready when timer = 0)
         float cooldownPercent = (skillCooldown > 0) ? (skillCooldown - skillTimer) / skillCooldown : 1f;
+
+        // Debug: Log for Blaze
+        if (character instanceof Blaze) {
+            System.out.println("[DEBUG] Blaze cooldown bar: timer=" + skillTimer + ", cooldown=" + skillCooldown
+                    + ", percent=" + cooldownPercent);
+        }
 
         // Background (Dark gray)
         shapeRenderer.setColor(Color.DARK_GRAY);
@@ -303,15 +344,15 @@ public class GameScreen extends ScreenAdapter {
         }
     }
 
-    // Box dulu, diganti animasi ntar
+    // Render melee attacks dengan sprite animations
     private void renderMeleeAttacks() {
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        batch.begin();
         for (MeleeAttack m : meleeAttacks) {
             if (m.isActive()) {
-                m.render(shapeRenderer);
+                m.render(batch);
             }
         }
-        shapeRenderer.end();
+        batch.end();
     }
 
     // Render Glacial Breath cones untuk visual feedback
@@ -347,6 +388,23 @@ public class GameScreen extends ScreenAdapter {
             shapeRenderer.setColor(0.8f, 0.3f, 0.8f, 0.7f); // Purple semi-transparent outline
             shapeRenderer.circle(playerCenterX, playerCenterY, insania.getSkillRadius(), 50);
             Gdx.gl.glLineWidth(1); // Reset line width
+
+            shapeRenderer.end();
+        }
+    }
+
+    // Render Hellfire Pillar visual circle untuk Blaze
+    private void renderHellfirePillar() {
+        if (!(player instanceof Blaze))
+            return;
+
+        Blaze blaze = (Blaze) player;
+        if (blaze.isPillarActive()) {
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+            // Draw orange semi-transparent circle
+            shapeRenderer.setColor(1f, 0.5f, 0f, 0.4f); // Orange, semi-transparent
+            shapeRenderer.circle(blaze.getPillarPosition().x, blaze.getPillarPosition().y, blaze.getPillarRadius(), 50);
 
             shapeRenderer.end();
         }
@@ -449,7 +507,33 @@ public class GameScreen extends ScreenAdapter {
             }
         }
 
-        // Cek Mind Fracture (Insania's skill) - AoE Insanity debuff
+        // Cek Hellfire Pillar (Blaze's skill) vs Musuh
+        if (player instanceof Blaze) {
+            Blaze blaze = (Blaze) player;
+            if (blaze.isPillarActive()) {
+                Vector2 pillarPos = blaze.getPillarPosition();
+                float pillarRadius = blaze.getPillarRadius();
+                float pillarDamage = blaze.getArts() * 2.0f; // High Arts-scaled damage per second
+
+                for (DummyEnemy e : activeEnemies) {
+                    // Check if enemy is within pillar radius
+                    float enemyX = e.getBounds().x + e.getBounds().width / 2;
+                    float enemyY = e.getBounds().y + e.getBounds().height / 2;
+                    float distance = pillarPos.dst(enemyX, enemyY);
+
+                    if (distance <= pillarRadius) {
+                        e.takeDamage(pillarDamage * delta); // Continuous damage (DPS)
+
+                        if (e.isDead()) {
+                            player.gainXp(e.getXpReward());
+                            System.out.println("[Blaze] Enemy killed by Hellfire Pillar!");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Cek Mind Fracture (Insania's skill) - AoE Insanity debuff + Damage
         if (player instanceof Insania) {
             Insania insania = (Insania) player;
             if (insania.hasJustUsedMindFracture()) {
@@ -458,9 +542,14 @@ public class GameScreen extends ScreenAdapter {
                 float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
                 float skillRadius = insania.getSkillRadius();
 
+                // Calculate damage berdasarkan Arts scaling
+                // Low damage karena Insania adalah physical attacker, ini lebih ke utility
+                // skill
+                float baseDamage = player.getArts() * 0.2f; // 20% Arts scaling untuk Mind Fracture
+
                 int enemiesAffected = 0;
 
-                // Apply Insanity to all enemies in radius
+                // Apply Insanity + Damage to all enemies in radius
                 // TODO: Bikin ini buat semua musuh, bukan DummyEnemy doang
                 for (DummyEnemy e : activeEnemies) {
                     float enemyCenterX = e.getPosition().x + e.getVisualWidth() / 2;
@@ -471,14 +560,20 @@ public class GameScreen extends ScreenAdapter {
                     float dy = enemyCenterY - playerCenterY;
                     float distance = (float) Math.sqrt(dx * dx + dy * dy);
 
-                    // Apply Insanity jika dalam radius
+                    // Apply Insanity + Damage jika dalam radius
                     if (distance <= skillRadius) {
                         e.applyInsanity();
+                        e.takeDamage(baseDamage);
                         enemiesAffected++;
+
+                        if (e.isDead()) {
+                            player.gainXp(e.getXpReward());
+                            System.out.println("[Mind Fracture] Enemy killed by Mind Fracture!");
+                        }
                     }
                 }
 
-                System.out.println("[Mind Fracture] " + enemiesAffected + " enemies affected!");
+                System.out.println("[Mind Fracture] " + enemiesAffected + " enemies affected! Damage: " + baseDamage);
             }
         }
 
@@ -547,6 +642,23 @@ public class GameScreen extends ScreenAdapter {
         projectilePool.dispose();
         enemyPool.dispose();
 
+    }
+
+    /**
+     * Pause game dan tampilkan LevelUpScreen.
+     */
+    public void pauseForLevelUp() {
+        isPaused = true;
+        game.setScreen(new LevelUpScreen(game, this, player));
+        System.out.println("[GameScreen] Game paused for level-up selection");
+    }
+
+    /**
+     * Resume game setelah effect dipilih.
+     */
+    public void resumeFromLevelUp() {
+        isPaused = false;
+        System.out.println("[GameScreen] Game resumed from level-up");
     }
 
 }

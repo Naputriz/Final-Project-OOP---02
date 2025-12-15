@@ -80,7 +80,25 @@ public class MeleeAttackStrategy implements AttackStrategy {
         // Hitung damage berdasarkan ATK karakter
         float finalDamage = attacker.getAtk() * damageMultiplier;
 
-        // Buat MeleeAttack baru
+        // Tentukan animation type berdasarkan karakter
+        String animationType;
+        String characterClass = attacker.getClass().getSimpleName();
+        if ("Ryze".equals(characterClass)) {
+            animationType = "slash";
+        } else if ("Insania".equals(characterClass)) {
+            animationType = "scratch";
+        } else {
+            // Default fallback untuk karakter lain
+            animationType = "slash";
+        }
+
+        // Hitung rotation angle dari direction vector
+        // atan2 returns angle in radians, convert to degrees
+        // atan2(y, x) gives angle from positive x-axis (right = 0°, up = 90°, left =
+        // 180°, down = -90°/270°)
+        float rotationAngle = (float) Math.toDegrees(Math.atan2(direction.y, direction.x));
+
+        // Buat MeleeAttack baru dengan animation dan rotation
         MeleeAttack attack = new MeleeAttack(
                 hitboxX,
                 hitboxY,
@@ -88,7 +106,8 @@ public class MeleeAttackStrategy implements AttackStrategy {
                 width, // Hitbox berbentuk persegi untuk sekarang
                 finalDamage,
                 duration,
-                attacker);
+                animationType, // Pass animation type
+                rotationAngle); // Pass rotation angle in degrees
 
         // Tambahkan ke array meleeAttacks
         meleeAttacks.add(attack);

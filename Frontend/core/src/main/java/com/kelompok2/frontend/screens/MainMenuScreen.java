@@ -14,6 +14,7 @@ import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.managers.AssetManager;
+import com.kelompok2.frontend.managers.AudioManager;
 
 public class MainMenuScreen extends ScreenAdapter {
     private final Main game;
@@ -41,6 +42,11 @@ public class MainMenuScreen extends ScreenAdapter {
         // Load Icon Textures (Pastikan file ini ada di assets!)
         Texture settingsIconTex = AssetManager.getInstance().loadTexture("settings_icon.png");
         Texture leaderboardIconTex = AssetManager.getInstance().loadTexture("leaderboard_icon.png");
+
+        // Play main menu BGM
+        AudioManager.getInstance().playMusic(
+                "Audio/helmet_-_tales_of_the_helmets_knight_-_01_start_screen_theme_-_prelude (Start or main menu).wav",
+                true);
 
         // --- 1. TABLE TENGAH (Logo, Start, Exit) ---
         Table centerTable = new Table();
@@ -82,6 +88,8 @@ public class MainMenuScreen extends ScreenAdapter {
         playButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                // Stop menu music before transitioning
+                AudioManager.getInstance().stopMusic();
                 game.setScreen(new CharacterSelectionScreen(game));
                 dispose();
             }

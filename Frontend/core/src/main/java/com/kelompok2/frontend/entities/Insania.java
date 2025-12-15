@@ -19,7 +19,7 @@ public class Insania extends GameCharacter {
     private float skillCooldown = 10f; // 10 seconds cooldown
     private float skillTimer = 0f;
     private float skillRadius = 300f; // Radius untuk Mind Fracture AoE
-    private boolean mindFractureJustActivated = false; // Flag untuk GameScreen
+    private boolean mindFractureJustActivated = false; // Flag untuk GameScreen (single-use)
     private float circleDisplayTimer = 0f; // Timer untuk display circle
     private static final float CIRCLE_DISPLAY_DURATION = 0.5f; // Show circle for 0.5s
 
@@ -31,14 +31,12 @@ public class Insania extends GameCharacter {
         this.arts = 25f; // Moderate Arts - untuk skill
         this.def = 5f; // Low Defence - glass cannon style
 
-        // Load spritesheet melalui AssetManager
-        // InsaniaPlaceHolderSprite adalah spritesheet 8x5 untuk animasi
-        // Nanti diganti juga (Sama kayak Frost, ini character Arknights, mati kita kalo pake di versi akhir)
-        Texture spritesheet = AssetManager.getInstance().loadTexture("InsaniaPlaceHolderSprite.png");
+        // Load spritesheet baru (4 frames, 2x2) melalui AssetManager
+        Texture spritesheet = AssetManager.getInstance().loadTexture("Insania/pcgp-insania-idle.png");
 
-        // Split spritesheet menjadi individual frames (8 kolom x 5 baris)
-        int FRAME_COLS = 8;
-        int FRAME_ROWS = 5;
+        // Split spritesheet menjadi individual frames (2 kolom x 2 baris = 4 frames)
+        int FRAME_COLS = 2;
+        int FRAME_ROWS = 2;
         TextureRegion[][] tmp = TextureRegion.split(
                 spritesheet,
                 spritesheet.getWidth() / FRAME_COLS,
@@ -54,7 +52,7 @@ public class Insania extends GameCharacter {
         }
 
         // Buat idle animation (0.1 detik per frame = 10 FPS)
-        idleAnimation = new Animation<>(0.1f, idleFrames);
+        idleAnimation = new Animation<>(0.15f, idleFrames); // Slightly slower for 4 frames
         idleAnimation.setPlayMode(Animation.PlayMode.LOOP);
 
         // Initialize state time
@@ -114,10 +112,12 @@ public class Insania extends GameCharacter {
         float renderX = position.x;
         float renderY = position.y;
 
-        // Flip sprite jika menghadap kiri
-        if (!isFacingRight && !currentFrame.isFlipX()) {
-            currentFrame.flip(true, false);
-        } else if (isFacingRight && currentFrame.isFlipX()) {
+        // Flip sprite based on facing direction
+        // Sprite awalnya menghadap KIRI, jadi:
+        // - Jika isFacingRight = true dan sprite belum flip -> FLIP
+        // - Jika isFacingRight = false dan sprite sudah flip -> FLIP BACK
+        boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
+        if (needsFlip) {
             currentFrame.flip(true, false);
         }
 
@@ -155,7 +155,12 @@ public class Insania extends GameCharacter {
     }
 
     public boolean hasJustUsedMindFracture() {
-        return circleDisplayTimer > 0; // Active for full circle duration
+        // Return true only once, then reset flag (consumed after use)
+        if (mindFractureJustActivated) {
+            mindFractureJustActivated = false; // Consume flag
+            return true;
+        }
+        return false;
     }
 
     public float getSkillRadius() {
