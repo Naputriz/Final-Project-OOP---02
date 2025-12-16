@@ -356,7 +356,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 ### 🚧 Current TODOs 
 
 #### Character System Scalability
-- **TODO:** Extract CharacterInfo as separate class
+- ~~**TODO:** Extract CharacterInfo as separate class~~ **(DONE)** ✅
   - Location: `CharacterSelectionScreen.java:350`
   - Current: Inner class in CharacterSelectionScreen
   - Goal: Standalone class for better organization
