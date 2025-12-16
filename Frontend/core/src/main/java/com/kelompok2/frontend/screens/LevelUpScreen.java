@@ -68,7 +68,8 @@ public class LevelUpScreen extends ScreenAdapter {
         allEffects.add(new IncreaseDefenseEffect());
 
         // Add ONE random skill sebagai NewSkillEffect
-        com.kelompok2.frontend.skills.Skill randomSkill = com.kelompok2.frontend.factories.SkillFactory.getRandomSkill();
+        com.kelompok2.frontend.skills.Skill randomSkill = com.kelompok2.frontend.factories.SkillFactory
+                .getRandomSkill();
         allEffects.add(new NewSkillEffect(randomSkill));
 
         selectedEffects = new Array<>();
@@ -80,11 +81,10 @@ public class LevelUpScreen extends ScreenAdapter {
         float btnWidth = 300;
         float btnHeight = 80;
         confirmButtonBounds = new Rectangle(
-            (SCREEN_WIDTH - btnWidth) / 2,
-            100,
-            btnWidth,
-            btnHeight
-        );
+                (SCREEN_WIDTH - btnWidth) / 2,
+                100,
+                btnWidth,
+                btnHeight);
     }
 
     private void selectRandomEffects() {
@@ -105,13 +105,12 @@ public class LevelUpScreen extends ScreenAdapter {
         float totalWidth = (CARD_WIDTH * 3) + (CARD_SPACING * 2);
         float startX = centerX - totalWidth / 2;
 
-        for(int i=0; i<3; i++) {
+        for (int i = 0; i < 3; i++) {
             effectCards.add(new Rectangle(
-                startX + (CARD_WIDTH + CARD_SPACING) * i,
-                centerY - CARD_HEIGHT / 2,
-                CARD_WIDTH,
-                CARD_HEIGHT
-            ));
+                    startX + (CARD_WIDTH + CARD_SPACING) * i,
+                    centerY - CARD_HEIGHT / 2,
+                    CARD_WIDTH,
+                    CARD_HEIGHT));
         }
     }
 
@@ -143,7 +142,8 @@ public class LevelUpScreen extends ScreenAdapter {
 
     private void updateHoverAndClick() {
         // Jika delay belum selesai, jangan proses input apapun
-        if (inputDelayTimer < MIN_DELAY) return;
+        if (inputDelayTimer < MIN_DELAY)
+            return;
 
         int mouseX = Gdx.input.getX();
         int mouseY = SCREEN_HEIGHT - Gdx.input.getY();
@@ -156,13 +156,14 @@ public class LevelUpScreen extends ScreenAdapter {
                 break;
             }
         }
+
+        // Handle click events
+        handleClick();
     }
 
     private void handleClick() {
-        if (Gdx.input.justTouched() && hoveredCardIndex >= 0) {
-            // Apply effect yang dipilih
-            LevelUpEffect selectedEffect = selectedEffects.get(hoveredCardIndex);
-            selectedEffect.apply(player);
+        int mouseX = Gdx.input.getX();
+        int mouseY = SCREEN_HEIGHT - Gdx.input.getY();
 
         // Handle Click
         if (Gdx.input.justTouched()) {
@@ -184,16 +185,6 @@ public class LevelUpScreen extends ScreenAdapter {
         player.setLevelUpPending(false);
         gameScreen.resumeFromLevelUp();
         game.setScreen(gameScreen);
-    private void drawOverlay() {
-        Gdx.gl.glEnable(GL20.GL_BLEND);
-        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0, 0, 0, 0.7f);
-        shapeRenderer.rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        shapeRenderer.end();
-
-        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     private void drawCards() {
@@ -232,7 +223,8 @@ public class LevelUpScreen extends ScreenAdapter {
 
     private void drawConfirmButton() {
         // Tombol hanya muncul jika ada kartu yang dipilih
-        if (selectedCardIndex == -1) return;
+        if (selectedCardIndex == -1)
+            return;
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
@@ -241,10 +233,13 @@ public class LevelUpScreen extends ScreenAdapter {
         int mouseY = SCREEN_HEIGHT - Gdx.input.getY();
         boolean isHoveringBtn = confirmButtonBounds.contains(mouseX, mouseY);
 
-        if (isHoveringBtn) shapeRenderer.setColor(Color.GOLD);
-        else shapeRenderer.setColor(Color.ORANGE);
+        if (isHoveringBtn)
+            shapeRenderer.setColor(Color.GOLD);
+        else
+            shapeRenderer.setColor(Color.ORANGE);
 
-        shapeRenderer.rect(confirmButtonBounds.x, confirmButtonBounds.y, confirmButtonBounds.width, confirmButtonBounds.height);
+        shapeRenderer.rect(confirmButtonBounds.x, confirmButtonBounds.y, confirmButtonBounds.width,
+                confirmButtonBounds.height);
         shapeRenderer.end();
 
         // Text Button
@@ -253,8 +248,8 @@ public class LevelUpScreen extends ScreenAdapter {
         GlyphLayout layout = new GlyphLayout(font, text);
         font.setColor(Color.BLACK);
         font.draw(batch, text,
-            confirmButtonBounds.x + (confirmButtonBounds.width - layout.width)/2,
-            confirmButtonBounds.y + (confirmButtonBounds.height + layout.height)/2);
+                confirmButtonBounds.x + (confirmButtonBounds.width - layout.width) / 2,
+                confirmButtonBounds.y + (confirmButtonBounds.height + layout.height) / 2);
         batch.end();
     }
 
@@ -265,15 +260,16 @@ public class LevelUpScreen extends ScreenAdapter {
         titleFont.setColor(Color.GOLD);
         String title = "LEVEL UP!";
         GlyphLayout layout = new GlyphLayout(titleFont, title);
-        titleFont.draw(batch, title, (SCREEN_WIDTH - layout.width)/2, SCREEN_HEIGHT - 100);
+        titleFont.draw(batch, title, (SCREEN_WIDTH - layout.width) / 2, SCREEN_HEIGHT - 100);
 
         // Instruction
         font.setColor(Color.LIGHT_GRAY);
         String sub = (selectedCardIndex == -1) ? "Pilih satu kartu" : "Tekan CONFIRM untuk melanjutkan";
-        if (inputDelayTimer < MIN_DELAY) sub = "..."; // Loading
+        if (inputDelayTimer < MIN_DELAY)
+            sub = "..."; // Loading
 
         layout.setText(font, sub);
-        font.draw(batch, sub, (SCREEN_WIDTH - layout.width)/2, SCREEN_HEIGHT - 180);
+        font.draw(batch, sub, (SCREEN_WIDTH - layout.width) / 2, SCREEN_HEIGHT - 180);
 
         // Card Content
         for (int i = 0; i < selectedEffects.size; i++) {
@@ -284,11 +280,12 @@ public class LevelUpScreen extends ScreenAdapter {
             font.setColor(Color.YELLOW);
             layout.setText(font, effect.getName());
             font.draw(batch, effect.getName(),
-                card.x + (card.width - layout.width)/2,
-                card.y + card.height - 40);
+                    card.x + (card.width - layout.width) / 2,
+                    card.y + card.height - 40);
 
             // Deskripsi (Simple Word Wrap manual untuk contoh ini)
-            // Sebaiknya pakai Label Scene2D untuk wrapping otomatis, tapi ini pakai font biasa:
+            // Sebaiknya pakai Label Scene2D untuk wrapping otomatis, tapi ini pakai font
+            // biasa:
             font.setColor(Color.WHITE);
             font.getData().setScale(1.0f); // Kecilkan font deskripsi
             String desc = effect.getDescription();
@@ -297,8 +294,8 @@ public class LevelUpScreen extends ScreenAdapter {
 
             layout.setText(font, desc);
             font.draw(batch, desc,
-                card.x + 20, // Padding kiri
-                card.y + card.height / 2 + 20);
+                    card.x + 20, // Padding kiri
+                    card.y + card.height / 2 + 20);
 
             font.getData().setScale(1.5f); // Balikin scale
         }

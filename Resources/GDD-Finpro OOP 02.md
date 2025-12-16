@@ -353,16 +353,9 @@ Each character has a unique innate skill but has a second skill slot that can be
    - IncreaseMaxHPEffect, IncreaseAtkEffect, IncreaseArtsEffect
    - IncreaseDefenseEffect, RecoverHPEffect, NewSkillEffect
 
-
-### 🚧 Current TODOs (Scalability Issues)
+### 🚧 Current TODOs 
 
 #### Character System Scalability
-- **TODO:** Make character selection more scalable (avoid manual addition per character). Sesuai dugaan, ini gw lama debugging pas bikin Blaze karena lupa mengenai ini
-  - Location: `CharacterSelectionScreen.java:83`
-  - Location: `GameScreen.java:71-88` (character spawn switch)
-  - Current: Hardcoded array of 4 characters
-  - Goal: Load characters dynamically from configuration/data file
-
 - **TODO:** Extract CharacterInfo as separate class
   - Location: `CharacterSelectionScreen.java:350`
   - Current: Inner class in CharacterSelectionScreen
