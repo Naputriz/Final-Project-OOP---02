@@ -312,7 +312,6 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Skill Cooldown bar (yellow-orange) - Middle position
   - XP bar (cyan) - Bottom position, closest to character
   - All bars properly positioned at +25, +19, +13 offsets respectively
-  - Fixed rendering order for all characters
 - **Fullscreen Mode:** Game runs in native fullscreen (1920x1080)
 - **Centered Character Selection:** All UI elements properly centered for widescreen displays
 - **Level-Up Screen:**
@@ -354,12 +353,11 @@ Each character has a unique innate skill but has a second skill slot that can be
    - IncreaseMaxHPEffect, IncreaseAtkEffect, IncreaseArtsEffect
    - IncreaseDefenseEffect, RecoverHPEffect, NewSkillEffect
 
-**📄 See full design patterns documentation:** `design_patterns_documentation.md`
 
 ### 🚧 Current TODOs (Scalability Issues)
 
 #### Character System Scalability
-- **TODO:** Make character selection more scalable (avoid manual addition per character)
+- **TODO:** Make character selection more scalable (avoid manual addition per character). Sesuai dugaan, ini gw lama debugging pas bikin Blaze karena lupa mengenai ini
   - Location: `CharacterSelectionScreen.java:83`
   - Location: `GameScreen.java:71-88` (character spawn switch)
   - Current: Hardcoded array of 4 characters
@@ -392,6 +390,7 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Location: `EnemyFactory.java`
   - Current: Only DummyEnemy implemented
   - Planned: FastEnemy, TankEnemy, RangedEnemy
+  - Bosses: Insania, Blaze, Isolde already added as playable ccharacters, implement as boss next
 
 #### UI Responsiveness
 - **TODO:** Test and adjust layout for different screen resolutions
@@ -402,7 +401,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 ### 📋 Pending Features (From Original GDD)
 
 #### Characters Not Yet Implemented
-- Whisperwind - The Silent Caster
+- ~~Whisperwind - The Silent Caster~~ ✅ **IMPLEMENTED**
 - Aelita - The Evergreen Healer
 - Aegis - The Impenetrable Shield
 - Lumi - The Pale Renegade
@@ -413,7 +412,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 - Funami - The White Raven
 
 #### Boss System Not Yet Implemented
-- Boss spawning every X minutes
+- Boss spawning every 5 minutes
 - Boss "ultimate" looting mechanic
 - Boss-to-playable-character unlocking
 - Insania as boss (currently only playable)

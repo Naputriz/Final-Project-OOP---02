@@ -2,9 +2,6 @@ package com.kelompok2.frontend.effects;
 
 import com.kelompok2.frontend.entities.GameCharacter;
 
-/**
- * Effect yang meningkatkan Arts sebesar 15%.
- */
 public class IncreaseArtsEffect implements LevelUpEffect {
 
     @Override

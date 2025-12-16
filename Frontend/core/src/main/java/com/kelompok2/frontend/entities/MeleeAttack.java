@@ -10,10 +10,6 @@ import com.kelompok2.frontend.managers.AssetManager;
 
 import java.util.HashSet;
 
-/**
- * MeleeAttack - Represents melee attack hitbox dengan sprite animation.
- * Menggunakan Strategy Pattern untuk attack behavior.
- */
 public class MeleeAttack {
     private Rectangle bounds; // Hitbox untuk collision
     private Vector2 position;
@@ -31,19 +27,6 @@ public class MeleeAttack {
     // Damage tracking -mencegah hit multiple kali
     private HashSet<GameCharacter> hitEnemies;
 
-    /**
-     * Constructor dengan animation support.
-     * 
-     * @param x             Posisi X
-     * @param y             Posisi Y
-     * @param width         Lebar hitbox
-     * @param height        Tinggi hitbox
-     * @param damage        Damage yang diberikan
-     * @param duration      Durasi attack aktif
-     * @param animationType "slash" untuk Ryze, "scratch" untuk Insania
-     * @param rotationAngle Sudut rotasi sprite dalam derajat (0 = kanan, 90 = atas,
-     *                      dsb)
-     */
     public MeleeAttack(float x, float y, float width, float height, float damage, float duration, String animationType,
             float rotationAngle) {
         this.position = new Vector2(x, y);
@@ -60,9 +43,6 @@ public class MeleeAttack {
         loadAnimation();
     }
 
-    /**
-     * Load animation berdasarkan type.
-     */
     private void loadAnimation() {
         String spritePath;
 

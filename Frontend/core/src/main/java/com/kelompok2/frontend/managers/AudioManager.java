@@ -5,10 +5,6 @@ import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import java.util.HashMap;
 
-/**
- * AudioManager - Singleton Pattern untuk mengelola semua audio dalam game.
- * Handles BGM (Music) dan SFX (Sound) dengan caching dan volume control.
- */
 public class AudioManager {
     private static AudioManager instance;
 
@@ -38,12 +34,6 @@ public class AudioManager {
         return instance;
     }
 
-    /**
-     * Play background music. Akan stop music sebelumnya jika ada.
-     * 
-     * @param path Path ke file music (relative dari assets folder)
-     * @param loop Apakah music di-loop
-     */
     public void playMusic(String path, boolean loop) {
         // Jika music yang sama sedang playing, skip
         if (currentMusicPath != null && currentMusicPath.equals(path) && currentMusic != null
@@ -78,9 +68,6 @@ public class AudioManager {
         System.out.println("[AudioManager] Playing music: " + path + " (loop=" + loop + ")");
     }
 
-    /**
-     * Stop current music.
-     */
     public void stopMusic() {
         if (currentMusic != null && currentMusic.isPlaying()) {
             currentMusic.stop();
@@ -90,9 +77,6 @@ public class AudioManager {
         currentMusicPath = null;
     }
 
-    /**
-     * Pause current music.
-     */
     public void pauseMusic() {
         if (currentMusic != null && currentMusic.isPlaying()) {
             currentMusic.pause();
@@ -100,9 +84,6 @@ public class AudioManager {
         }
     }
 
-    /**
-     * Resume paused music.
-     */
     public void resumeMusic() {
         if (currentMusic != null && !currentMusic.isPlaying()) {
             currentMusic.play();
@@ -110,21 +91,10 @@ public class AudioManager {
         }
     }
 
-    /**
-     * Play sound effect once.
-     * 
-     * @param path Path ke file sound (relative dari assets folder)
-     */
     public void playSound(String path) {
         playSound(path, soundVolume);
     }
 
-    /**
-     * Play sound effect once dengan volume custom.
-     * 
-     * @param path   Path ke file sound
-     * @param volume Volume (0.0 - 1.0)
-     */
     public void playSound(String path, float volume) {
         // Load atau ambil dari cache
         Sound sound = soundCache.get(path);
@@ -144,9 +114,6 @@ public class AudioManager {
         sound.play(volume);
     }
 
-    /**
-     * Set music volume (0.0 - 1.0).
-     */
     public void setMusicVolume(float volume) {
         this.musicVolume = Math.max(0f, Math.min(1f, volume));
         if (currentMusic != null) {
@@ -155,31 +122,19 @@ public class AudioManager {
         System.out.println("[AudioManager] Music volume set to: " + this.musicVolume);
     }
 
-    /**
-     * Set sound volume (0.0 - 1.0).
-     */
     public void setSoundVolume(float volume) {
         this.soundVolume = Math.max(0f, Math.min(1f, volume));
         System.out.println("[AudioManager] Sound volume set to: " + this.soundVolume);
     }
 
-    /**
-     * Get current music volume.
-     */
     public float getMusicVolume() {
         return musicVolume;
     }
 
-    /**
-     * Get current sound volume.
-     */
     public float getSoundVolume() {
         return soundVolume;
     }
 
-    /**
-     * Dispose all audio resources.
-     */
     public void dispose() {
         System.out.println("[AudioManager] Disposing all audio resources...");
 

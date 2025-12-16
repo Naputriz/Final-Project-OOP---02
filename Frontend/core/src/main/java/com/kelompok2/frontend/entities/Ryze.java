@@ -94,9 +94,6 @@ public class Ryze extends GameCharacter {
         currentState.update(this, delta);
     }
 
-    /**
-     * Check apakah karakter sedang bergerak untuk state transition.
-     */
     private void checkMovementState() {
         // Bandingkan posisi sekarang dengan posisi sebelumnya
         boolean wasMoving = isMoving;
@@ -186,5 +183,20 @@ public class Ryze extends GameCharacter {
 
     public float getSkillCooldown() {
         return skillCooldown;
+    }
+
+    @Override
+    public float getInnateSkillTimer() {
+        return skillTimer;
+    }
+
+    @Override
+    public float getInnateSkillCooldown() {
+        return skillCooldown;
+    }
+
+    @Override
+    public String getAttackAnimationType() {
+        return "slash"; // Ryze uses slash animations
     }
 }

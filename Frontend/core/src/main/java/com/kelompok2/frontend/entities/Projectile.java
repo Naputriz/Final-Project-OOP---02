@@ -16,6 +16,7 @@ public class Projectile {
     public boolean active; // Penanda apakah peluru masih aktif
     private float damage; // Damage yang diberikan peluru (scaling dari Arts)
     private Color color = Color.YELLOW; // Warna projectile (default kuning)
+    private boolean isFireball = false; // Flag untuk fireball skill
 
     private float distanceTraveled = 0f;
     private float maxDistance = 1000f; // Max range of the bullet
@@ -54,11 +55,19 @@ public class Projectile {
     }
 
     private void createTexture() {
-        Pixmap pixmap = new Pixmap(10, 10, Pixmap.Format.RGBA8888);
+        // Make fireballs bigger for visual impact
+        int size = isFireball ? 30 : 10;
+
+        Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         pixmap.setColor(color); // Gunakan warna custom
         pixmap.fill();
         this.texture = new Texture(pixmap);
         pixmap.dispose();
+
+        // Update bounds size jika fireball
+        if (isFireball) {
+            this.bounds.setSize(size, size);
+        }
     }
 
     public void setColor(Color newColor) {
@@ -107,8 +116,31 @@ public class Projectile {
         return bounds;
     }
 
+    public Vector2 getPosition() {
+        return position;
+    }
+
     public float getDamage() {
         return damage;
+    }
+
+    public void setDamage(float damage) {
+        this.damage = damage;
+    }
+
+    public void setVelocity(float vx, float vy) {
+        this.velocity.set(vx, vy);
+    }
+
+    public void setFireball(boolean isFireball) {
+        this.isFireball = isFireball;
+        if (isFireball) {
+            setColor(new Color(1f, 0.5f, 0f, 1f)); // Orange for fireball
+        }
+    }
+
+    public boolean isFireball() {
+        return isFireball;
     }
 
     public void dispose() {

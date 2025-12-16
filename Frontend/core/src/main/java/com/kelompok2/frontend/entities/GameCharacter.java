@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.strategies.AttackStrategy;
 import com.kelompok2.frontend.managers.GameManager;
+import com.kelompok2.frontend.skills.Skill;
 
 public abstract class GameCharacter {
     protected Vector2 position;
@@ -33,6 +34,10 @@ public abstract class GameCharacter {
 
     // Strategy Pattern untuk attack behavior
     protected AttackStrategy attackStrategy;
+
+    // Secondary Skill System (Q key) - Command Pattern
+    protected Skill secondarySkill; // Q skill slot
+    protected boolean hasSecondarySkill; // Flag untuk cek apakah ada skill
 
     public GameCharacter(float x, float y, float speed, float maxHp) {
         this.position = new Vector2(x, y);
@@ -70,10 +75,19 @@ public abstract class GameCharacter {
         performInnateSkill();
     }
 
+    public abstract float getInnateSkillTimer();
+    public abstract float getInnateSkillCooldown();
+    public abstract String getAttackAnimationType();
+
     // Update untuk mengurangi timer
     public void update(float delta) {
         if (attackTimer > 0) {
             attackTimer -= delta;
+        }
+
+        // Update secondary skill cooldown
+        if (secondarySkill != null) {
+            secondarySkill.update(delta);
         }
     }
 
@@ -274,5 +288,33 @@ public abstract class GameCharacter {
 
     public AttackStrategy getAttackStrategy() {
         return attackStrategy;
+    }
+
+    // Secondary Skill System methods
+    public void setSecondarySkill(Skill skill) {
+        this.secondarySkill = skill;
+        this.hasSecondarySkill = (skill != null);
+
+        if (skill != null) {
+            System.out.println("[" + this.getClass().getSimpleName() + "] Learned skill: " + skill.getName());
+        }
+    }
+
+    public Skill getSecondarySkill() {
+        return secondarySkill;
+    }
+    public boolean hasSecondarySkill() {
+        return hasSecondarySkill && secondarySkill != null;
+    }
+    public void performSecondarySkill(Vector2 targetPos,
+            Array<Projectile> projectiles,
+            Array<MeleeAttack> meleeAttacks) {
+        if (!hasSecondarySkill()) {
+            System.out.println("[" + this.getClass().getSimpleName() + "] No secondary skill equipped!");
+            return;
+        }
+
+        // Activate skill via Command Pattern
+        secondarySkill.activate(this, targetPos, projectiles, meleeAttacks);
     }
 }

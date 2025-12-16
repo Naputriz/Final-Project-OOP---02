@@ -183,4 +183,19 @@ public class Isolde extends GameCharacter {
     public float getSkillCooldown() {
         return skillCooldown;
     }
+
+    @Override
+    public float getInnateSkillTimer() {
+        return skillTimer;
+    }
+
+    @Override
+    public float getInnateSkillCooldown() {
+        return skillCooldown;
+    }
+
+    @Override
+    public String getAttackAnimationType() {
+        return "slash"; // Isolde uses slash animations
+    }
 }
