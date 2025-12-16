@@ -15,10 +15,6 @@ import com.kelompok2.frontend.entities.GameCharacter;
 
 import java.util.Random;
 
-/**
- * Screen yang menampilkan pilihan effect saat player level up.
- * Game akan di-pause selama screen ini aktif.
- */
 public class LevelUpScreen extends ScreenAdapter {
     private Main game;
     private GameScreen gameScreen;
@@ -70,7 +66,10 @@ public class LevelUpScreen extends ScreenAdapter {
         allEffects.add(new IncreaseArtsEffect());
         allEffects.add(new IncreaseMaxHPEffect());
         allEffects.add(new IncreaseDefenseEffect());
-        allEffects.add(new NewSkillEffect());
+
+        // Add ONE random skill sebagai NewSkillEffect
+        com.kelompok2.frontend.skills.Skill randomSkill = com.kelompok2.frontend.factories.SkillFactory.getRandomSkill();
+        allEffects.add(new NewSkillEffect(randomSkill));
 
         // Pilih 3 effect secara random
         selectedEffects = new Array<>();
@@ -81,9 +80,6 @@ public class LevelUpScreen extends ScreenAdapter {
         setupCardPositions();
     }
 
-    /**
-     * Memilih 3 effect secara random dari pool tanpa duplikasi.
-     */
     private void selectRandomEffects() {
         selectedEffects.clear();
         Array<LevelUpEffect> tempPool = new Array<>(allEffects);
@@ -97,10 +93,6 @@ public class LevelUpScreen extends ScreenAdapter {
         }
     }
 
-    /**
-     * Setup posisi card effect.
-     * Layout: 3 cards dalam satu baris horizontal.
-     */
     private void setupCardPositions() {
         effectCards.clear();
 
@@ -142,9 +134,6 @@ public class LevelUpScreen extends ScreenAdapter {
         drawText();
     }
 
-    /**
-     * Update card yang sedang di-hover berdasarkan posisi mouse.
-     */
     private void updateHover() {
         int mouseX = Gdx.input.getX();
         int mouseY = SCREEN_HEIGHT - Gdx.input.getY(); // Flip Y coordinate
@@ -160,9 +149,6 @@ public class LevelUpScreen extends ScreenAdapter {
         }
     }
 
-    /**
-     * Handle click untuk memilih effect.
-     */
     private void handleClick() {
         if (Gdx.input.justTouched() && hoveredCardIndex >= 0) {
             // Apply effect yang dipilih
@@ -180,9 +166,6 @@ public class LevelUpScreen extends ScreenAdapter {
         }
     }
 
-    /**
-     * Draw semi-transparent overlay.
-     */
     private void drawOverlay() {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -195,9 +178,6 @@ public class LevelUpScreen extends ScreenAdapter {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    /**
-     * Draw effect cards.
-     */
     private void drawCards() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
@@ -232,9 +212,6 @@ public class LevelUpScreen extends ScreenAdapter {
         shapeRenderer.end();
     }
 
-    /**
-     * Draw text (title, level, effect names, dan descriptions).
-     */
     private void drawText() {
         batch.begin();
 

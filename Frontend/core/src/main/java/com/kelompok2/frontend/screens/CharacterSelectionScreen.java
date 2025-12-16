@@ -82,7 +82,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void initializeCharacters() {
         // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        characters = new CharacterInfo[4]; // Updated to 4 characters
+        characters = new CharacterInfo[5]; // Updated to 5 characters
 
         // Ryze - The Ghost of Insania
         Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
@@ -131,6 +131,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 "BlazeCharacterPlaceholder.png",
                 blazeSheet,
                 4, 23, 92, 0.1f); // 4 columns × 23 rows = 92 frames
+
+        // Whisperwind - The Silent Caster
+        Texture whisperwindSprite = AssetManager.getInstance().loadTexture("WhisperwindPlaceholder.png");
+        characters[4] = new CharacterInfo(
+                "Whisperwind",
+                "The Silent Caster",
+                110, 15, 38, 12, 190,
+                "Hurricane Bind",
+                "Wind ball with knockback and stun.\\nDamage: Arts x2.0, Cooldown: 10s",
+                "WhisperwindPlaceholder.png",
+                whisperwindSprite,
+                1, 1, 1, 0.1f); // Stationary sprite
     }
 
     @Override
@@ -150,10 +162,19 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         // PHASE 1: Render all shapes (backgrounds and borders)
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        // Portrait backgrounds
+        // Portrait backgrounds - 2 column layout (3 left, 2 right)
         for (int i = 0; i < characters.length; i++) {
-            float x = GRID_X;
-            float y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
+            float x, y;
+            if (i < 3) {
+                // Left column (Ryze, Isolde, Insania)
+                x = GRID_X;
+                y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
+            } else {
+                // Right column (Blaze, Whisperwind)
+                x = GRID_X + PORTRAIT_SPACING * 2; // Offset to the right
+                y = GRID_Y + (4 - i) * PORTRAIT_SPACING; // 4-3=1, 4-4=0
+            }
+
             if (i == hoveredIndex) {
                 shapeRenderer.setColor(0.3f, 0.6f, 1f, 0.5f); // Blue highlight
             } else {
@@ -179,10 +200,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         Gdx.gl.glLineWidth(2);
         shapeRenderer.setColor(Color.WHITE);
 
-        // Portrait borders
+        // Portrait borders - 2 column layout
         for (int i = 0; i < characters.length; i++) {
-            float x = GRID_X;
-            float y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
+            float x, y;
+            if (i < 3) {
+                // Left column
+                x = GRID_X;
+                y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
+            } else {
+                // Right column
+                x = GRID_X + PORTRAIT_SPACING * 2;
+                y = GRID_Y + (4 - i) * PORTRAIT_SPACING;
+            }
             shapeRenderer.rect(x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
         }
 
@@ -225,8 +254,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void drawPortraitSprite(int index) {
         CharacterInfo character = characters[index];
-        float x = GRID_X;
-        float y = GRID_Y + (2 - index) * PORTRAIT_SPACING; // Stack vertically
+        float x, y;
+
+        // Calculate position based on 2-column layout
+        if (index < 3) {
+            // Left column
+            x = GRID_X;
+            y = GRID_Y + (2 - index) * PORTRAIT_SPACING;
+        } else {
+            // Right column
+            x = GRID_X + PORTRAIT_SPACING * 2;
+            y = GRID_Y + (4 - index) * PORTRAIT_SPACING;
+        }
 
         // Draw character sprite in portrait (batch already begun from main render)
         // If character has animation, use first frame; otherwise use texture
@@ -318,10 +357,19 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         float worldX = worldCoords.x;
         float worldY = worldCoords.y;
 
-        // Check hover over portraits
+        // Check hover over portraits - 2 column layout
         for (int i = 0; i < characters.length; i++) {
-            float x = GRID_X;
-            float y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
+            float x, y;
+            if (i < 3) {
+                // Left column
+                x = GRID_X;
+                y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
+            } else {
+                // Right column
+                x = GRID_X + PORTRAIT_SPACING * 2;
+                y = GRID_Y + (4 - i) * PORTRAIT_SPACING;
+            }
+
             Rectangle portraitBounds = new Rectangle(x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
 
             if (portraitBounds.contains(worldX, worldY)) {

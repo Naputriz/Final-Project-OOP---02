@@ -101,6 +101,7 @@ public class InputHandler {
     }
 
     private void handleSkills() {
+        // E key - Innate Skill
         if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             // Get mouse position in world coordinates
             Vector3 mousePos3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
@@ -108,6 +109,18 @@ public class InputHandler {
 
             // Call skill with mouse position untuk aiming
             character.performInnateSkill(mousePos);
+        }
+
+        // Q key - Secondary Skill
+        if (Gdx.input.isKeyJustPressed(Input.Keys.Q)) {
+            if (character.hasSecondarySkill()) {
+                // Get mouse position in world coordinates
+                Vector3 mousePos3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+                Vector2 mousePos = new Vector2(mousePos3.x, mousePos3.y);
+
+                // Activate secondary skill via Command Pattern
+                character.performSecondarySkill(mousePos, projectilePool.getActiveProjectiles(), meleeAttacks);
+            }
         }
     }
 }

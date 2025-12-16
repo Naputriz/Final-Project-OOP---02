@@ -1,6 +1,5 @@
 package com.kelompok2.frontend.entities;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -174,5 +173,20 @@ public class Insania extends GameCharacter {
 
     public float getSkillCooldown() {
         return skillCooldown;
+    }
+
+    @Override
+    public float getInnateSkillTimer() {
+        return skillTimer;
+    }
+
+    @Override
+    public float getInnateSkillCooldown() {
+        return skillCooldown;
+    }
+
+    @Override
+    public String getAttackAnimationType() {
+        return "scratch"; // Insania uses scratch animations
     }
 }

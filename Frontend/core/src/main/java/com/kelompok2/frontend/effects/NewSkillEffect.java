@@ -1,27 +1,31 @@
 package com.kelompok2.frontend.effects;
 
 import com.kelompok2.frontend.entities.GameCharacter;
+import com.kelompok2.frontend.skills.Skill;
 
-/**
- * Effect untuk menambah skill baru (Q slot).
- * Saat ini hanya placeholder karena secondary skill system belum
- * diimplementasi.
- */
 public class NewSkillEffect implements LevelUpEffect {
+
+    private Skill skillToAssign;
+    public NewSkillEffect(Skill skill) {
+        this.skillToAssign = skill;
+    }
 
     @Override
     public void apply(GameCharacter character) {
-        // TODO: Implement ketika secondary skill system (Q key) sudah ada
-        System.out.println("[NewSkillEffect] Coming Soon! Secondary skill system not yet implemented.");
+        // Assign skill copy ke character (setiap character harus punya instance sendiri)
+        character.setSecondarySkill(skillToAssign.copy());
+        System.out.println("[NewSkillEffect] Learned new skill: " + skillToAssign.getName());
     }
 
     @Override
     public String getName() {
-        return "Skill Baru";
+        // Show specific skill name sehingga player tau skill apa yang akan didapat
+        return skillToAssign.getName();
     }
 
     @Override
     public String getDescription() {
-        return "Skill baru (Segera!)";
+        // Show specific skill description
+        return skillToAssign.getDescription();
     }
 }
