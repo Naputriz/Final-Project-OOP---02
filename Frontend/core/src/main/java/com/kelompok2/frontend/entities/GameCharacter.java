@@ -76,7 +76,9 @@ public abstract class GameCharacter {
     }
 
     public abstract float getInnateSkillTimer();
+
     public abstract float getInnateSkillCooldown();
+
     public abstract String getAttackAnimationType();
 
     // Update untuk mengurangi timer
@@ -188,8 +190,11 @@ public abstract class GameCharacter {
     }
 
     public void dispose() {
-        if (texture != null)
-            texture.dispose();
+        // Note: Don't dispose texture - it's owned and managed by AssetManager
+        // This character only holds a reference, not ownership
+        // AssetManager will handle texture lifecycle and cleanup
+        // If we dispose here, the texture remains in AssetManager's cache as a disposed
+        // (invalid) texture, causing black box rendering when reused
     }
 
     public void setPosition(float x, float y) {
@@ -303,9 +308,11 @@ public abstract class GameCharacter {
     public Skill getSecondarySkill() {
         return secondarySkill;
     }
+
     public boolean hasSecondarySkill() {
         return hasSecondarySkill && secondarySkill != null;
     }
+
     public void performSecondarySkill(Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
