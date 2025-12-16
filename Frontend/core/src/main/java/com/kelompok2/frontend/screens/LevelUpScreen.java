@@ -5,6 +5,7 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
@@ -25,26 +26,26 @@ public class LevelUpScreen extends ScreenAdapter {
     private BitmapFont font;
     private BitmapFont titleFont;
 
-    // Array semua effect yang tersedia (pool)
     private Array<LevelUpEffect> allEffects;
-
-    // 3 effect yang dipilih secara random untuk ditampilkan
     private Array<LevelUpEffect> selectedEffects;
-
-    // Rectangles untuk clickable areas (effect cards)
     private Array<Rectangle> effectCards;
 
-    // Index card yang sedang di-hover (-1 jika tidak ada)
     private int hoveredCardIndex = -1;
+    private int selectedCardIndex = -1; // -1 artinya belum ada yang dipilih
 
     // Screen dimensions
     private static final int SCREEN_WIDTH = 1920;
     private static final int SCREEN_HEIGHT = 1080;
 
-    // Card dimensions dan layout
+    // Layout
     private static final float CARD_WIDTH = 300;
-    private static final float CARD_HEIGHT = 180;
+    private static final float CARD_HEIGHT = 400; // Agak lebih tinggi biar muat deskripsi
     private static final float CARD_SPACING = 50;
+
+    // Safety Features
+    private float inputDelayTimer = 0f;
+    private final float MIN_DELAY = 0.5f; // Setengah detik delay sebelum bisa interaksi
+    private Rectangle confirmButtonBounds;
 
     public LevelUpScreen(Main game, GameScreen gameScreen, GameCharacter player) {
         this.game = game;
@@ -55,11 +56,10 @@ public class LevelUpScreen extends ScreenAdapter {
         shapeRenderer = new ShapeRenderer();
         font = new BitmapFont();
         font.getData().setScale(1.5f);
-
         titleFont = new BitmapFont();
         titleFont.getData().setScale(3.5f);
 
-        // Inisialisasi effect pool
+        // Setup Pools & Selection (Tetap sama)
         allEffects = new Array<>();
         allEffects.add(new RecoverHPEffect());
         allEffects.add(new IncreaseAtkEffect());
@@ -71,21 +71,26 @@ public class LevelUpScreen extends ScreenAdapter {
         com.kelompok2.frontend.skills.Skill randomSkill = com.kelompok2.frontend.factories.SkillFactory.getRandomSkill();
         allEffects.add(new NewSkillEffect(randomSkill));
 
-        // Pilih 3 effect secara random
         selectedEffects = new Array<>();
         effectCards = new Array<>();
         selectRandomEffects();
-
-        // Setup card positions
         setupCardPositions();
+
+        // Setup tombol confirm di tengah bawah
+        float btnWidth = 300;
+        float btnHeight = 80;
+        confirmButtonBounds = new Rectangle(
+            (SCREEN_WIDTH - btnWidth) / 2,
+            100,
+            btnWidth,
+            btnHeight
+        );
     }
 
     private void selectRandomEffects() {
         selectedEffects.clear();
         Array<LevelUpEffect> tempPool = new Array<>(allEffects);
         Random random = new Random();
-
-        // Pilih 3 effect tanpa duplikasi
         for (int i = 0; i < 3 && tempPool.size > 0; i++) {
             int randomIndex = random.nextInt(tempPool.size);
             selectedEffects.add(tempPool.get(randomIndex));
@@ -95,54 +100,58 @@ public class LevelUpScreen extends ScreenAdapter {
 
     private void setupCardPositions() {
         effectCards.clear();
-
-        // Posisi center screen
         float centerX = SCREEN_WIDTH / 2f;
         float centerY = SCREEN_HEIGHT / 2f;
-
-        // Total width untuk 3 cards + spacing
         float totalWidth = (CARD_WIDTH * 3) + (CARD_SPACING * 2);
         float startX = centerX - totalWidth / 2;
 
-        // Card 1 (left)
-        effectCards.add(new Rectangle(startX, centerY - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT));
-
-        // Card 2 (center)
-        effectCards.add(
-                new Rectangle(startX + CARD_WIDTH + CARD_SPACING, centerY - CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT));
-
-        // Card 3 (right)
-        effectCards.add(new Rectangle(startX + (CARD_WIDTH + CARD_SPACING) * 2, centerY - CARD_HEIGHT / 2, CARD_WIDTH,
-                CARD_HEIGHT));
+        for(int i=0; i<3; i++) {
+            effectCards.add(new Rectangle(
+                startX + (CARD_WIDTH + CARD_SPACING) * i,
+                centerY - CARD_HEIGHT / 2,
+                CARD_WIDTH,
+                CARD_HEIGHT
+            ));
+        }
     }
 
     @Override
     public void render(float delta) {
-        // Clear screen dengan dark overlay
-        Gdx.gl.glClearColor(0, 0, 0, 0.8f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        // 1. RENDER BACKGROUND GAME (Frozen)
+        gameScreen.render(0);
 
-        // Update hover state
-        updateHover();
+        // 2. RENDER OVERLAY GELAP
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0, 0, 0, 0.85f); // Sedikit lebih gelap dari pause
+        shapeRenderer.rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
 
-        // Handle click
-        handleClick();
+        // Update Timer Delay
+        inputDelayTimer += Gdx.graphics.getDeltaTime();
 
-        // Draw UI
-        drawOverlay();
+        // Update Logic
+        updateHoverAndClick();
+
+        // Draw UI Elements
         drawCards();
         drawText();
+        drawConfirmButton();
     }
 
-    private void updateHover() {
+    private void updateHoverAndClick() {
+        // Jika delay belum selesai, jangan proses input apapun
+        if (inputDelayTimer < MIN_DELAY) return;
+
         int mouseX = Gdx.input.getX();
-        int mouseY = SCREEN_HEIGHT - Gdx.input.getY(); // Flip Y coordinate
+        int mouseY = SCREEN_HEIGHT - Gdx.input.getY();
 
+        // Cek Hover Cards
         hoveredCardIndex = -1;
-
         for (int i = 0; i < effectCards.size; i++) {
-            Rectangle card = effectCards.get(i);
-            if (card.contains(mouseX, mouseY)) {
+            if (effectCards.get(i).contains(mouseX, mouseY)) {
                 hoveredCardIndex = i;
                 break;
             }
@@ -155,17 +164,26 @@ public class LevelUpScreen extends ScreenAdapter {
             LevelUpEffect selectedEffect = selectedEffects.get(hoveredCardIndex);
             selectedEffect.apply(player);
 
-            // Clear level-up pending flag
-            player.setLevelUpPending(false);
+        // Handle Click
+        if (Gdx.input.justTouched()) {
+            // Logic Pilih Kartu
+            if (hoveredCardIndex != -1) {
+                selectedCardIndex = hoveredCardIndex; // Set kartu yang dipilih
+            }
 
-            // Resume game
-            gameScreen.resumeFromLevelUp();
-            game.setScreen(gameScreen);
-
-            System.out.println("[LevelUpScreen] Effect selected: " + selectedEffect.getName());
+            // Logic Klik Confirm
+            if (selectedCardIndex != -1 && confirmButtonBounds.contains(mouseX, mouseY)) {
+                applyAndClose();
+            }
         }
     }
 
+    private void applyAndClose() {
+        LevelUpEffect effect = selectedEffects.get(selectedCardIndex);
+        effect.apply(player);
+        player.setLevelUpPending(false);
+        gameScreen.resumeFromLevelUp();
+        game.setScreen(gameScreen);
     private void drawOverlay() {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -184,88 +202,105 @@ public class LevelUpScreen extends ScreenAdapter {
         for (int i = 0; i < effectCards.size; i++) {
             Rectangle card = effectCards.get(i);
 
-            // Card background (highlight on hover)
-            if (i == hoveredCardIndex) {
-                shapeRenderer.setColor(0.4f, 0.4f, 0.6f, 1f); // Light purple on hover
+            // Warna Dasar Kartu
+            if (i == selectedCardIndex) {
+                shapeRenderer.setColor(0.1f, 0.6f, 0.1f, 1f); // Hijau (Terpilih)
+            } else if (i == hoveredCardIndex && inputDelayTimer >= MIN_DELAY) {
+                shapeRenderer.setColor(0.4f, 0.4f, 0.6f, 1f); // Ungu Muda (Hover)
             } else {
-                shapeRenderer.setColor(0.2f, 0.2f, 0.3f, 1f); // Dark gray
+                shapeRenderer.setColor(0.2f, 0.2f, 0.3f, 1f); // Abu Gelap (Normal)
             }
             shapeRenderer.rect(card.x, card.y, card.width, card.height);
+        }
+        shapeRenderer.end();
 
-            // Card border
-            shapeRenderer.end();
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-            Gdx.gl.glLineWidth(3);
-
-            if (i == hoveredCardIndex) {
-                shapeRenderer.setColor(Color.CYAN);
+        // Border
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        Gdx.gl.glLineWidth(3);
+        for (int i = 0; i < effectCards.size; i++) {
+            Rectangle card = effectCards.get(i);
+            if (i == selectedCardIndex) {
+                shapeRenderer.setColor(Color.GOLD); // Border Emas jika dipilih
             } else {
                 shapeRenderer.setColor(Color.LIGHT_GRAY);
             }
             shapeRenderer.rect(card.x, card.y, card.width, card.height);
-            Gdx.gl.glLineWidth(1);
-
-            shapeRenderer.end();
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         }
-
         shapeRenderer.end();
+        Gdx.gl.glLineWidth(1);
+    }
+
+    private void drawConfirmButton() {
+        // Tombol hanya muncul jika ada kartu yang dipilih
+        if (selectedCardIndex == -1) return;
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        // Cek Hover Button
+        int mouseX = Gdx.input.getX();
+        int mouseY = SCREEN_HEIGHT - Gdx.input.getY();
+        boolean isHoveringBtn = confirmButtonBounds.contains(mouseX, mouseY);
+
+        if (isHoveringBtn) shapeRenderer.setColor(Color.GOLD);
+        else shapeRenderer.setColor(Color.ORANGE);
+
+        shapeRenderer.rect(confirmButtonBounds.x, confirmButtonBounds.y, confirmButtonBounds.width, confirmButtonBounds.height);
+        shapeRenderer.end();
+
+        // Text Button
+        batch.begin();
+        String text = "CONFIRM";
+        GlyphLayout layout = new GlyphLayout(font, text);
+        font.setColor(Color.BLACK);
+        font.draw(batch, text,
+            confirmButtonBounds.x + (confirmButtonBounds.width - layout.width)/2,
+            confirmButtonBounds.y + (confirmButtonBounds.height + layout.height)/2);
+        batch.end();
     }
 
     private void drawText() {
         batch.begin();
 
-        // Title: "LEVEL UP!"
+        // Title
         titleFont.setColor(Color.GOLD);
-        String titleText = "LEVEL UP!";
+        String title = "LEVEL UP!";
+        GlyphLayout layout = new GlyphLayout(titleFont, title);
+        titleFont.draw(batch, title, (SCREEN_WIDTH - layout.width)/2, SCREEN_HEIGHT - 100);
 
-        // Gunakan GlyphLayout untuk mendapatkan width yang akurat
-        com.badlogic.gdx.graphics.g2d.GlyphLayout titleLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(titleFont,
-                titleText);
-        float titleX = (SCREEN_WIDTH - titleLayout.width) / 2f;
-        titleFont.draw(batch, titleText, titleX, SCREEN_HEIGHT - 150);
+        // Instruction
+        font.setColor(Color.LIGHT_GRAY);
+        String sub = (selectedCardIndex == -1) ? "Pilih satu kartu" : "Tekan CONFIRM untuk melanjutkan";
+        if (inputDelayTimer < MIN_DELAY) sub = "..."; // Loading
 
-        // Current level
-        font.setColor(Color.WHITE);
-        String levelText = "Level " + player.getLevel();
-        com.badlogic.gdx.graphics.g2d.GlyphLayout levelLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(font,
-                levelText);
-        float levelX = (SCREEN_WIDTH - levelLayout.width) / 2f;
-        font.draw(batch, levelText, levelX, SCREEN_HEIGHT - 230);
+        layout.setText(font, sub);
+        font.draw(batch, sub, (SCREEN_WIDTH - layout.width)/2, SCREEN_HEIGHT - 180);
 
-        // Effect names and descriptions
+        // Card Content
         for (int i = 0; i < selectedEffects.size; i++) {
             LevelUpEffect effect = selectedEffects.get(i);
             Rectangle card = effectCards.get(i);
 
-            // Effect name (centered in card, top)
+            // Nama Effect
             font.setColor(Color.YELLOW);
-            String name = effect.getName();
-            com.badlogic.gdx.graphics.g2d.GlyphLayout nameLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(font,
-                    name);
-            font.draw(batch, name,
-                    card.x + (card.width - nameLayout.width) / 2,
-                    card.y + card.height - 30);
+            layout.setText(font, effect.getName());
+            font.draw(batch, effect.getName(),
+                card.x + (card.width - layout.width)/2,
+                card.y + card.height - 40);
 
-            // Effect description (centered in card, middle)
-            font.setColor(Color.LIGHT_GRAY);
+            // Deskripsi (Simple Word Wrap manual untuk contoh ini)
+            // Sebaiknya pakai Label Scene2D untuk wrapping otomatis, tapi ini pakai font biasa:
+            font.setColor(Color.WHITE);
+            font.getData().setScale(1.0f); // Kecilkan font deskripsi
             String desc = effect.getDescription();
-            com.badlogic.gdx.graphics.g2d.GlyphLayout descLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(font,
-                    desc);
-            font.draw(batch, desc,
-                    card.x + (card.width - descLayout.width) / 2,
-                    card.y + card.height / 2 + 10);
+            // Ganti newline manual agar pas di kartu (quick fix)
+            desc = desc.replace(", ", ",\n");
 
-            // Hover hint
-            if (i == hoveredCardIndex) {
-                font.setColor(Color.CYAN);
-                String hint = "Klik untuk pilih";
-                com.badlogic.gdx.graphics.g2d.GlyphLayout hintLayout = new com.badlogic.gdx.graphics.g2d.GlyphLayout(
-                        font, hint);
-                font.draw(batch, hint,
-                        card.x + (card.width - hintLayout.width) / 2,
-                        card.y + 30);
-            }
+            layout.setText(font, desc);
+            font.draw(batch, desc,
+                card.x + 20, // Padding kiri
+                card.y + card.height / 2 + 20);
+
+            font.getData().setScale(1.5f); // Balikin scale
         }
 
         batch.end();
