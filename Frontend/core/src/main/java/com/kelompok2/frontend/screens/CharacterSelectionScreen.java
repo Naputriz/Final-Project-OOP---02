@@ -393,6 +393,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void startGame() {
         System.out.println("Selected character: " + characters[selectedIndex].name);
+        // Note: Don't dispose while screen is still active - causes crash
+        // LibGDX will garbage collect this screen after transition
         game.setScreen(new GameScreen(game, characters[selectedIndex].name));
     }
 

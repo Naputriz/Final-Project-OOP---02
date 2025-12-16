@@ -23,6 +23,8 @@ public class PauseScreen extends ScreenAdapter {
     private final GameScreen gameScreen; // Referensi ke layar game yang sedang jalan
     private Stage stage;
     private Skin skin;
+    private ShapeRenderer shapeRenderer; // Class-level untuk menghindari memory leak
+    private boolean hasTransitioned = false; // Guard against multiple transitions
 
     public PauseScreen(Main game, GameScreen gameScreen) {
         this.game = game;
@@ -34,6 +36,7 @@ public class PauseScreen extends ScreenAdapter {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json")); // Pastikan punya uiskin
+        shapeRenderer = new ShapeRenderer(); // Initialize once
 
         // Setup UI Table
         Table table = new Table();
@@ -63,6 +66,9 @@ public class PauseScreen extends ScreenAdapter {
         resumeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                if (hasTransitioned)
+                    return; // Prevent multiple transitions
+                hasTransitioned = true;
                 game.setScreen(gameScreen);
             }
         });
@@ -71,6 +77,8 @@ public class PauseScreen extends ScreenAdapter {
         restartButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                if (hasTransitioned) return; // Prevent multiple transitions
+                hasTransitioned = true;
                 gameScreen.dispose(); // Bersihkan yang lama
                 game.setScreen(new GameScreen(game, gameScreen.getSelectedCharacter()));
             }
@@ -80,6 +88,8 @@ public class PauseScreen extends ScreenAdapter {
         charSelectButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                if (hasTransitioned) return; // Prevent multiple transitions
+                hasTransitioned = true;
                 gameScreen.dispose();
                 AudioManager.getInstance().stopMusic(); // Stop lagu battle
                 game.setScreen(new CharacterSelectionScreen(game));
@@ -90,6 +100,8 @@ public class PauseScreen extends ScreenAdapter {
         mainMenuButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                if (hasTransitioned) return; // Prevent multiple transitions
+                hasTransitioned = true;
                 gameScreen.dispose();
                 AudioManager.getInstance().stopMusic();
                 game.setScreen(new MainMenuScreen(game));
@@ -106,12 +118,10 @@ public class PauseScreen extends ScreenAdapter {
         // 2. Gambar Overlay Hitam Transparan
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        ShapeRenderer shapeRenderer = new ShapeRenderer();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0, 0, 0, 0.7f); // Hitam 70% opacity
         shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         shapeRenderer.end();
-        shapeRenderer.dispose();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
         // 3. Render UI Pause Menu
@@ -120,6 +130,8 @@ public class PauseScreen extends ScreenAdapter {
 
         // Fitur Unpause pakai ESC
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+            if (hasTransitioned) return; // Prevent multiple transitions
+            hasTransitioned = true;
             game.setScreen(gameScreen);
         }
     }
@@ -134,5 +146,8 @@ public class PauseScreen extends ScreenAdapter {
     public void dispose() {
         stage.dispose();
         skin.dispose();
+        if (shapeRenderer != null) {
+            shapeRenderer.dispose();
+        }
     }
 }

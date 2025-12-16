@@ -52,6 +52,7 @@ public class GameScreen extends ScreenAdapter {
     private String selectedCharacter;
 
     private boolean isPaused = false;
+    private boolean isDisposed = false; // Guard against double disposal
 
     public GameScreen(Main game, String selectedCharacter) {
         this.game = game;
@@ -119,7 +120,8 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void render(float delta) {
         // --- 1. LOGIC UPDATE SECTION ---
-        // Jika delta == 0, berarti kita dipanggil oleh PauseScreen/LevelUpScreen sebagai background overlay.
+        // Jika delta == 0, berarti kita dipanggil oleh PauseScreen/LevelUpScreen
+        // sebagai background overlay.
         // Maka kita skip update logic agar game terlihat "Frozen".
         boolean renderingForOverlay = (delta == 0);
 
@@ -157,23 +159,22 @@ public class GameScreen extends ScreenAdapter {
             // Update GameManager state
             GameManager.getInstance().updateGameTime(delta);
 
-            // Cek Game Over
-            if (player.isDead()) {
+            // Cek Game Over - but skip if screen is disposed
+            if (!isDisposed && player.isDead()) {
                 GameManager.getInstance().setGameOver(true);
                 int finalLvl = GameManager.getInstance().getCurrentLevel();
                 float finalTime = GameManager.getInstance().getGameTime();
 
                 System.out.println("Game over! Switching to GameOverScreen...");
-                ((Main) Gdx.app.getApplicationListener())
-                    .setScreen(new GameOverScreen(game, selectedCharacter, finalLvl, finalTime));
+                ((Main) Gdx.app.getApplicationListener()).setScreen(new GameOverScreen(game, selectedCharacter, finalLvl, finalTime));
                 return;
             }
 
             // Update posisi kamera agar selalu mengikuti player
             camera.position.set(
-                player.getPosition().x + player.getVisualWidth() / 2,
-                player.getPosition().y + player.getVisualHeight() / 2,
-                0);
+                    player.getPosition().x + player.getVisualWidth() / 2,
+                    player.getPosition().y + player.getVisualHeight() / 2,
+                    0);
             camera.update();
         }
 
@@ -303,7 +304,6 @@ public class GameScreen extends ScreenAdapter {
         float skillTimer = 0f;
         float skillCooldown = 1f; // Default to avoid division by zero
 
-
         // Use Template Method pattern - polymorphic call instead of instanceof
         skillTimer = character.getInnateSkillTimer();
         skillCooldown = character.getInnateSkillCooldown();
@@ -314,7 +314,6 @@ public class GameScreen extends ScreenAdapter {
         }
 
         float cooldownPercent = (skillCooldown > 0) ? (skillCooldown - skillTimer) / skillCooldown : 1f;
-
 
         // Background (Dark gray)
         shapeRenderer.setColor(Color.DARK_GRAY);
@@ -447,7 +446,8 @@ public class GameScreen extends ScreenAdapter {
                 String animationType = getCharacterAttackType();
 
                 // Load animation textures from AssetManager
-                String spritePath = animationType.equals("scratch") ? "AttackAnimations/Scratch Animation.png" : "AttackAnimations/Slash Animation.png";
+                String spritePath = animationType.equals("scratch") ? "AttackAnimations/Scratch Animation.png"
+                        : "AttackAnimations/Slash Animation.png";
 
                 Texture attackTexture = com.kelompok2.frontend.managers.AssetManager.getInstance()
                         .loadTexture(spritePath);
@@ -562,7 +562,8 @@ public class GameScreen extends ScreenAdapter {
         // Cek Peluru vs Musuh
         for (Projectile p : activeProjectiles) {
             Rectangle pBounds = p.getBounds();
-            for (DummyEnemy e : activeEnemies) {
+            for (int i = 0; i < activeEnemies.size; i++) {
+                DummyEnemy e = activeEnemies.get(i);
                 if (pBounds.overlaps(e.getBounds())) {
                     p.active = false;
                     e.takeDamage(p.getDamage());
@@ -577,9 +578,11 @@ public class GameScreen extends ScreenAdapter {
 
         // Cek Melee Attacks vs Musuh
         for (MeleeAttack m : meleeAttacks) {
-            if (!m.isActive()) continue;
+            if (!m.isActive())
+                continue;
             Rectangle mBounds = m.getBounds();
-            for (DummyEnemy e : activeEnemies) {
+            for (int i = 0; i < activeEnemies.size; i++) {
+                DummyEnemy e = activeEnemies.get(i);
                 if (mBounds.overlaps(e.getBounds()) && m.canHit(e)) {
                     float damage = m.getDamage();
                     if (player instanceof Insania && e.isInsane()) {
@@ -598,8 +601,10 @@ public class GameScreen extends ScreenAdapter {
         if (player instanceof Isolde) {
             Isolde isolde = (Isolde) player;
             for (GlacialBreath gb : isolde.getGlacialBreaths()) {
-                if (!gb.isActive()) continue;
-                for (DummyEnemy e : activeEnemies) {
+                if (!gb.isActive())
+                    continue;
+                for (int i = 0; i < activeEnemies.size; i++) {
+                    DummyEnemy e = activeEnemies.get(i);
                     if (gb.canHit(e)) {
                         e.takeDamage(gb.getDamage());
                         e.freeze();
@@ -612,11 +617,12 @@ public class GameScreen extends ScreenAdapter {
             }
         }
 
-        // Cek Hurricane Bind (Whisperwind's skill) vs Mus uh
+        // Cek Hurricane Bind (Whisperwind's skill) vs Musuh
         if (player instanceof Whisperwind) {
             Whisperwind whisperwind = (Whisperwind) player;
             for (Projectile hurricaneProjectile : whisperwind.getHurricaneProjectiles()) {
-                for (DummyEnemy e : activeEnemies) {
+                for (int i = 0; i < activeEnemies.size; i++) {
+                    DummyEnemy e = activeEnemies.get(i);
                     if (hurricaneProjectile.getBounds().overlaps(e.getBounds())) {
                         e.takeDamage(hurricaneProjectile.getDamage());
                         hurricaneProjectile.active = false; // Deactivate projectile on hit
@@ -638,7 +644,8 @@ public class GameScreen extends ScreenAdapter {
                 float pillarRadius = blaze.getPillarRadius();
                 float pillarDamage = blaze.getArts() * 2.0f;
 
-                for (DummyEnemy e : activeEnemies) {
+                for (int i = 0; i < activeEnemies.size; i++) {
+                    DummyEnemy e = activeEnemies.get(i);
                     float enemyX = e.getBounds().x + e.getBounds().width / 2;
                     float enemyY = e.getBounds().y + e.getBounds().height / 2;
                     float distance = pillarPos.dst(enemyX, enemyY);
@@ -661,7 +668,8 @@ public class GameScreen extends ScreenAdapter {
                 float skillRadius = insania.getSkillRadius();
                 float baseDamage = player.getArts() * 0.2f;
 
-                for (DummyEnemy e : activeEnemies) {
+                for (int i = 0; i < activeEnemies.size; i++) {
+                    DummyEnemy e = activeEnemies.get(i);
                     float enemyCenterX = e.getPosition().x + e.getVisualWidth() / 2;
                     float enemyCenterY = e.getPosition().y + e.getVisualHeight() / 2;
                     float dx = enemyCenterX - playerCenterX;
@@ -681,7 +689,8 @@ public class GameScreen extends ScreenAdapter {
 
         // Cek Musuh vs Player
         Rectangle playerBounds = player.getBounds();
-        for (DummyEnemy e : activeEnemies) {
+        for (int i = 0; i < activeEnemies.size; i++) {
+            DummyEnemy e = activeEnemies.get(i);
             if (e.getBounds().overlaps(playerBounds)) {
                 if (e.canAttack()) {
                     float damage = 10;
@@ -744,7 +753,9 @@ public class GameScreen extends ScreenAdapter {
                 float damage = bladeFury.getCurrentHitDamage();
 
                 // Check all enemies in radius
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                Array<DummyEnemy> enemies = enemyPool.getActiveEnemies();
+                for (int i = 0; i < enemies.size; i++) {
+                    DummyEnemy enemy = enemies.get(i);
                     float enemyCenterX = enemy.getPosition().x + enemy.getWidth() / 2;
                     float enemyCenterY = enemy.getPosition().y + enemy.getHeight() / 2;
 
@@ -776,7 +787,10 @@ public class GameScreen extends ScreenAdapter {
                 float damage = groundSlam.getDamage();
 
                 // Check all enemies in radius (only damage once when shockwave first appears)
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                // Use indexed loop to avoid ConcurrentModificationException
+                Array<DummyEnemy> enemies = enemyPool.getActiveEnemies();
+                for (int i = 0; i < enemies.size; i++) {
+                    DummyEnemy enemy = enemies.get(i);
                     float enemyCenterX = enemy.getPosition().x + enemy.getWidth() / 2;
                     float enemyCenterY = enemy.getPosition().y + enemy.getHeight() / 2;
 
@@ -808,16 +822,27 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void dispose() {
-        batch.dispose();
-        shapeRenderer.dispose();
-        player.dispose();
-        projectilePool.dispose();
-        enemyPool.dispose();
+        // Guard against double disposal
+        if (isDisposed) {
+            System.out.println("[GameScreen] Already disposed, skipping");
+            return;
+        }
+        isDisposed = true;
+
+        System.out.println("[GameScreen] Disposing resources...");
+        if (batch != null)
+            batch.dispose();
+        if (shapeRenderer != null)
+            shapeRenderer.dispose();
+        if (player != null)
+            player.dispose(); // Character cleanup (doesn't dispose textures - AssetManager owns those)
+        if (projectilePool != null)
+            projectilePool.dispose();
+        if (enemyPool != null)
+            enemyPool.dispose();
+        System.out.println("[GameScreen] Dispose complete");
     }
 
-    /**
-     * Pause game dan tampilkan LevelUpScreen (Overlay).
-     */
     public void pauseForLevelUp() {
         isPaused = true;
         // PENTING: Passing 'this' (GameScreen instance) ke LevelUpScreen
@@ -826,9 +851,6 @@ public class GameScreen extends ScreenAdapter {
         System.out.println("[GameScreen] Game paused for level-up selection");
     }
 
-    /**
-     * Resume game setelah effect dipilih.
-     */
     public void resumeFromLevelUp() {
         isPaused = false;
         System.out.println("[GameScreen] Game resumed from level-up");
