@@ -6,9 +6,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.managers.AssetManager;
 
-/**
- * Idle State - Animasi saat karakter diam (tidak bergerak).
- */
 public class IdleState implements AnimationState {
     private Animation<TextureRegion> idleAnimation;
     private String spritesheetPath;
@@ -17,15 +14,6 @@ public class IdleState implements AnimationState {
     private int actualFrameCount; // Actual number of frames to use
     private float frameDuration;
 
-    /**
-     * Constructor untuk IdleState.
-     * 
-     * @param spritesheetPath  Path ke spritesheet idle animation
-     * @param frameColumns     Jumlah kolom dalam spritesheet
-     * @param frameRows        Jumlah baris dalam spritesheet
-     * @param actualFrameCount Jumlah frame sebenarnya (untuk handle empty cells)
-     * @param frameDuration    Durasi per frame (detik)
-     */
     public IdleState(String spritesheetPath, int frameColumns, int frameRows, int actualFrameCount,
             float frameDuration) {
         this.spritesheetPath = spritesheetPath;

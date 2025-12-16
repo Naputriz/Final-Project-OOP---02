@@ -66,7 +66,10 @@ public class LevelUpScreen extends ScreenAdapter {
         allEffects.add(new IncreaseArtsEffect());
         allEffects.add(new IncreaseMaxHPEffect());
         allEffects.add(new IncreaseDefenseEffect());
-        allEffects.add(new NewSkillEffect());
+
+        // Add ONE random skill sebagai NewSkillEffect
+        com.kelompok2.frontend.skills.Skill randomSkill = com.kelompok2.frontend.factories.SkillFactory.getRandomSkill();
+        allEffects.add(new NewSkillEffect(randomSkill));
 
         selectedEffects = new Array<>();
         effectCards = new Array<>();
@@ -153,6 +156,13 @@ public class LevelUpScreen extends ScreenAdapter {
                 break;
             }
         }
+    }
+
+    private void handleClick() {
+        if (Gdx.input.justTouched() && hoveredCardIndex >= 0) {
+            // Apply effect yang dipilih
+            LevelUpEffect selectedEffect = selectedEffects.get(hoveredCardIndex);
+            selectedEffect.apply(player);
 
         // Handle Click
         if (Gdx.input.justTouched()) {
@@ -174,6 +184,16 @@ public class LevelUpScreen extends ScreenAdapter {
         player.setLevelUpPending(false);
         gameScreen.resumeFromLevelUp();
         game.setScreen(gameScreen);
+    private void drawOverlay() {
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0, 0, 0, 0.7f);
+        shapeRenderer.rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        shapeRenderer.end();
+
+        Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
     private void drawCards() {

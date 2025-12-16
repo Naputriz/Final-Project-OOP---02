@@ -10,12 +10,6 @@ import com.kelompok2.frontend.states.AnimationState;
 import com.kelompok2.frontend.states.IdleState;
 import com.kelompok2.frontend.states.RunningState;
 
-/**
- * Blaze - The Flame Kaiser
- * Role: Arts Attacker (Boss character, can become playable)
- * Basic Attack: Flame Punch (Hybrid: 0.7 ATK + 0.3 Arts)
- * Innate Skill: Hellfire Pillar - Summons damage pillar at cursor
- */
 public class Blaze extends GameCharacter {
 
     // Hellfire Pillar skill tracking
@@ -167,23 +161,14 @@ public class Blaze extends GameCharacter {
         System.out.println("[Blaze] Hellfire Pillar summoned at: " + mousePos);
     }
 
-    /**
-     * Check if Hellfire Pillar is active and can deal damage.
-     */
     public boolean isPillarActive() {
         return pillarActive;
     }
 
-    /**
-     * Get pillar position for damage calculation.
-     */
     public Vector2 getPillarPosition() {
         return lastPillarPosition;
     }
 
-    /**
-     * Get pillar radius for AoE damage.
-     */
     public float getPillarRadius() {
         return 40f; // 80px diameter = 40px radius
     }
@@ -197,10 +182,21 @@ public class Blaze extends GameCharacter {
         return skillCooldown;
     }
 
-    /**
-     * Override damage calculation untuk Flame Punch hybrid scaling.
-     * Flame Punch: 0.7 ATK + 0.3 Arts
-     */
+    @Override
+    public float getInnateSkillTimer() {
+        return skillTimer;
+    }
+
+    @Override
+    public float getInnateSkillCooldown() {
+        return skillCooldown;
+    }
+
+    @Override
+    public String getAttackAnimationType() {
+        return "slash"; // Blaze uses slash animations
+    }
+
     @Override
     public float getAtk() {
         // For Flame Punch, return hybrid damage

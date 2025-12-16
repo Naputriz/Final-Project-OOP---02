@@ -6,9 +6,6 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.managers.AssetManager;
 
-/**
- * Running State - Animasi saat karakter berlari (bergerak).
- */
 public class RunningState implements AnimationState {
     private Animation<TextureRegion> runAnimation;
     private String spritesheetPath;
@@ -17,15 +14,6 @@ public class RunningState implements AnimationState {
     private int actualFrameCount; // Actual number of frames to use
     private float frameDuration;
 
-    /**
-     * Constructor untuk RunningState.
-     * 
-     * @param spritesheetPath  Path ke spritesheet run animation
-     * @param frameColumns     Jumlah kolom dalam spritesheet
-     * @param frameRows        Jumlah baris dalam spritesheet
-     * @param actualFrameCount Jumlah frame sebenarnya (untuk handle empty cells)
-     * @param frameDuration    Durasi per frame (detik)
-     */
     public RunningState(String spritesheetPath, int frameColumns, int frameRows, int actualFrameCount,
             float frameDuration) {
         this.spritesheetPath = spritesheetPath;

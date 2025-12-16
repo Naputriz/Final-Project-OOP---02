@@ -24,4 +24,19 @@ public class TEST extends GameCharacter {
     public void performInnateSkill() {
         System.out.println("Test is using skill");
     }
+
+    @Override
+    public float getInnateSkillTimer() {
+        return 0;
+    }
+
+    @Override
+    public float getInnateSkillCooldown() {
+        return 0;
+    }
+
+    @Override
+    public String getAttackAnimationType() {
+        return "slash";
+    }
 }

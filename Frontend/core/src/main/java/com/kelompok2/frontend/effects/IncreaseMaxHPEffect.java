@@ -2,9 +2,6 @@ package com.kelompok2.frontend.effects;
 
 import com.kelompok2.frontend.entities.GameCharacter;
 
-/**
- * Effect yang meningkatkan Max HP sebesar 15%.
- */
 public class IncreaseMaxHPEffect implements LevelUpEffect {
 
     @Override

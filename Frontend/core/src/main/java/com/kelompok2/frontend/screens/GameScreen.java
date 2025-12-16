@@ -22,6 +22,7 @@ import com.kelompok2.frontend.entities.Ryze;
 import com.kelompok2.frontend.entities.Isolde;
 import com.kelompok2.frontend.entities.Insania;
 import com.kelompok2.frontend.entities.Blaze;
+import com.kelompok2.frontend.entities.Whisperwind;
 import com.kelompok2.frontend.entities.GlacialBreath;
 import com.kelompok2.frontend.utils.InputHandler;
 import com.kelompok2.frontend.managers.AssetManager;
@@ -69,7 +70,8 @@ public class GameScreen extends ScreenAdapter {
         // Load background
         background = AssetManager.getInstance().loadTexture("FireflyPlaceholder.jpg");
 
-        // Spawn Player
+        // Spawn Player - based on character selection
+        // TODO: Bikin lebih scalable biar ga perlu tambah setiap karakter
         switch (selectedCharacter) {
             case "Ryze":
                 player = new Ryze(0, 0);
@@ -82,6 +84,9 @@ public class GameScreen extends ScreenAdapter {
                 break;
             case "Blaze":
                 player = new Blaze(0, 0);
+                break;
+            case "Whisperwind":
+                player = new Whisperwind(0, 0);
                 break;
             default:
                 player = new Isolde(0, 0);
@@ -207,8 +212,18 @@ public class GameScreen extends ScreenAdapter {
         // Render Visual Effects & UI Overlay
         renderMeleeAttacks();
         renderGlacialBreaths();
+
+        // Render Hurricane Bind projectiles (Whisperwind)
+        renderHurricaneBinds();
+
+        // Render Mind Fracture circle (untuk visual feedback)
         renderMindFracture();
         renderHellfirePillar();
+
+        // Render Secondary Skills visuals
+        renderBladeFury();
+        renderGroundSlam();
+        renderIceShield();
 
         drawHealthBars();
     }
@@ -220,10 +235,14 @@ public class GameScreen extends ScreenAdapter {
         drawBar(player);
         // Render XP player
         drawXpBar(player);
-        // Render Skill Cooldown player
+
+        // Render E Skill Cooldown player
         drawSkillCooldownBar(player);
 
-        // Render HP Musuh
+        // Render Q Secondary Skill Cooldown player
+        drawSecondarySkillBar(player);
+
+        // Render HP Musuh dari pool
         for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
             drawBar(enemy);
         }
@@ -249,7 +268,11 @@ public class GameScreen extends ScreenAdapter {
 
     private void drawBar(GameCharacter character) {
         float x = character.getPosition().x;
-        boolean isPlayer = (character instanceof Ryze || character instanceof Isolde || character instanceof Insania || character instanceof Blaze);
+
+        // --- PERBAIKAN POSISI ---
+        // HP bar at top (furthest from character)
+        // Use Template Method pattern - check if has innate skill
+        boolean isPlayer = (character.getInnateSkillCooldown() > 0);
         float offset = isPlayer ? 25 : 5;
         float y = character.getPosition().y + character.getVisualHeight() + offset;
 
@@ -266,7 +289,9 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void drawSkillCooldownBar(GameCharacter character) {
-        if (!(character instanceof Ryze || character instanceof Isolde || character instanceof Insania || character instanceof Blaze)) {
+        // Use Template Method pattern - check if character has innate skill
+        // Characters with no innate skill return 0 for cooldown
+        if (character.getInnateSkillCooldown() == 0) {
             return;
         }
 
@@ -276,28 +301,22 @@ public class GameScreen extends ScreenAdapter {
         float height = 4;
 
         float skillTimer = 0f;
-        float skillCooldown = 1f;
+        float skillCooldown = 1f; // Default to avoid division by zero
 
-        if (character instanceof Ryze) {
-            Ryze ryze = (Ryze) character;
-            skillTimer = ryze.getSkillTimer();
-            skillCooldown = ryze.getSkillCooldown();
-        } else if (character instanceof Isolde) {
-            Isolde isolde = (Isolde) character;
-            skillTimer = isolde.getSkillTimer();
-            skillCooldown = isolde.getSkillCooldown();
-        } else if (character instanceof Insania) {
-            Insania insania = (Insania) character;
-            skillTimer = insania.getSkillTimer();
-            skillCooldown = insania.getSkillCooldown();
-        } else if (character instanceof Blaze) {
-            Blaze blaze = (Blaze) character;
-            skillTimer = blaze.getSkillTimer();
-            skillCooldown = blaze.getSkillCooldown();
+
+        // Use Template Method pattern - polymorphic call instead of instanceof
+        skillTimer = character.getInnateSkillTimer();
+        skillCooldown = character.getInnateSkillCooldown();
+
+        // Safety check to avoid division by zero
+        if (skillCooldown == 0) {
+            skillCooldown = 1f;
         }
 
         float cooldownPercent = (skillCooldown > 0) ? (skillCooldown - skillTimer) / skillCooldown : 1f;
 
+
+        // Background (Dark gray)
         shapeRenderer.setColor(Color.DARK_GRAY);
         shapeRenderer.rect(x, y, width, height);
 
@@ -305,6 +324,40 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.rect(x, y, width * cooldownPercent, height);
     }
 
+    private void drawSecondarySkillBar(GameCharacter character) {
+        // Only draw if character has secondary skill
+        if (!character.hasSecondarySkill()) {
+            return;
+        }
+
+        float x = character.getPosition().x;
+        // Q Skill Bar below E Skill, above XP bar
+        // HP at +25 (height 5)
+        // E Skill at +19 (height 4)
+        // Q Skill at +16 (height 3)
+        // XP at +13 (height 4)
+        float y = character.getPosition().y + character.getVisualHeight() + 16;
+
+        float width = character.getVisualWidth();
+        float height = 3; // Slightly smaller untuk distinguish
+
+        // Get Q skill cooldown data
+        float skillTimer = character.getSecondarySkill().getRemainingCooldown();
+        float skillCooldown = character.getSecondarySkill().getCooldown();
+
+        // Calculate percentage remaining (skill is ready when timer = 0)
+        float cooldownPercent = (skillCooldown > 0) ? (skillCooldown - skillTimer) / skillCooldown : 1f;
+
+        // Background (Dark gray)
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(x, y, width, height);
+
+        // Foreground (Blue for Q skill cooldown - different from E skill's orange)
+        shapeRenderer.setColor(new Color(0.2f, 0.6f, 1f, 1f)); // Light blue
+        shapeRenderer.rect(x, y, width * cooldownPercent, height);
+    }
+
+    // Hapus mellee attack yang gak aktif / di luar durasi
     private void updateMeleeAttacks(float delta) {
         Iterator<MeleeAttack> iter = meleeAttacks.iterator();
         while (iter.hasNext()) {
@@ -338,6 +391,22 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer.end();
     }
 
+    // Render Hurricane Bind projectiles untuk Whisperwind
+    private void renderHurricaneBinds() {
+        if (!(player instanceof Whisperwind))
+            return;
+
+        Whisperwind whisperwind = (Whisperwind) player;
+        batch.begin();
+        for (Projectile hurricaneProjectile : whisperwind.getHurricaneProjectiles()) {
+            if (hurricaneProjectile.active) {
+                hurricaneProjectile.render(batch);
+            }
+        }
+        batch.end();
+    }
+
+    // Render Mind Fracture visual circle untuk Insania
     private void renderMindFracture() {
         if (!(player instanceof Insania)) return;
         Insania insania = (Insania) player;
@@ -361,6 +430,110 @@ public class GameScreen extends ScreenAdapter {
             shapeRenderer.setColor(1f, 0.5f, 0f, 0.4f);
             shapeRenderer.circle(blaze.getPillarPosition().x, blaze.getPillarPosition().y, blaze.getPillarRadius(), 50);
             shapeRenderer.end();
+        }
+    }
+
+    // Render Blade Fury skill visual (spinning attack)
+    private void renderBladeFury() {
+        if (!player.hasSecondarySkill())
+            return;
+
+        if (player.getSecondarySkill() instanceof com.kelompok2.frontend.skills.BladeFurySkill) {
+            com.kelompok2.frontend.skills.BladeFurySkill bladeFury = (com.kelompok2.frontend.skills.BladeFurySkill) player
+                    .getSecondarySkill();
+
+            if (bladeFury.isSkillActive()) {
+                // Determine which animation to use based on character type
+                String animationType = getCharacterAttackType();
+
+                // Load animation textures from AssetManager
+                String spritePath = animationType.equals("scratch") ? "AttackAnimations/Scratch Animation.png" : "AttackAnimations/Slash Animation.png";
+
+                Texture attackTexture = com.kelompok2.frontend.managers.AssetManager.getInstance()
+                        .loadTexture(spritePath);
+                com.badlogic.gdx.graphics.g2d.TextureRegion attackSprite = new com.badlogic.gdx.graphics.g2d.TextureRegion(
+                        attackTexture);
+
+                float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
+                float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
+
+                // Render multiple attack sprites in a circular pattern
+                batch.begin();
+                int numberOfSprites = 8; // 8 attack sprites around character
+                float spriteSize = 48f; // Size of each sprite
+                float orbitRadius = bladeFury.getRadius() * 0.7f; // Slightly inside the damage radius
+
+                for (int i = 0; i < numberOfSprites; i++) {
+                    float angle = (360f / numberOfSprites) * i;
+                    float angleRad = (float) Math.toRadians(angle);
+
+                    // Position each sprite around the circle
+                    float spriteX = playerCenterX + (float) Math.cos(angleRad) * orbitRadius - spriteSize / 2;
+                    float spriteY = playerCenterY + (float) Math.sin(angleRad) * orbitRadius - spriteSize / 2;
+
+                    // Draw with rotation pointing outward from center
+                    batch.draw(attackSprite,
+                            spriteX, spriteY, // Position
+                            spriteSize / 2, spriteSize / 2, // Origin (center)
+                            spriteSize, spriteSize, // Size
+                            1f, 1f, // Scale
+                            angle); // Rotation to point outward
+                }
+                batch.end();
+            }
+        }
+    }
+
+    private String getCharacterAttackType() {
+        return player.getAttackAnimationType();
+    }
+
+    // Render Ground Slam skill visual (shockwave)
+    private void renderGroundSlam() {
+        if (!player.hasSecondarySkill())
+            return;
+
+        if (player.getSecondarySkill() instanceof com.kelompok2.frontend.skills.GroundSlamSkill) {
+            com.kelompok2.frontend.skills.GroundSlamSkill groundSlam = (com.kelompok2.frontend.skills.GroundSlamSkill) player
+                    .getSecondarySkill();
+
+            if (groundSlam.isShockwaveActive()) {
+                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+                // Draw expanding shockwave circle
+                Vector2 slamPos = groundSlam.getShockwavePosition();
+                shapeRenderer.setColor(0.8f, 0.6f, 0.3f, 0.3f); // Brown/orange semi-transparent
+                shapeRenderer.circle(slamPos.x, slamPos.y, groundSlam.getRadius(), 50);
+
+                shapeRenderer.end();
+            }
+        }
+    }
+
+    // Render Ice Shield skill visual (protective circle)
+    private void renderIceShield() {
+        if (!player.hasSecondarySkill())
+            return;
+
+        if (player.getSecondarySkill() instanceof com.kelompok2.frontend.skills.IceShieldSkill) {
+            com.kelompok2.frontend.skills.IceShieldSkill iceShield = (com.kelompok2.frontend.skills.IceShieldSkill) player
+                    .getSecondarySkill();
+
+            if (iceShield.isShieldActive()) {
+                shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+
+                // Draw blue shield circle around player
+                float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
+                float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
+                float shieldRadius = player.getVisualWidth() / 2 + 10; // Slightly larger than character
+
+                Gdx.gl.glLineWidth(2);
+                shapeRenderer.setColor(0.3f, 0.7f, 1f, 0.7f); // Light blue
+                shapeRenderer.circle(playerCenterX, playerCenterY, shieldRadius, 50);
+                Gdx.gl.glLineWidth(1);
+
+                shapeRenderer.end();
+            }
         }
     }
 
@@ -439,7 +612,25 @@ public class GameScreen extends ScreenAdapter {
             }
         }
 
-        // Blaze Skill
+        // Cek Hurricane Bind (Whisperwind's skill) vs Mus uh
+        if (player instanceof Whisperwind) {
+            Whisperwind whisperwind = (Whisperwind) player;
+            for (Projectile hurricaneProjectile : whisperwind.getHurricaneProjectiles()) {
+                for (DummyEnemy e : activeEnemies) {
+                    if (hurricaneProjectile.getBounds().overlaps(e.getBounds())) {
+                        e.takeDamage(hurricaneProjectile.getDamage());
+                        hurricaneProjectile.active = false; // Deactivate projectile on hit
+
+                        if (e.isDead()) {
+                            player.gainXp(e.getXpReward());
+                            System.out.println("[Whisperwind] Enemy killed by Hurricane Bind!");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Cek Hellfire Pillar (Blaze's skill) vs Musuh
         if (player instanceof Blaze) {
             Blaze blaze = (Blaze) player;
             if (blaze.isPillarActive()) {
@@ -493,7 +684,21 @@ public class GameScreen extends ScreenAdapter {
         for (DummyEnemy e : activeEnemies) {
             if (e.getBounds().overlaps(playerBounds)) {
                 if (e.canAttack()) {
-                    player.takeDamage(10);
+                    float damage = 10;
+
+                    // Apply Ice Shield damage reduction if active
+                    if (player.hasSecondarySkill() &&
+                            player.getSecondarySkill() instanceof com.kelompok2.frontend.skills.IceShieldSkill) {
+                        com.kelompok2.frontend.skills.IceShieldSkill iceShield = (com.kelompok2.frontend.skills.IceShieldSkill) player
+                                .getSecondarySkill();
+
+                        if (iceShield.isShieldActive()) {
+                            damage *= iceShield.getDamageReduction(); // 50% reduction
+                            System.out.println("[Ice Shield] Blocked damage! Reduced to: " + damage);
+                        }
+                    }
+
+                    player.takeDamage(damage);
                     e.resetAttackTimer();
                 }
             }
@@ -514,6 +719,80 @@ public class GameScreen extends ScreenAdapter {
                         if (targetEnemy.isDead()) {
                             player.gainXp(targetEnemy.getXpReward());
                         }
+                    }
+                }
+            }
+        }
+
+        // Check secondary skill collisions
+        checkSecondarySkillCollisions();
+    }
+
+    private void checkSecondarySkillCollisions() {
+        if (!player.hasSecondarySkill())
+            return;
+
+        // Blade Fury - AoE damage around player
+        if (player.getSecondarySkill() instanceof com.kelompok2.frontend.skills.BladeFurySkill) {
+            com.kelompok2.frontend.skills.BladeFurySkill bladeFury = (com.kelompok2.frontend.skills.BladeFurySkill) player
+                    .getSecondarySkill();
+
+            if (bladeFury.isSkillActive()) {
+                float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
+                float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
+                float radius = bladeFury.getRadius();
+                float damage = bladeFury.getCurrentHitDamage();
+
+                // Check all enemies in radius
+                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                    float enemyCenterX = enemy.getPosition().x + enemy.getWidth() / 2;
+                    float enemyCenterY = enemy.getPosition().y + enemy.getHeight() / 2;
+
+                    float distance = (float) Math.sqrt(
+                            Math.pow(enemyCenterX - playerCenterX, 2) +
+                                    Math.pow(enemyCenterY - playerCenterY, 2));
+
+                    if (distance <= radius) {
+                        enemy.takeDamage(damage);
+
+                        // Give XP if enemy dies
+                        if (enemy.isDead()) {
+                            player.gainXp(enemy.getXpReward());
+                            System.out.println("[Blade Fury] Enemy killed! XP gained");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Ground Slam - Shockwave damage with stun
+        if (player.getSecondarySkill() instanceof com.kelompok2.frontend.skills.GroundSlamSkill) {
+            com.kelompok2.frontend.skills.GroundSlamSkill groundSlam = (com.kelompok2.frontend.skills.GroundSlamSkill) player
+                    .getSecondarySkill();
+
+            if (groundSlam.isShockwaveActive()) {
+                Vector2 slamPos = groundSlam.getShockwavePosition();
+                float radius = groundSlam.getRadius();
+                float damage = groundSlam.getDamage();
+
+                // Check all enemies in radius (only damage once when shockwave first appears)
+                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                    float enemyCenterX = enemy.getPosition().x + enemy.getWidth() / 2;
+                    float enemyCenterY = enemy.getPosition().y + enemy.getHeight() / 2;
+
+                    float distance = (float) Math.sqrt(
+                            Math.pow(enemyCenterX - slamPos.x, 2) +
+                                    Math.pow(enemyCenterY - slamPos.y, 2));
+
+                    if (distance <= radius) {
+                        enemy.takeDamage(damage);
+
+                        // Give XP if enemy dies
+                        if (enemy.isDead()) {
+                            player.gainXp(enemy.getXpReward());
+                            System.out.println("[Ground Slam] Enemy killed! XP gained");
+                        }
+                        // TODO: Add stun effect when enemy has stun state
                     }
                 }
             }

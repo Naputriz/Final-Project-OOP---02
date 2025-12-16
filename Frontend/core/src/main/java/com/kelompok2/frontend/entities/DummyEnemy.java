@@ -70,6 +70,21 @@ public class DummyEnemy extends GameCharacter {
         // Dummy gak punya skill
     }
 
+    @Override
+    public float getInnateSkillTimer() {
+        return 0; // No skill
+    }
+
+    @Override
+    public float getInnateSkillCooldown() {
+        return 0; // No skill
+    }
+
+    @Override
+    public String getAttackAnimationType() {
+        return "slash"; // Default
+    }
+
     public float getXpReward() {
         return 25f;
     }

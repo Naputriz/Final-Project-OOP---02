@@ -2,9 +2,6 @@ package com.kelompok2.frontend.effects;
 
 import com.kelompok2.frontend.entities.GameCharacter;
 
-/**
- * Effect yang meningkatkan ATK sebesar 15%.
- */
 public class IncreaseAtkEffect implements LevelUpEffect {
 
     @Override
