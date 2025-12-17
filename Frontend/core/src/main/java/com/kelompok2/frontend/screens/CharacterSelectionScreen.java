@@ -83,7 +83,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void initializeCharacters() {
         // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        characters = new CharacterInfo[5]; // Updated to 5 characters
+        characters = new CharacterInfo[6]; // Updated to 6 characters
 
         // Ryze - The Ghost of Insania
         Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
@@ -144,6 +144,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 "WhisperwindPlaceholder.png",
                 whisperwindSprite,
                 1, 1, 1, 0.1f); // Stationary sprite
+
+        // Aelita - The Evergreen Healer
+        Texture aelitaSprite = AssetManager.getInstance().loadTexture("AelitaPlaceholder.png");
+        characters[5] = new CharacterInfo(
+                "Aelita",
+                "The Evergreen Healer",
+                140, 15, 30, 20, 170,
+                "Verdant Domain",
+                "Consume 25% HP to create a healing\\nzone. Heals 50% HP over 5s and boosts\\nATK/Arts +25%. Cooldown: 15s",
+                "AelitaPlaceholder.png",
+                aelitaSprite,
+                1, 1, 1, 0.1f); // Stationary sprite (placeholder)
     }
 
     @Override
@@ -163,18 +175,15 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         // PHASE 1: Render all shapes (backgrounds and borders)
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        // Portrait backgrounds - 2 column layout (3 left, 2 right)
+        // Portrait backgrounds - 3 column layout (2 per column)
         for (int i = 0; i < characters.length; i++) {
             float x, y;
-            if (i < 3) {
-                // Left column (Ryze, Isolde, Insania)
-                x = GRID_X;
-                y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
-            } else {
-                // Right column (Blaze, Whisperwind)
-                x = GRID_X + PORTRAIT_SPACING * 2; // Offset to the right
-                y = GRID_Y + (4 - i) * PORTRAIT_SPACING; // 4-3=1, 4-4=0
-            }
+            // Calculate column (0, 1, or 2) and row (0 or 1) for 3x2 grid
+            int col = i / 2; // 0,1->0 2,3->1 4,5->2
+            int row = i % 2; // 0,2,4->0 1,3,5->1
+
+            x = GRID_X + col * PORTRAIT_SPACING * 2;
+            y = GRID_Y + (1 - row) * PORTRAIT_SPACING; // 1-row to invert (top first)
 
             if (i == hoveredIndex) {
                 shapeRenderer.setColor(0.3f, 0.6f, 1f, 0.5f); // Blue highlight
@@ -201,18 +210,13 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         Gdx.gl.glLineWidth(2);
         shapeRenderer.setColor(Color.WHITE);
 
-        // Portrait borders - 2 column layout
+        // Portrait borders - 3 column layout
         for (int i = 0; i < characters.length; i++) {
             float x, y;
-            if (i < 3) {
-                // Left column
-                x = GRID_X;
-                y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
-            } else {
-                // Right column
-                x = GRID_X + PORTRAIT_SPACING * 2;
-                y = GRID_Y + (4 - i) * PORTRAIT_SPACING;
-            }
+            int col = i / 2;
+            int row = i % 2;
+            x = GRID_X + col * PORTRAIT_SPACING * 2;
+            y = GRID_Y + (1 - row) * PORTRAIT_SPACING;
             shapeRenderer.rect(x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
         }
 
@@ -257,16 +261,11 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         CharacterInfo character = characters[index];
         float x, y;
 
-        // Calculate position based on 2-column layout
-        if (index < 3) {
-            // Left column
-            x = GRID_X;
-            y = GRID_Y + (2 - index) * PORTRAIT_SPACING;
-        } else {
-            // Right column
-            x = GRID_X + PORTRAIT_SPACING * 2;
-            y = GRID_Y + (4 - index) * PORTRAIT_SPACING;
-        }
+        // Calculate position based on 3x2 grid layout
+        int col = index / 2;
+        int row = index % 2;
+        x = GRID_X + col * PORTRAIT_SPACING * 2;
+        y = GRID_Y + (1 - row) * PORTRAIT_SPACING;
 
         // Draw character sprite in portrait (batch already begun from main render)
         // If character has animation, use first frame; otherwise use texture
@@ -358,18 +357,13 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         float worldX = worldCoords.x;
         float worldY = worldCoords.y;
 
-        // Check hover over portraits - 2 column layout
+        // Check hover over portraits - 3x2 grid layout
         for (int i = 0; i < characters.length; i++) {
             float x, y;
-            if (i < 3) {
-                // Left column
-                x = GRID_X;
-                y = GRID_Y + (2 - i) * PORTRAIT_SPACING;
-            } else {
-                // Right column
-                x = GRID_X + PORTRAIT_SPACING * 2;
-                y = GRID_Y + (4 - i) * PORTRAIT_SPACING;
-            }
+            int col = i / 2;
+            int row = i % 2;
+            x = GRID_X + col * PORTRAIT_SPACING * 2;
+            y = GRID_Y + (1 - row) * PORTRAIT_SPACING;
 
             Rectangle portraitBounds = new Rectangle(x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
 

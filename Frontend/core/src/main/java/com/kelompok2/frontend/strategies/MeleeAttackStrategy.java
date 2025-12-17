@@ -80,17 +80,9 @@ public class MeleeAttackStrategy implements AttackStrategy {
         // Hitung damage berdasarkan ATK karakter
         float finalDamage = attacker.getAtk() * damageMultiplier;
 
-        // Tentukan animation type berdasarkan karakter
-        String animationType;
-        String characterClass = attacker.getClass().getSimpleName();
-        if ("Ryze".equals(characterClass)) {
-            animationType = "slash";
-        } else if ("Insania".equals(characterClass)) {
-            animationType = "scratch";
-        } else {
-            // Default fallback untuk karakter lain
-            animationType = "slash";
-        }
+        // Use Template Method pattern - get animation type from character
+        // polymorphically
+        String animationType = attacker.getAttackAnimationType();
 
         // Hitung rotation angle dari direction vector
         // atan2 returns angle in radians, convert to degrees

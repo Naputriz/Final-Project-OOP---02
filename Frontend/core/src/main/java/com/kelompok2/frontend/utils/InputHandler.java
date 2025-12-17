@@ -17,6 +17,11 @@ public class InputHandler {
     private ProjectilePool projectilePool; // Pool projectiles (Object Pool Pattern)
     private Array<MeleeAttack> meleeAttacks; // Referensi ke list melee attacks di GameScreen
 
+    // Insanity effect tracking
+    private float insanityAttackTimer = 0f;
+    private static final float INSANITY_ATTACK_INTERVAL = 0.5f; // Attack every 0.5 seconds when insane
+    private java.util.Random random = new java.util.Random();
+
     public InputHandler(GameCharacter character, Camera camera,
             ProjectilePool projectilePool, Array<MeleeAttack> meleeAttacks) {
         this.character = character;
@@ -26,10 +31,16 @@ public class InputHandler {
     }
 
     public void update(float delta) {
-        handleMovement(delta);
-        handleDirection();
-        handleShooting();
-        handleSkills();
+        // Check if player is insane - modify behavior
+        if (character.isInsane()) {
+            handleInsaneBehavior(delta);
+        } else {
+            // Normal behavior
+            handleMovement(delta);
+            handleDirection();
+            handleShooting();
+            handleSkills();
+        }
     }
 
     private void handleMovement(float delta) {
@@ -51,7 +62,8 @@ public class InputHandler {
             moveX /= length;
             moveY /= length;
 
-            character.move(moveX * delta, moveY * delta);
+            Vector2 direction = new Vector2(moveX, moveY);
+            character.move(direction, delta);
         }
     }
 
@@ -121,6 +133,39 @@ public class InputHandler {
                 // Activate secondary skill via Command Pattern
                 character.performSecondarySkill(mousePos, projectilePool.getActiveProjectiles(), meleeAttacks);
             }
+        }
+    }
+
+    private void handleInsaneBehavior(float delta) {
+        // Random erratic movement when insane
+        float randomX = (random.nextFloat() - 0.5f) * 2f; // -1 to 1
+        float randomY = (random.nextFloat() - 0.5f) * 2f; // -1 to 1
+
+        // Normalize
+        float length = (float) Math.sqrt(randomX * randomX + randomY * randomY);
+        if (length > 0) {
+            randomX /= length;
+            randomY /= length;
+        }
+
+        Vector2 direction = new Vector2(randomX, randomY);
+        character.move(direction, delta);
+
+        // Random facing direction
+        character.setFacingRight(random.nextBoolean());
+
+        // Auto-attack in random directions periodically
+        insanityAttackTimer -= delta;
+        if (insanityAttackTimer <= 0 && character.canAttack()) {
+            // Attack in random direction
+            float angle = random.nextFloat() * 360f;
+            float attackX = character.getPosition().x + (float) (Math.cos(Math.toRadians(angle)) * 200);
+            float attackY = character.getPosition().y + (float) (Math.sin(Math.toRadians(angle)) * 200);
+            Vector2 randomTarget = new Vector2(attackX, attackY);
+
+            character.attack(randomTarget, projectilePool.getActiveProjectiles(), meleeAttacks);
+            character.resetAttackTimer();
+            insanityAttackTimer = INSANITY_ATTACK_INTERVAL;
         }
     }
 }
