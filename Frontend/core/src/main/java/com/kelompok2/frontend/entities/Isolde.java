@@ -27,11 +27,12 @@ public class Isolde extends GameCharacter {
         super(x, y, 180f, 120f);
 
         // Set stats sesuai role Arts Attacker
-        this.atk = 15f; // Low ATK
-        this.arts = 40f; // High Arts
-        this.def = 10f; // Moderate Defence
+        this.atk = 20f; // Ranged ATK (balanced with Blaze)
+        this.arts = 55f; // High Arts (main damage stat, similar to Insania)
+        this.def = 15f; // Moderate Defence (ranged glass cannon)
 
-        // Placeholder (Ini karakter Arknight cok mati kita kalo pake ini di versi akhir)
+        // Placeholder (Ini karakter Arknight cok mati kita kalo pake ini di versi
+        // akhir)
         Texture spritesheet = AssetManager.getInstance().loadTexture("FrostPlaceholderSprite.png");
 
         // Split spritesheet menjadi individual frames (10 kolom x 10 baris)

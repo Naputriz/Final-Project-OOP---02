@@ -112,6 +112,30 @@ public class DummyEnemy extends GameCharacter {
         this.freezeTimer = FREEZE_DURATION;
     }
 
+    /**
+     * Freeze enemy for custom duration (e.g., for boss spawn camera pan)
+     * 
+     * @param duration Duration in seconds to freeze enemy
+     */
+    public void freeze(float duration) {
+        this.frozen = true;
+        this.freezeTimer = duration;
+    }
+
+    /**
+     * Manually set frozen state (untuk boss spawn sequence)
+     * 
+     * @param frozen true to freeze, false to unfreeze
+     */
+    public void setFrozen(boolean frozen) {
+        this.frozen = frozen;
+        if (frozen) {
+            this.freezeTimer = FREEZE_DURATION;
+        } else {
+            this.freezeTimer = 0;
+        }
+    }
+
     public boolean isFrozen() {
         return frozen;
     }
@@ -195,7 +219,7 @@ public class DummyEnemy extends GameCharacter {
             }
 
             // Move in random direction
-            move(randomDirection.x * delta, randomDirection.y * delta);
+            move(randomDirection, delta);
             return;
         }
 
@@ -212,7 +236,7 @@ public class DummyEnemy extends GameCharacter {
                     targetCenterX - myCenterX,
                     targetFeetY - myFeetY).nor(); // Normalisasi biar speed konstan
 
-            move(direction.x * delta, direction.y * delta);
+            move(direction, delta);
         }
     }
 }

@@ -201,6 +201,19 @@ Each character has a unique innate skill but has a second skill slot that can be
 * **Cooldown:** 10 seconds.
 * **Implementation Status:** ✅ Fully implemented as playable character
 
+#### Aelita - The Evergreen Healer ✨ NEW
+* **Role:** Healing Attacker.
+* **Stats:** High HP (140), Low ATK (15), Moderate Arts (30), Moderate DEF (20), Moderate Speed (170).
+* **Basic Attack:** Ranged green projectiles (Arts scaling).
+* **Innate Skill (Verdant Domain):** 
+  - Costs 25% current HP to activate
+  - Creates healing zone at activation point (150px radius, 5s duration)
+  - Heals 50% max HP over 5 seconds (10% per second)
+  - Grants +25% ATK and +25% Arts while inside zone
+  - High-risk, high-reward healing mechanic
+* **Cooldown:** 15 seconds.
+* **Implementation Status:** ✅ Fully implemented as playable character
+
 ---
 
 ## 7. Implementation Status
@@ -209,7 +222,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 #### Core Systems
 - **Character Selection Screen**
-  - Character grid with portraits (4 characters: Ryze, Isolde, Insania, Blaze)
+  - Character grid with portraits (6 characters: Ryze, Isolde, Insania, Blaze, Whisperwind, Aelita)
   - Character preview with animated sprites
   - Stats panel displaying HP, ATK, Arts, DEF, Speed
   - Skill panel showing innate skill description
@@ -355,6 +368,12 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ### 🚧 Current TODOs 
 
+#### Lootable skill + selected character combo
+- **TODO:** Bikin beberapa karakter punya bonus kalau milih lootable skill yang sesuai dengan karakter yang dipilih 
+  - Fireball: Ketika Blaze memilih skill ini, fireball dapat damage tambahan
+  - Ice Shield: Ketika Isolde memilih skill ini, musuh yang nyerang kena damage
+  - Wind Dash: Ketika Whisperwind memilih skill ini, deal damage + knockback di area teleport
+
 #### Character System Scalability
 - **TODO:** Extract CharacterInfo as separate class
   - Location: `CharacterSelectionScreen.java:350`
@@ -395,7 +414,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 #### Characters Not Yet Implemented
 - ~~Whisperwind - The Silent Caster~~ ✅ **IMPLEMENTED**
-- Aelita - The Evergreen Healer
+- ~~Aelita - The Evergreen Healer~~ ✅ **IMPLEMENTED**
 - Aegis - The Impenetrable Shield
 - Lumi - The Pale Renegade
 - Alice - The Reckless Princess
@@ -404,13 +423,16 @@ Each character has a unique innate skill but has a second skill slot that can be
 - Artorias - King of Lumina
 - Funami - The White Raven
 
-#### Boss System Not Yet Implemented
-- Boss spawning every 5 minutes
-- Boss "ultimate" looting mechanic
-- Boss-to-playable-character unlocking
-- Insania as boss (currently only playable)
-- Blaze as boss (currently only playable)
-- Isolde as boss (currently only playable)
+#### Boss System ✅ **PARTIALLY IMPLEMENTED**
+- ✅ Boss spawning every 5 minutes
+- ✅ Boss "ultimate" looting mechanic  
+- ✅ Boss cinematic camera pan and zoom on spawn
+- ✅ Boss-specific music themes
+- ✅ Boss AI and attack patterns
+- ✅ Insania as boss (playable character available)
+- ✅ Blaze as boss (playable character available)
+- ✅ Isolde as boss (playable character available)
+- ⏳ Boss-to-playable-character unlocking (pending backend integration)
 
 #### Systems Not Yet Implemented
 - Secondary skill slot (Q key)
@@ -427,11 +449,172 @@ Each character has a unique innate skill but has a second skill slot that can be
 4. **Builder Pattern** - For character configuration from data files
 5. **Facade Pattern** - For game service unification
 
+---
+
+## 9. Design Patterns Implemented
+
+### ✅ Currently Implemented Patterns
+
+#### 1. Singleton Pattern
+**Purpose:** Ensure only one instance of critical managers exists
+**Implementations:**
+- **AssetManager:** Centralized texture and audio asset loading with caching
+- **GameManager:** Game state management (level, score, XP)
+- **AudioManager:** Music and SFX playback with volume control
+
+**Benefits:**
+- Global access point for shared resources
+- Prevents resource duplication
+- Simplified state management
+
+#### 2. Strategy Pattern
+**Purpose:** Define interchangeable attack behaviors
+**Implementations:**
+- **RangedAttackStrategy:** Projectile-based attacks (Isolde, Aelita, Whisperwind)
+- **MeleeAttackStrategy:** Close-range attacks (Ryze, Insania, Blaze)
+
+**Benefits:**
+- Characters can switch attack types at runtime
+- Easy to add new attack strategies
+- Separates attack logic from character logic
+
+#### 3. State Pattern  
+**Purpose:** Manage character animation states
+**Implementations:**
+- **IdleState:** Stationary character animation
+- **RunningState:** Movement animation
+
+**Benefits:**
+- Clean state transitions
+- Animation logic separated from character class
+- Easy to add new states (AttackState, DamagedState, etc.)
+
+#### 4. Command Pattern
+**Purpose:** Encapsulate skills and level-up effects as objects
+**Implementations:**
+- **BaseSkill:** Abstract command for all skills
+- **Level-up effects:** Heal, IncreaseMaxHP, IncreaseATK, IncreaseDEF, PickNewSkill
+- **Skills:** VerdantDomainSkill, BladeFurySkill, HurricaneBindSkill, etc.
+
+**Benefits:**
+- Skills are self-contained and reusable
+- Easy to add/remove skills
+- Undo/redo potential for future features
+
+#### 5. Object Pool Pattern
+**Purpose:** Reuse expensive objects instead of creating/destroying
+**Implementations:**
+- **ProjectilePool:** Manages projectile instances
+- **EnemyPool:** Manages enemy spawning and recycling
+
+**Benefits:**
+- Reduces garbage collection overhead
+- Prevents memory spikes during intense gameplay
+- Improved performance
+
+#### 6. Factory Method Pattern
+**Purpose:** Centralize character creation logic
+**Implementation:**
+- Character selection screen creates character instances based on selection
+- Consistent character initialization process
+
+**Benefits:**
+- Simplified character creation
+- Easy to add new characters
+- Centralized initialization logic
+
+---
+
+## 10. Future Improvements and TODOs
+
+### 🔧 Pending Bug Fixes and Enhancements
+
+#### 1. Max HP Buff HP Recovery
+**Priority:** Medium  
+**Description:** When picking "Increase Max HP" buff at non-full health, HP percentage should be maintained
+
+**Current Behavior:**
+- Player at 90/100 HP picks +10% Max HP buff
+- **Bug:** HP becomes 90/110 (81.8% health)
+
+**Expected Behavior:**
+- Player at 90/100 HP (90% health) picks +10% Max HP buff
+- **Fix:** HP should become 99/110 (90% health maintained)
+
+**Implementation:**
+- Calculate current HP percentage before buff
+- After applying max HP increase, set HP to match previous percentage
+- Located in: `LevelUpScreen.java` level-up effect handlers
+
+---
+
+#### 2. Blade Fury Attack Animation
+**Priority:** Low  
+**Description:** Blade Fury currently shows stationary attack sprites, needs rotating animation
+
+**Current Behavior:**
+- Attack sprites render at fixed positions around player
+- Looks static and unpolished
+
+**Expected Behavior:**
+- Attack sprites should rotate around player like a spinning blade
+- Smooth animation for visual feedback
+
+**Implementation:**
+- Add rotation parameter to sprite rendering
+- Calculate rotation angle based on time/position
+- Update `renderBladeFury()` in `GameScreen.java`
+
+---
+
+#### 3. GameScreen Refactoring
+**Priority:** High  
+**Description:** `GameScreen.java` is too large (~2000 lines) and violates OOP principles
+
+**Issues:**
+- Single class handling rendering, collision, spawning, UI, etc.
+- Violates Single Responsibility Principle (SRP)
+- Hard to maintain and test
+
+**Recommended Refactoring:**
+- **Facade Pattern:** Create `GameFacade` to coordinate subsystems
+- **Extract Classes:**
+  - `RenderingSystem` - Handle all rendering logic
+  - `CollisionSystem` - Handle collision detection
+  - `SpawningSystem` - Handle enemy/boss spawning
+  - `UISystem` - Handle HUD and overlays
+- **Observer Pattern:** Decouple UI updates from game events
+
+---
+
+#### 4. Innate Skill Refactoring
+**Priority:** Medium  
+**Description:** Some characters have innate skills integrated into character classes instead of separate skill classes
+
+**Current State:**
+- Aelita: ✅ VerdantDomainSkill (separate class)
+- Isolde: ❌ Glacial Breath (integrated in Isolde class)
+- Insania: ❌ Mind Fracture (integrated in Insania class)
+- Blaze: ❌ Hellfire Pillar (integrated in Blaze class)
+- Ryze: ❌ Spectral Body (integrated in Ryze class)
+- Whisperwind: ❌ Hurricane Bind (integrated in Whisperwind class)
+
+**Expected State:**
+- All innate skills should be separate skill classes extending `BaseSkill`
+- Follows Single Responsibility Principle
+- Easier to test and modify skills independently
+
+**Implementation:**
+- Create skill classes: `GlacialBreathSkill`, `MindFractureSkill`, `HellfirePillarSkill`, `SpectralBodySkill`, `HurricaneBindSkill`
+- Refactor character classes to use skill composition instead of direct implementation
+
+---
+
 **📄 See design patterns documentation for detailed implementations**
 
 ---
 
-## 8. Technical Implementation Details
+## 11. Technical Implementation Details
 
 ### Audio Assets
 - **BGM (Music):**

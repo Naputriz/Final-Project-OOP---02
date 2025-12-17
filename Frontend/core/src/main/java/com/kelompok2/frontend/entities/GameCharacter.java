@@ -22,6 +22,16 @@ public abstract class GameCharacter {
     protected Rectangle bounds; // Hitbox untuk collision
     protected float renderWidth = -1; // -1 artinya belum diset (default ikut bounds)
     protected float renderHeight = -1;
+    protected boolean isInsane = false;
+    protected float insanityTimer = 0f;
+
+    // Player status effects (for boss skills)
+    protected boolean isFrozen = false;
+    protected float freezeTimer = 0f;
+    protected boolean isSlowed = false;
+    protected float slowTimer = 0f;
+    protected boolean isStunned = false; // Stun status - different from freeze
+    protected float stunTimer = 0f;
     protected float boundsOffsetX = 0;
     protected float boundsOffsetY = 0;
     protected int level;
@@ -60,9 +70,14 @@ public abstract class GameCharacter {
         this.autoAttack = false;
     }
 
-    public void attack(Vector2 targetPos, Array<Projectile> projectiles, Array<MeleeAttack> meleeAttacks) {
+    public void attack(Vector2 target, Array<Projectile> projectiles, Array<MeleeAttack> meleeAttacks) {
+        // Can't attack if frozen or stunned
+        if (isFrozen || isStunned) {
+            return;
+        }
+
         if (attackStrategy != null) {
-            attackStrategy.execute(this, targetPos, projectiles, meleeAttacks);
+            attackStrategy.execute(this, target, projectiles, meleeAttacks);
         }
     }
 
@@ -81,6 +96,66 @@ public abstract class GameCharacter {
 
     public abstract String getAttackAnimationType();
 
+    public void clearInsanity() {
+        this.isInsane = false;
+        this.insanityTimer = 0f;
+    }
+
+    public boolean isInsane() {
+        return isInsane;
+    }
+
+    // Freeze status (for player)
+    public void freeze(float duration) {
+        this.isFrozen = true;
+        this.freezeTimer = duration;
+    }
+
+    public boolean isFrozen() {
+        return isFrozen;
+    }
+
+    public void clearFreeze() {
+        this.isFrozen = false;
+        this.freezeTimer = 0f;
+    }
+
+    // Slow status (for player)
+    public void slow(float duration) {
+        this.isSlowed = true;
+        this.slowTimer = duration;
+    }
+
+    public boolean isSlowed() {
+        return isSlowed;
+    }
+
+    public void clearSlow() {
+        this.isSlowed = false;
+        this.slowTimer = 0f;
+    }
+
+    // Stun status (for Hurricane Bind and other stun effects)
+    public void stun(float duration) {
+        this.isStunned = true;
+        this.stunTimer = duration;
+    }
+
+    public boolean isStunned() {
+        return isStunned;
+    }
+
+    public void clearStun() {
+        this.isStunned = false;
+        this.stunTimer = 0f;
+    }
+
+    // Insanity status (for player hit by Mind Fracture)
+    public void makeInsane(float duration) {
+        this.isInsane = true;
+        this.insanityTimer = duration;
+    }
+
     // Update untuk mengurangi timer
     public void update(float delta) {
         if (attackTimer > 0) {
@@ -90,6 +165,38 @@ public abstract class GameCharacter {
         // Update secondary skill cooldown
         if (secondarySkill != null) {
             secondarySkill.update(delta);
+        }
+
+        // Update insanity timer
+        if (insanityTimer > 0) {
+            insanityTimer -= delta;
+            if (insanityTimer <= 0) {
+                clearInsanity();
+            }
+        }
+
+        // Update freeze timer
+        if (freezeTimer > 0) {
+            freezeTimer -= delta;
+            if (freezeTimer <= 0) {
+                clearFreeze();
+            }
+        }
+
+        // Update slow timer
+        if (slowTimer > 0) {
+            slowTimer -= delta;
+            if (slowTimer <= 0) {
+                clearSlow();
+            }
+        }
+
+        // Update stun timer
+        if (stunTimer > 0) {
+            stunTimer -= delta;
+            if (stunTimer <= 0) {
+                clearStun();
+            }
         }
     }
 
@@ -108,9 +215,17 @@ public abstract class GameCharacter {
         return autoAttack;
     }
 
-    public void move(float deltaX, float deltaY) {
-        position.x += deltaX * speed;
-        position.y += deltaY * speed;
+    public void move(Vector2 direction, float delta) {
+        // Can't move if frozen or stunned
+        if (isFrozen || isStunned) {
+            return;
+        }
+
+        // Apply slow effect (50% speed reduction)
+        float effectiveSpeed = isSlowed ? speed * 0.5f : speed;
+
+        direction.nor();
+        position.add(direction.x * effectiveSpeed * delta, direction.y * effectiveSpeed * delta);
 
         // Position sekarang merepresentasikan posisi pojok kiri-bawah GAMBAR (Visual),
         // bukan Hitbox
@@ -323,5 +438,73 @@ public abstract class GameCharacter {
 
         // Activate skill via Command Pattern
         secondarySkill.activate(this, targetPos, projectiles, meleeAttacks);
+    }
+
+    // Ultimate Skill System (R key) - Looted from bosses
+    protected Skill ultimateSkill = null;
+    protected boolean ultimateUsed = false;
+
+    /**
+     * Set ultimate skill (obtained from defeating boss)
+     * 
+     * @param skill Ultimate skill instance
+     */
+    public void setUltimateSkill(Skill skill) {
+        this.ultimateSkill = skill;
+        this.ultimateUsed = false;
+
+        if (skill != null) {
+            System.out.println("[" + this.getClass().getSimpleName() + "] Acquired ULTIMATE: " + skill.getName() + "!");
+        }
+    }
+
+    public Skill getUltimateSkill() {
+        return ultimateSkill;
+    }
+
+    /**
+     * Check if player has ultimate skill and hasn't used it yet
+     * 
+     * @return true if ultimate is available to use
+     */
+    public boolean hasUltimateSkill() {
+        return ultimateSkill != null && !ultimateUsed;
+    }
+
+    /**
+     * Check if ultimate was used (for UI display)
+     * 
+     * @return true if ultimate was consumed
+     */
+    public boolean isUltimateUsed() {
+        return ultimateUsed;
+    }
+
+    /**
+     * Perform ultimate skill (R key) - one-time use
+     * 
+     * @param targetPos    Target position for skill
+     * @param projectiles  Projectile array
+     * @param meleeAttacks Melee attack array
+     */
+    public void performUltimateSkill(Vector2 targetPos,
+            Array<Projectile> projectiles,
+            Array<MeleeAttack> meleeAttacks) {
+        if (!hasUltimateSkill()) {
+            if (ultimateUsed) {
+                System.out.println("[" + this.getClass().getSimpleName() + "] Ultimate already used!");
+            } else {
+                System.out.println("[" + this.getClass().getSimpleName() + "] No ultimate skill!");
+            }
+            return;
+        }
+
+        // Activate ultimate skill
+        ultimateSkill.activate(this, targetPos, projectiles, meleeAttacks);
+
+        // Mark as used
+        ultimateUsed = true;
+        System.out.println(
+                "[" + this.getClass().getSimpleName() + "] Acquired ULTIMATE: " + ultimateSkill.getName() + "!");
     }
 }
