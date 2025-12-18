@@ -13,11 +13,6 @@ import com.kelompok2.frontend.states.AnimationState;
 import com.kelompok2.frontend.states.IdleState;
 import com.kelompok2.frontend.states.RunningState;
 
-/**
- * Boss variant dari Blaze - The Flame Kaiser.
- * Stats lebih tinggi dari playable version, AI aggressive chase (seperti
- * Insania).
- */
 public class BossBlaze extends Boss {
 
     // Hellfire Pillar skill tracking
@@ -40,8 +35,9 @@ public class BossBlaze extends Boss {
     // Scaling dengan level player
     private int playerLevel;
 
-    // Boss melee attacks storage
-    private Array<MeleeAttack> meleeAttacks = new Array<>();
+    // Boss attacks storage (injected by GameFacade via setAttackArrays)
+    private Array<MeleeAttack> meleeAttacks;
+    private Array<Projectile> projectiles;
 
     // Random movement and attack for insanity effect
     private Vector2 randomDirection = new Vector2();
@@ -86,7 +82,7 @@ public class BossBlaze extends Boss {
         // Attack strategy - Melee aggressive (Flame Punch)
         this.attackStrategy = new MeleeAttackStrategy(100f, 70f, 1.5f, 0.5f); // Range, width, damage mult, duration
         this.autoAttack = true;
-        this.attackCooldown = 1.5f; // Attack every 1.5 seconds between attacks
+        this.attackCooldown = 1.0f; // ✅ FIX: Attack every 1 second (reduced from 1.5s)
 
         lastPillarPosition = new Vector2();
         lastPosition = new Vector2(x, y);
@@ -117,12 +113,14 @@ public class BossBlaze extends Boss {
             }
         }
 
-        // Update melee attacks
-        for (int i = meleeAttacks.size - 1; i >= 0; i--) {
-            MeleeAttack attack = meleeAttacks.get(i);
-            attack.update(delta);
-            if (!attack.isActive()) {
-                meleeAttacks.removeIndex(i);
+        // Update melee attacks (only if injected by facade)
+        if (meleeAttacks != null) {
+            for (int i = meleeAttacks.size - 1; i >= 0; i--) {
+                MeleeAttack attack = meleeAttacks.get(i);
+                attack.update(delta);
+                if (!attack.isActive()) {
+                    meleeAttacks.removeIndex(i);
+                }
             }
         }
 
@@ -177,8 +175,8 @@ public class BossBlaze extends Boss {
             move(randomDirection, delta);
 
             // Attack randomly
-            if (canAttack()) {
-                attack(randomAttackTarget, new Array<Projectile>(), meleeAttacks);
+            if (canAttack() && meleeAttacks != null && projectiles != null) {
+                attack(randomAttackTarget, projectiles, meleeAttacks);
                 resetAttackTimer();
             }
 
@@ -209,12 +207,12 @@ public class BossBlaze extends Boss {
             setFacingRight(direction.x > 0);
 
             // Attack player continuously (no range check - like Isolde)
-            if (canAttack()) {
+            if (canAttack() && meleeAttacks != null && projectiles != null) {
                 // Use player's CENTER for attack direction (not feet) for correct animation
                 // rotation
                 float targetCenterY = target.getPosition().y + target.getVisualHeight() / 2;
                 Vector2 attackTarget = new Vector2(targetCenterX, targetCenterY);
-                attack(attackTarget, new Array<Projectile>(), meleeAttacks);
+                attack(attackTarget, projectiles, meleeAttacks);
                 resetAttackTimer();
             }
 
@@ -300,6 +298,13 @@ public class BossBlaze extends Boss {
     public float getAtk() {
         // Flame Punch hybrid damage
         return (this.atk * 0.7f) + (this.arts * 0.3f);
+    }
+
+    @Override
+    public void setAttackArrays(Array<MeleeAttack> meleeAttacks, Array<Projectile> projectiles) {
+        this.meleeAttacks = meleeAttacks;
+        this.projectiles = projectiles;
+        System.out.println("[BossBlaze] Attack arrays injected from GameFacade");
     }
 
     public Array<MeleeAttack> getMeleeAttacks() {

@@ -316,8 +316,18 @@ Each character has a unique innate skill but has a second skill slot that can be
      - Visual: Orange semi-transparent circle
    - State-based animations:
      - Idle: 92 frames (4×23 grid)
-     - Running: 92 frames (4×23 grid)
-   - Visual size: 128px
+     - Visual size: 128px
+
+5. **Aegis - The Impenetrable Shield** ✅ NEW
+   - Role: Tank
+   - Stats: High HP (120), Low ATK (15), Low Arts (10), High Defence (25), Moderate Speed (130)
+   - Basic Attack: Shield Bash (Scaling: 0.7 ATK + 0.5 DEF) with forward dash
+   - Innate Skill (Shield Stance):
+     - Blocks frontal damage (200-degree arc)
+     - Reflects 50% damage back to attacker
+     - Immobilizes player for 2 seconds
+     - Visual: Red shield arc
+   - Implementation Status: ✅ Fully implemented
 
 #### UI/UX Features
 - **HUD System:**
@@ -364,7 +374,19 @@ Each character has a unique innate skill but has a second skill slot that can be
 6. **Command Pattern** ✅
    - LevelUpEffect interface
    - IncreaseMaxHPEffect, IncreaseAtkEffect, IncreaseArtsEffect
-   - IncreaseDefenseEffect, RecoverHPEffect, NewSkillEffect
+   - Skills: VerdantDomainSkill, BladeFurySkill, HurricaneBindSkill, etc.
+
+#### 7. Facade Pattern ✅ NEW
+**Purpose:** Simplify complex system interactions
+**Implementation:**
+- **GameFacade:** Coordinate all subsystems (Rendering, Collision, Spawning, UI, Cinematic)
+- Decouples GameScreen from specific system implementations
+- Centralized update and render loops
+
+**Benefits:**
+- Reduced GameScreen complexity (2000+ lines -> ~350 lines)
+- Better code organization
+- Easier testing and maintenance
 
 ### 🚧 Current TODOs 
 
@@ -410,12 +432,19 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Current: Optimized for 1920x1080 only
   - Goal: Responsive layout for various resolutions
 
+#### Game Balancing (Critical)
+- **TODO:** Rebalance Aegis and Boss interactions
+  - Issue: Melee characters (especially Tanks like Aegis) struggle against Bosses due to unavoidable damage trading.
+  - Fix: Adjust Boss melee range or damage, improve Aegis damage mitigation.
+  - Issue: Isolde (Ranged Boss) kiting makes melee characters useless.
+  - Fix: Add gap closer mechanics or limit Isolde's retreat speed.
+
 ### 📋 Pending Features (From Original GDD)
 
 #### Characters Not Yet Implemented
 - ~~Whisperwind - The Silent Caster~~ ✅ **IMPLEMENTED**
 - ~~Aelita - The Evergreen Healer~~ ✅ **IMPLEMENTED**
-- Aegis - The Impenetrable Shield
+- ~~Aegis - The Impenetrable Shield~~ ✅ **IMPLEMENTED**
 - Lumi - The Pale Renegade
 - Alice - The Reckless Princess
 - Alex - The Calculating Prince
@@ -567,23 +596,18 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ---
 
-#### 3. GameScreen Refactoring
-**Priority:** High  
-**Description:** `GameScreen.java` is too large (~2000 lines) and violates OOP principles
-
-**Issues:**
-- Single class handling rendering, collision, spawning, UI, etc.
-- Violates Single Responsibility Principle (SRP)
-- Hard to maintain and test
-
-**Recommended Refactoring:**
-- **Facade Pattern:** Create `GameFacade` to coordinate subsystems
-- **Extract Classes:**
-  - `RenderingSystem` - Handle all rendering logic
-  - `CollisionSystem` - Handle collision detection
-  - `SpawningSystem` - Handle enemy/boss spawning
-  - `UISystem` - Handle HUD and overlays
-- **Observer Pattern:** Decouple UI updates from game events
+#### 3. Collision System Refactoring
+**Priority:** High
+**Description:** `CollisionSystem.java` is still handling too much logic.
+**Issue:** Handles projectiles, melee, enemy detection, and damage application in one place.
+**Goal:** Split into:
+- `ProjectileCollisionHandler`
+- `MeleeCollisionHandler`
+- `EntityCollisionManager`
+#### 3. GameScreen Refactoring ✅ COMPLETED
+**Priority:** Done
+**Description:** `GameScreen.java` was refactored using Facade Pattern.
+**Status:** Implemented `GameFacade` to coordinate `RenderingSystem`, `CollisionSystem`, `SpawningSystem`, `UISystem`, and `BossCinematicSystem`. Line count reduced from ~2000 to ~350.
 
 ---
 

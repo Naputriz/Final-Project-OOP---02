@@ -84,7 +84,7 @@ public class Aelita extends GameCharacter {
     @Override
     public void update(float delta) {
         super.update(delta);
-        verdantDomain.update(delta);
+        verdantDomain.update(delta, this); // Pass player reference for healing
     }
 
     // Override getAtk to apply Verdant Domain buff

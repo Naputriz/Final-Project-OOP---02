@@ -26,15 +26,21 @@ public class Projectile {
     }
 
     public Projectile(float startX, float startY, float targetX, float targetY, float damage, Color color) {
+        this(startX, startY, targetX, targetY, damage, color, 400f); // Default speed
+    }
+
+    public Projectile(float startX, float startY, float targetX, float targetY, float damage, Color color,
+            float speed) {
         this.position = new Vector2(startX, startY);
         this.active = true;
         this.bounds = new Rectangle(startX, startY, 10, 10); // Ukuran peluru
         this.damage = damage;
         this.color = color;
+        this.speed = speed; // Use custom speed
 
         // Hitung arah peluru (Matematika Vektor)
         Vector2 direction = new Vector2(targetX - startX, targetY - startY).nor();
-        this.velocity = direction.scl(speed);
+        this.velocity = direction.scl(this.speed);
 
         // Bikin gambar kotak dengan warna custom
         createTexture();

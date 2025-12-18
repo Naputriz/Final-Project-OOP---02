@@ -77,7 +77,9 @@ public class EnemyPool {
 
     public void render(SpriteBatch batch) {
         for (DummyEnemy e : activeEnemies) {
-            e.render(batch);
+            if (!e.isDead()) { // Only render alive enemies
+                e.render(batch);
+            }
         }
     }
 

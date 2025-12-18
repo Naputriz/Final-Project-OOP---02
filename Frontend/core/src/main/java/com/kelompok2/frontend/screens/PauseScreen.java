@@ -69,6 +69,7 @@ public class PauseScreen extends ScreenAdapter {
                 if (hasTransitioned)
                     return; // Prevent multiple transitions
                 hasTransitioned = true;
+                gameScreen.resumeFromPause(); // ✅ FIX: Unpause the game
                 game.setScreen(gameScreen);
             }
         });
@@ -77,7 +78,8 @@ public class PauseScreen extends ScreenAdapter {
         restartButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if (hasTransitioned) return; // Prevent multiple transitions
+                if (hasTransitioned)
+                    return; // Prevent multiple transitions
                 hasTransitioned = true;
                 gameScreen.dispose(); // Bersihkan yang lama
                 game.setScreen(new GameScreen(game, gameScreen.getSelectedCharacter()));
@@ -88,7 +90,8 @@ public class PauseScreen extends ScreenAdapter {
         charSelectButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if (hasTransitioned) return; // Prevent multiple transitions
+                if (hasTransitioned)
+                    return; // Prevent multiple transitions
                 hasTransitioned = true;
                 gameScreen.dispose();
                 AudioManager.getInstance().stopMusic(); // Stop lagu battle
@@ -100,7 +103,8 @@ public class PauseScreen extends ScreenAdapter {
         mainMenuButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if (hasTransitioned) return; // Prevent multiple transitions
+                if (hasTransitioned)
+                    return; // Prevent multiple transitions
                 hasTransitioned = true;
                 gameScreen.dispose();
                 AudioManager.getInstance().stopMusic();
@@ -130,7 +134,8 @@ public class PauseScreen extends ScreenAdapter {
 
         // Fitur Unpause pakai ESC
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
-            if (hasTransitioned) return; // Prevent multiple transitions
+            if (hasTransitioned)
+                return; // Prevent multiple transitions
             hasTransitioned = true;
             game.setScreen(gameScreen);
         }

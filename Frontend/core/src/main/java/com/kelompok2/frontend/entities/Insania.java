@@ -21,6 +21,7 @@ public class Insania extends GameCharacter {
     private boolean mindFractureJustActivated = false; // Flag untuk GameScreen (single-use)
     private float circleDisplayTimer = 0f; // Timer untuk display circle
     private static final float CIRCLE_DISPLAY_DURATION = 0.5f; // Show circle for 0.5s
+    private long mindFractureActivationId = 0;
 
     public Insania(float x, float y) {
         super(x, y, 180f, 110f);
@@ -145,6 +146,7 @@ public class Insania extends GameCharacter {
         skillTimer = skillCooldown;
         mindFractureJustActivated = true; // Set flag untuk GameScreen
         circleDisplayTimer = CIRCLE_DISPLAY_DURATION; // Show circle for 0.5s
+        mindFractureActivationId++;
 
         System.out.println("[Insania] Mind Fracture activated! Applying Insanity in 300px radius!");
     }
@@ -188,5 +190,9 @@ public class Insania extends GameCharacter {
     @Override
     public String getAttackAnimationType() {
         return "scratch"; // Insania uses scratch animations
+    }
+
+    public long getMindFractureActivationId() {
+        return mindFractureActivationId;
     }
 }

@@ -39,7 +39,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     private static final float PORTRAIT_SIZE = 100;
     private static final float PORTRAIT_SPACING = 120;
 
-    private static final float PREVIEW_X = 1100; // Right side
+    private static final float PREVIEW_X = 1300; // Right side (moved to avoid overlap)
     private static final float PREVIEW_Y = 400;
     private static final float PREVIEW_SIZE = 256;
 
@@ -82,7 +82,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void initializeCharacters() {
         // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        characters = new CharacterInfo[6]; // Updated to 6 characters
+        characters = new CharacterInfo[7]; // Updated to 7 characters
 
         // Ryze - The Ghost of Insania
         Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
@@ -155,6 +155,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 "AelitaPlaceholder.png",
                 aelitaSprite,
                 1, 1, 1, 0.1f); // Stationary sprite (placeholder)
+
+        // Aegis - The Impenetrable Shield
+        Texture aegisSprite = AssetManager.getInstance().loadTexture("AegisPlaceholder.png");
+        characters[6] = new CharacterInfo(
+                "Aegis",
+                "The Impenetrable Shield",
+                150, 15, 10, 40, 170,
+                "Here, I shall stand!",
+                "Immobilized for 2s, blocks frontal damage\\nand reflects 50% damage back.\\nCooldown: 10s",
+                "AegisPlaceholder.png",
+                aegisSprite,
+                1, 1, 1, 0.1f);
     }
 
     @Override

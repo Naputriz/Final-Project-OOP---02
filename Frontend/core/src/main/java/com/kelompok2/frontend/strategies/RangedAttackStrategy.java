@@ -10,10 +10,16 @@ import com.kelompok2.frontend.entities.Projectile;
 public class RangedAttackStrategy implements AttackStrategy {
     private float damageMultiplier; // Multiplier untuk damage (akan dikalikan dengan Arts)
     private Color projectileColor; // Warna projectile (optional)
+    private float projectileSpeed; // ✅ FIX: Customizable projectile speed
 
-    public RangedAttackStrategy(float damageMultiplier, Color color) {
+    public RangedAttackStrategy(float damageMultiplier, Color color, float speed) {
         this.damageMultiplier = damageMultiplier;
         this.projectileColor = color;
+        this.projectileSpeed = speed;
+    }
+
+    public RangedAttackStrategy(float damageMultiplier, Color color) {
+        this(damageMultiplier, color, 400f); // Default normal speed
     }
 
     public RangedAttackStrategy(float damageMultiplier) {
@@ -36,8 +42,9 @@ public class RangedAttackStrategy implements AttackStrategy {
         // Hitung damage berdasarkan Arts karakter
         float finalDamage = attacker.getArts() * damageMultiplier;
 
-        // Buat Projectile baru dengan damage dan warna custom
-        Projectile p = new Projectile(startX, startY, targetPos.x, targetPos.y, finalDamage, projectileColor);
+        // ✅ FIX: Buat Projectile baru dengan damage, warna, DAN speed custom
+        Projectile p = new Projectile(startX, startY, targetPos.x, targetPos.y, finalDamage, projectileColor,
+                projectileSpeed);
         projectiles.add(p);
     }
 }

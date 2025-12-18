@@ -13,20 +13,17 @@ public class DummyEnemy extends GameCharacter {
     private float freezeTimer = 0f;
     private static final float FREEZE_DURATION = 3.0f; // 3 detik freeze
 
-    // Insanity status effect (untuk Mind Fracture)
-    private boolean insane = false;
-    private float insanityTimer = 0f;
-    private static final float INSANITY_DURATION = 5.0f; // 5 detik insanity
-    private static final float INSANITY_ATK_BUFF = 10f; // +10 ATK saat insane
-    private static final float INSANITY_ARTS_BUFF = 10f; // +10 Arts saat insane
-
-    // Random movement untuk Insanity
+    // Random movement untuk Insanity (uses parent's isInsane from GameCharacter)
     private Vector2 randomDirection = new Vector2();
     private float directionChangeTimer = 0f;
 
+    private long lastMindFractureHitId = -1;
+
     public DummyEnemy(float x, float y, GameCharacter target) {
-        super(x, y, 150f, 50f); // Speed 150 (lebih lambat dari player), HP 50
+        super(x, y, 125f, 50f); // Speed 125 (balanced - not too slow), HP 50
         this.target = target;
+
+        this.atk = 15f; // Increased from default (was too weak)
 
         // Bikin tekstur kotak merah
         createTexture();
@@ -51,7 +48,7 @@ public class DummyEnemy extends GameCharacter {
         if (frozen) {
             // Modulasi warna batch ke cyan semi-transparent
             batch.setColor(0.5f, 0.8f, 1f, 0.7f); // Light blue overlay
-        } else if (insane) {
+        } else if (isInsane) { // Use parent's isInsane
             // Modulasi warna batch ke purple untuk Insanity
             batch.setColor(0.8f, 0.3f, 0.8f, 0.8f); // Purple overlay
         }
@@ -60,7 +57,7 @@ public class DummyEnemy extends GameCharacter {
         super.render(batch);
 
         // Reset warna batch ke normal
-        if (frozen || insane) {
+        if (frozen || isInsane) { // Use parent's isInsane
             batch.setColor(Color.WHITE);
         }
     }
@@ -102,9 +99,8 @@ public class DummyEnemy extends GameCharacter {
         this.frozen = false;
         this.freezeTimer = 0;
 
-        // Reset insanity status
-        this.insane = false;
-        this.insanityTimer = 0;
+        // Reset insanity status (use parent's system)
+        super.clearInsanity();
     }
 
     public void freeze() {
@@ -112,21 +108,11 @@ public class DummyEnemy extends GameCharacter {
         this.freezeTimer = FREEZE_DURATION;
     }
 
-    /**
-     * Freeze enemy for custom duration (e.g., for boss spawn camera pan)
-     * 
-     * @param duration Duration in seconds to freeze enemy
-     */
     public void freeze(float duration) {
         this.frozen = true;
         this.freezeTimer = duration;
     }
 
-    /**
-     * Manually set frozen state (untuk boss spawn sequence)
-     * 
-     * @param frozen true to freeze, false to unfreeze
-     */
     public void setFrozen(boolean frozen) {
         this.frozen = frozen;
         if (frozen) {
@@ -140,16 +126,12 @@ public class DummyEnemy extends GameCharacter {
         return frozen;
     }
 
-    public void applyInsanity() {
-        this.insane = true;
-        this.insanityTimer = INSANITY_DURATION;
-        // Generate initial random direction
-        generateRandomDirection();
-        System.out.println("[Enemy] Insanity applied! Moving randomly for 5 seconds");
+    public boolean wasHitByMindFracture(long activationId) {
+        return lastMindFractureHitId == activationId;
     }
 
-    public boolean isInsane() {
-        return insane;
+    public void markMindFractureHit(long activationId) {
+        lastMindFractureHitId = activationId;
     }
 
     private void generateRandomDirection() {
@@ -161,16 +143,16 @@ public class DummyEnemy extends GameCharacter {
 
     @Override
     public float getAtk() {
-        if (insane) {
-            return super.getAtk() + INSANITY_ATK_BUFF;
+        if (isInsane) { // Uses GameCharacter's isInsane field
+            return super.getAtk() * 1.5f; // 50% buff for consistency with Boss
         }
         return super.getAtk();
     }
 
     @Override
     public float getArts() {
-        if (insane) {
-            return super.getArts() + INSANITY_ARTS_BUFF;
+        if (isInsane) { // Uses GameCharacter's isInsane field
+            return super.getArts() * 1.5f; // 50% buff for consistency with Boss
         }
         return super.getArts();
     }
@@ -202,15 +184,9 @@ public class DummyEnemy extends GameCharacter {
             return;
         }
 
-        // Update insanity timer
-        if (insane) {
-            insanityTimer -= delta;
-            if (insanityTimer <= 0) {
-                insane = false;
-                insanityTimer = 0;
-                System.out.println("[Enemy] Insanity ended");
-            }
-
+        // Update insanity (use parent's insanityTimer)
+        // Parent class already updates insanityTimer in super.update()
+        if (isInsane) {
             // Random movement saat insane
             directionChangeTimer -= delta;
             if (directionChangeTimer <= 0) {
