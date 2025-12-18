@@ -8,14 +8,10 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.strategies.RangedAttackStrategy;
-import com.badlogic.gdx.graphics.Color;
 import com.kelompok2.frontend.skills.Skill;
 import com.kelompok2.frontend.skills.FrozenApocalypseSkill;
+import com.badlogic.gdx.graphics.Color;
 
-/**
- * Boss variant dari Isolde - The Frost Kaiser.
- * Stats lebih tinggi dari playable version, AI kiting dengan range attacks.
- */
 public class BossIsolde extends Boss {
 
     // Animation system
@@ -35,8 +31,9 @@ public class BossIsolde extends Boss {
     // Kiting AI variables
     private float preferredDistance = 350f; // Maintain 350px distance dari player
 
-    // Boss projectiles storage (icicles from basic attacks)
-    private Array<Projectile> projectiles = new Array<>();
+    // Boss projectiles storage (injected by GameFacade via setAttackArrays)
+    private Array<Projectile> projectiles;
+    private Array<MeleeAttack> meleeAttacks; // Not used but required by interface
 
     // Random movement and attack for insanity effect
     private Vector2 randomDirection = new Vector2();
@@ -94,10 +91,9 @@ public class BossIsolde extends Boss {
 
         setPosition(x, y);
 
-        // Ranged attack strategy - icicles
-        this.attackStrategy = new RangedAttackStrategy(0.7f, new Color(0.5f, 0.8f, 1f, 1f)); // Higher damage for boss
+        this.attackStrategy = new RangedAttackStrategy(0.7f, new Color(0.5f, 0.8f, 1f, 1f), 400f);
         this.autoAttack = true;
-        this.attackCooldown = 1.0f; // 1 second between projectiles
+        this.attackCooldown = 1.0f;
 
         glacialBreaths = new Array<>();
 
@@ -124,10 +120,8 @@ public class BossIsolde extends Boss {
             }
         }
 
-        // Update projectiles (GameScreen handles collision and removal)
-        for (Projectile proj : projectiles) {
-            proj.update(delta);
-        }
+        // Projectiles are updated by GameFacade's main loop, tidak perlu update di sini
+        // Removing duplicate update to fix 2x speed bug
     }
 
     @Override
@@ -162,8 +156,8 @@ public class BossIsolde extends Boss {
             move(randomDirection, delta);
 
             // Shoot icicles randomly
-            if (canAttack()) {
-                attack(randomAttackTarget, projectiles, new Array<MeleeAttack>());
+            if (canAttack() && projectiles != null && meleeAttacks != null) {
+                attack(randomAttackTarget, projectiles, meleeAttacks);
                 resetAttackTimer();
             }
 
@@ -204,9 +198,9 @@ public class BossIsolde extends Boss {
             // If within preferred range, stay still and attack
 
             // Shoot icicles at player when in range
-            if (distance <= preferredDistance + 200f && canAttack()) {
+            if (distance <= preferredDistance + 200f && canAttack() && projectiles != null && meleeAttacks != null) {
                 Vector2 attackTarget = new Vector2(targetCenterX, targetFeetY);
-                attack(attackTarget, projectiles, new Array<MeleeAttack>()); // Use instance projectiles array
+                attack(attackTarget, projectiles, meleeAttacks);
                 resetAttackTimer();
             }
 
@@ -315,6 +309,13 @@ public class BossIsolde extends Boss {
     public Skill createUltimateSkill() {
         // Return new instance of Frozen Apocalypse ultimate skill
         return new FrozenApocalypseSkill();
+    }
+
+    @Override
+    public void setAttackArrays(Array<MeleeAttack> meleeAttacks, Array<Projectile> projectiles) {
+        this.meleeAttacks = meleeAttacks;
+        this.projectiles = projectiles;
+        System.out.println("[BossIsolde] Attack arrays injected from GameFacade");
     }
 
     public Array<Projectile> getProjectiles() {

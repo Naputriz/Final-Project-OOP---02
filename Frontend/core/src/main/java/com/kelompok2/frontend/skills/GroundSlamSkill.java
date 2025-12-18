@@ -35,9 +35,21 @@ public class GroundSlamSkill extends BaseSkill {
                 user.getPosition().y + user.getVisualHeight() / 2);
 
         float damage = user.getAtk() * 3.0f;
-        System.out.println("[Ground Slam] Shockwave at " + shockwavePosition + " - Damage: " + damage + ", Stun: 1.5s");
 
-        // TODO: Damage and stun will be handled in GameScreen.checkCollisions()
+        // Create large shockwave attack
+        float radius = 120f;
+        MeleeAttack attack = new MeleeAttack(
+                shockwavePosition.x - radius,
+                shockwavePosition.y - radius,
+                radius * 2,
+                radius * 2,
+                damage,
+                0.2f, // Lasts 0.2s
+                "slash", // Use slash animation for now
+                0);
+        meleeAttacks.add(attack);
+
+        System.out.println("[Ground Slam] Shockwave at " + shockwavePosition + " - Damage: " + damage + ", Stun: 1.5s");
     }
 
     @Override

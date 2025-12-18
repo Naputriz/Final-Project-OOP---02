@@ -34,13 +34,22 @@ public class InputHandler {
         // Check if player is insane - modify behavior
         if (character.isInsane()) {
             handleInsaneBehavior(delta);
-        } else {
-            // Normal behavior
-            handleMovement(delta);
-            handleDirection();
-            handleShooting();
-            handleSkills();
+            return;
         }
+
+        // Check if character is immobilized (Aegis Shield Stance)
+        if (character instanceof com.kelompok2.frontend.entities.Aegis) {
+            if (((com.kelompok2.frontend.entities.Aegis) character).isImmobilized()) {
+                // Completely block input while in Shield Stance
+                return;
+            }
+        }
+
+        // Normal behavior
+        handleMovement(delta);
+        handleDirection();
+        handleShooting();
+        handleSkills();
     }
 
     private void handleMovement(float delta) {
@@ -132,6 +141,18 @@ public class InputHandler {
 
                 // Activate secondary skill via Command Pattern
                 character.performSecondarySkill(mousePos, projectilePool.getActiveProjectiles(), meleeAttacks);
+            }
+        }
+
+        // ✅ FIX: R key - Ultimate Skill (one-time use from boss)
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            if (character.hasUltimateSkill()) {
+                // Get mouse position in world coordinates
+                Vector3 mousePos3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+                Vector2 mousePos = new Vector2(mousePos3.x, mousePos3.y);
+
+                // Activate ultimate skill (one-time use)
+                character.performUltimateSkill(mousePos, projectilePool.getActiveProjectiles(), meleeAttacks);
             }
         }
     }

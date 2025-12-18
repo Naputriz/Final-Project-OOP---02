@@ -23,14 +23,18 @@ public class BladeFurySkill extends BaseSkill {
         super("Blade Fury", "Spin rapidly, 5 hits (ATK × 0.8 each)", 10f);
     }
 
+    private Array<MeleeAttack> activeMeleeAttacks; // Reference to add attacks later
+
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles, Array<MeleeAttack> meleeAttacks) {
+    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
+            Array<MeleeAttack> meleeAttacks) {
         // Start fury
         isActive = true;
         activeTimer = activeDuration;
         hitCount = 0;
         nextHitTimer = 0f; // First hit immediately
         activeUser = user;
+        this.activeMeleeAttacks = meleeAttacks; // Store reference
 
         System.out.println("[Blade Fury] Started! Will deal 5 hits of ATK × 0.8");
     }
@@ -61,11 +65,29 @@ public class BladeFurySkill extends BaseSkill {
     }
 
     private void dealHit() {
-        if (activeUser == null)
+        if (activeUser == null || activeMeleeAttacks == null)
             return;
 
         float damage = activeUser.getAtk() * 0.8f;
-        float radius = 100f;
+        float radius = 100f; // Diameter 200
+
+        // Create Area of Effect attack centered on user
+        float centerX = activeUser.getPosition().x + activeUser.getVisualWidth() / 2;
+        float centerY = activeUser.getPosition().y + activeUser.getVisualHeight() / 2;
+
+        // Spawn melee attack
+        MeleeAttack attack = new MeleeAttack(
+                centerX - radius,
+                centerY - radius,
+                radius * 2,
+                radius * 2,
+                damage,
+                0.1f, // Short duration
+                "slash", // Animation
+                0 // Rotation
+        );
+
+        activeMeleeAttacks.add(attack);
 
         System.out.println("[Blade Fury] Hit #" + (hitCount + 1) +
                 " - Damage: " + damage + ", Radius: " + radius);

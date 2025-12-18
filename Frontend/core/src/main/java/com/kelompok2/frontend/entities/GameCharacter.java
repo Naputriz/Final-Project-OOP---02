@@ -8,6 +8,8 @@ import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.strategies.AttackStrategy;
 import com.kelompok2.frontend.managers.GameManager;
 import com.kelompok2.frontend.skills.Skill;
+import com.kelompok2.frontend.skills.IceShieldSkill;
+import com.kelompok2.frontend.skills.WindDashSkill;
 
 public abstract class GameCharacter {
     protected Vector2 position;
@@ -233,9 +235,33 @@ public abstract class GameCharacter {
     }
 
     public void takeDamage(float amount) {
+        takeDamage(amount, null);
+    }
+
+    public void takeDamage(float amount, GameCharacter attacker) {
+        // Check for specific defensive skills
+        if (secondarySkill != null) {
+            if (secondarySkill instanceof WindDashSkill) {
+                if (((WindDashSkill) secondarySkill).isInvulnerable()) {
+                    System.out.println("Wind Dash! Generated Invulnerability!");
+                    return; // No damage taken
+                }
+            } else if (secondarySkill instanceof IceShieldSkill) {
+                if (((IceShieldSkill) secondarySkill).isShieldActive()) {
+                    amount *= 0.5f; // 50% damage reduction
+                    System.out.println("Ice Shield! Reduced damage to " + amount);
+                }
+            }
+        }
+
         hp -= amount;
         if (hp < 0)
             hp = 0;
+
+        // ✅ FIX: Break freeze when player hit (same as Boss behavior)
+        if (isFrozen) {
+            clearFreeze();
+        }
     }
 
     public void heal(float amount) {

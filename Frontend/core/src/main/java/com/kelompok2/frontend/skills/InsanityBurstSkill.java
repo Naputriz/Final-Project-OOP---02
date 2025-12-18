@@ -64,7 +64,7 @@ public class InsanityBurstSkill extends BaseSkill {
 
             if (distanceSq <= RADIUS * RADIUS) {
                 // Apply insanity effect
-                enemy.applyInsanity();
+                enemy.makeInsane(5.0f); // Use GameCharacter's system
 
                 // Deal psychic damage
                 enemy.takeDamage(damage);

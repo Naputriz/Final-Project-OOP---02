@@ -11,10 +11,6 @@ import com.kelompok2.frontend.strategies.MeleeAttackStrategy;
 import com.kelompok2.frontend.skills.Skill;
 import com.kelompok2.frontend.skills.InsanityBurstSkill;
 
-/**
- * Boss variant dari Insania - The Chaos Kaiser.
- * Stats lebih tinggi dari playable version, AI aggressive chase.
- */
 public class BossInsania extends Boss {
 
     // Animation system untuk spritesheet
@@ -28,12 +24,14 @@ public class BossInsania extends Boss {
     private boolean mindFractureJustActivated = false;
     private float circleDisplayTimer = 0f;
     private static final float CIRCLE_DISPLAY_DURATION = 0.5f;
+    private long mindFractureActivationId = 0; // ✅ FIX: Unique ID per activation
 
     // Scaling dengan level player
     private int playerLevel;
 
-    // Boss attacks storage
-    private Array<MeleeAttack> meleeAttacks = new Array<>();
+    // Boss attacks storage (injected by GameFacade via setAttackArrays)
+    private Array<MeleeAttack> meleeAttacks;
+    private Array<Projectile> projectiles;
 
     // Random movement and attack for insanity effect
     private Vector2 randomDirection = new Vector2();
@@ -95,7 +93,7 @@ public class BossInsania extends Boss {
         this.attackStrategy = new MeleeAttackStrategy(100f, 70f, 1.5f, 0.5f); // Range, width, damage multiplier,
                                                                               // duration
         this.autoAttack = true;
-        this.attackCooldown = 1.5f; // Attack every 1.5 seconds between attacks
+        this.attackCooldown = 1.0f; // ✅ FIX: Attack every 1 second (reduced from 1.5s)
 
         System.out.println("[BossInsania] Created with level scaling: Level " + playerLevel +
                 ", HP: " + this.maxHp + ", ATK: " + this.atk);
@@ -116,12 +114,14 @@ public class BossInsania extends Boss {
             circleDisplayTimer -= delta;
         }
 
-        // Update melee attacks
-        for (int i = meleeAttacks.size - 1; i >= 0; i--) {
-            MeleeAttack attack = meleeAttacks.get(i);
-            attack.update(delta);
-            if (!attack.isActive()) {
-                meleeAttacks.removeIndex(i);
+        // Update melee attacks (only if injected by facade)
+        if (meleeAttacks != null) {
+            for (int i = meleeAttacks.size - 1; i >= 0; i--) {
+                MeleeAttack attack = meleeAttacks.get(i);
+                attack.update(delta);
+                if (!attack.isActive()) {
+                    meleeAttacks.removeIndex(i);
+                }
             }
         }
     }
@@ -158,8 +158,8 @@ public class BossInsania extends Boss {
             move(randomDirection, delta);
 
             // Attack randomly
-            if (canAttack()) {
-                attack(randomAttackTarget, new Array<Projectile>(), meleeAttacks);
+            if (canAttack() && meleeAttacks != null && projectiles != null) {
+                attack(randomAttackTarget, projectiles, meleeAttacks);
                 resetAttackTimer();
             }
 
@@ -185,12 +185,12 @@ public class BossInsania extends Boss {
             setFacingRight(direction.x > 0);
 
             // Attack player continuously (no range check - like Isolde)
-            if (canAttack()) {
+            if (canAttack() && meleeAttacks != null && projectiles != null) {
                 // Use player's CENTER for attack direction (not feet) for correct animation
                 // rotation
                 float targetCenterY = target.getPosition().y + target.getVisualHeight() / 2;
                 Vector2 attackTarget = new Vector2(targetCenterX, targetCenterY);
-                attack(attackTarget, new Array<Projectile>(), meleeAttacks);
+                attack(attackTarget, projectiles, meleeAttacks);
                 resetAttackTimer();
             }
 
@@ -222,6 +222,7 @@ public class BossInsania extends Boss {
         skillTimer = skillCooldown;
         mindFractureJustActivated = true;
         circleDisplayTimer = CIRCLE_DISPLAY_DURATION;
+        mindFractureActivationId++; // ✅ FIX: Increment for single-hit tracking
 
         System.out.println("[BossInsania] Mind Fracture activated!");
     }
@@ -248,6 +249,10 @@ public class BossInsania extends Boss {
         return skillRadius;
     }
 
+    public long getMindFractureActivationId() {
+        return mindFractureActivationId;
+    }
+
     @Override
     public float getInnateSkillTimer() {
         return skillTimer;
@@ -272,6 +277,13 @@ public class BossInsania extends Boss {
     public Skill createUltimateSkill() {
         // Return new instance of Insanity Burst ultimate skill
         return new InsanityBurstSkill();
+    }
+
+    @Override
+    public void setAttackArrays(Array<MeleeAttack> meleeAttacks, Array<Projectile> projectiles) {
+        this.meleeAttacks = meleeAttacks;
+        this.projectiles = projectiles;
+        System.out.println("[BossInsania] Attack arrays injected from GameFacade");
     }
 
     public Array<MeleeAttack> getMeleeAttacks() {
