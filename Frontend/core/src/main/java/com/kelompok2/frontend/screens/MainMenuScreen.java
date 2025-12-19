@@ -5,9 +5,11 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Scaling;
@@ -45,8 +47,8 @@ public class MainMenuScreen extends ScreenAdapter {
 
         // Play main menu BGM
         AudioManager.getInstance().playMusic(
-                "Audio/helmet_-_tales_of_the_helmets_knight_-_01_start_screen_theme_-_prelude (Start or main menu).wav",
-                true);
+            "Audio/helmet_-_tales_of_the_helmets_knight_-_01_start_screen_theme_-_prelude (Start or main menu).wav",
+            true);
 
         // --- 1. TABLE TENGAH (Logo, Start, Exit) ---
         Table centerTable = new Table();
@@ -86,9 +88,9 @@ public class MainMenuScreen extends ScreenAdapter {
         // --- EVENT LISTENERS ---
 
         playButton.addListener(new ClickListener() {
+            // Stop menu music before transitioning
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                // Stop menu music before transitioning
                 AudioManager.getInstance().stopMusic();
                 game.setScreen(new CharacterSelectionScreen(game));
                 dispose();
@@ -111,7 +113,6 @@ public class MainMenuScreen extends ScreenAdapter {
             }
         });
 
-        // Logic Tombol Settings
         settingsBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -127,14 +128,38 @@ public class MainMenuScreen extends ScreenAdapter {
         settingsWindow.setModal(true);
         settingsWindow.setMovable(true);
         settingsWindow.setVisible(false);
-        settingsWindow.setSize(300, 200);
-        settingsWindow.setPosition(Gdx.graphics.getWidth() / 2f - 150, Gdx.graphics.getHeight() / 2f - 100);
+        settingsWindow.setSize(450, 250);
+        settingsWindow.setPosition(Gdx.graphics.getWidth() / 2f - 225, Gdx.graphics.getHeight() / 2f - 125);
 
-        Label volumeLabel = new Label("Volume Musik: 100%", skin);
+        // music
+        final Label musicLabel = new Label("Musik: " + (int)(AudioManager.getInstance().getMusicVolume() * 100) + "%", skin);
+        final Slider musicSlider = new Slider(0f, 1f, 0.01f, false, skin); // music slider
+        musicSlider.setValue(AudioManager.getInstance().getMusicVolume());
+
+        // sfx (belum ada)
+        final Label soundLabel = new Label("SFX: " + (int)(AudioManager.getInstance().getSoundVolume() * 100) + "%", skin);
+        final Slider soundSlider = new Slider(0f, 1f, 0.01f, false, skin);
+        soundSlider.setValue(AudioManager.getInstance().getSoundVolume());
+
         TextButton closeButton = new TextButton("Tutup", skin);
 
-        settingsWindow.add(volumeLabel).pad(20).row();
-        settingsWindow.add(closeButton).width(100).pad(10);
+        musicSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                float vol = musicSlider.getValue();
+                AudioManager.getInstance().setMusicVolume(vol);
+                musicLabel.setText("Musik: " + (int)(vol * 100) + "%");
+            }
+        });
+
+        soundSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                float vol = soundSlider.getValue();
+                AudioManager.getInstance().setSoundVolume(vol);
+                soundLabel.setText("SFX: " + (int)(vol * 100) + "%");
+            }
+        });
 
         closeButton.addListener(new ClickListener() {
             @Override
@@ -142,6 +167,12 @@ public class MainMenuScreen extends ScreenAdapter {
                 settingsWindow.setVisible(false);
             }
         });
+
+        settingsWindow.add(musicLabel).width(120).pad(10);
+        settingsWindow.add(musicSlider).width(250).pad(10).row();
+        settingsWindow.add(soundLabel).width(120).pad(10);
+        settingsWindow.add(soundSlider).width(250).pad(10).row();
+        settingsWindow.add(closeButton).colspan(2).width(100).padTop(20);
 
         stage.addActor(settingsWindow);
     }
@@ -158,7 +189,7 @@ public class MainMenuScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
         if (settingsWindow != null) {
-            settingsWindow.setPosition(width / 2f - 150, height / 2f - 100);
+            settingsWindow.setPosition(width / 2f - 225, height / 2f - 125);
         }
     }
 
