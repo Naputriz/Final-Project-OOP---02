@@ -1,6 +1,7 @@
 package com.kelompok2.frontend.screens;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Net;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -12,6 +13,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Scaling;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kelompok2.frontend.Main;
@@ -26,6 +29,9 @@ public class MainMenuScreen extends ScreenAdapter {
 
     // Window Settings
     private Window settingsWindow;
+
+    private Window leaderboardWindow;
+    private Table leaderboardDataTx;
 
     public MainMenuScreen(Main game) {
         this.game = game;
@@ -108,8 +114,8 @@ public class MainMenuScreen extends ScreenAdapter {
         leaderboardBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                System.out.println("Leaderboard clicked. Backend not connected yet.");
-                // Nanti panggil fungsi fetch leaderboard di sini
+                leaderboardWindow.setVisible(true);
+                fetchLeaderboardData();
             }
         });
 
@@ -121,6 +127,7 @@ public class MainMenuScreen extends ScreenAdapter {
         });
 
         createSettingsWindow();
+        createLeaderboardWindow();
     }
 
     private void createSettingsWindow() {
@@ -177,6 +184,98 @@ public class MainMenuScreen extends ScreenAdapter {
         stage.addActor(settingsWindow);
     }
 
+    private void createLeaderboardWindow() {
+        leaderboardWindow = new Window("Peringkat", skin);
+        leaderboardWindow.setModal(true);
+        leaderboardWindow.setMovable(true);
+        leaderboardWindow.setVisible(false);
+        leaderboardWindow.setSize(400, 500);
+        leaderboardWindow.setPosition(Gdx.graphics.getWidth() / 2f - 200, Gdx.graphics.getHeight() / 2f - 250);
+
+        leaderboardDataTx = new Table();
+        ScrollPane scrollPane = new ScrollPane(leaderboardDataTx, skin);
+        scrollPane.setFadeScrollBars(false);
+
+        TextButton closeButton = new TextButton("Tutup", skin);
+        closeButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                leaderboardWindow.setVisible(false);
+            }
+        });
+
+        leaderboardWindow.add(scrollPane).width(350).height(380).pad(10).row();
+        leaderboardWindow.add(closeButton).width(100).pad(10);
+
+        stage.addActor(leaderboardWindow);
+    }
+
+    private void fetchLeaderboardData() {
+        leaderboardDataTx.clear();
+        leaderboardDataTx.add(new Label("Memuat data...", skin)).pad(10);
+
+        Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.GET);
+        request.setUrl("http://localhost:8080/api/leaderboard");
+        request.setHeader("Content-Type", "application/json");
+
+        Gdx.net.sendHttpRequest(request, new Net.HttpResponseListener() {
+            @Override
+            public void handleHttpResponse(Net.HttpResponse httpResponse) {
+                String result = httpResponse.getResultAsString();
+                Gdx.app.postRunnable(() -> updateLeaderboardUI(result));
+            }
+
+            @Override
+            public void failed(Throwable t) {
+                Gdx.app.postRunnable(() -> {
+                    leaderboardDataTx.clear();
+                    leaderboardDataTx.add(new Label("Gagal koneksi!", skin)).row();
+                    Label errorLabel = new Label("Pastikan server nyala.", skin);
+                    errorLabel.setFontScale(0.8f);
+                    leaderboardDataTx.add(errorLabel).row();
+                });
+            }
+
+            @Override
+            public void cancelled() {
+                Gdx.app.postRunnable(() -> {
+                    leaderboardDataTx.clear();
+                    leaderboardDataTx.add(new Label("Dibatalkan.", skin));
+                });
+            }
+        });
+    }
+
+    private void updateLeaderboardUI(String jsonString) {
+        leaderboardDataTx.clear();
+        try {
+            JsonValue root = new JsonReader().parse(jsonString);
+
+            // Header Tabel
+            leaderboardDataTx.add(new Label("Nama", skin)).expandX().left().pad(5);
+            leaderboardDataTx.add(new Label("Waktu", skin)).expandX().right().pad(5).row();
+
+            // --- BAGIAN INI DIHAPUS AGAR TIDAK CRASH ---
+            // Image separator = new Image(skin.newDrawable("white", 1, 1, 1, 0.5f));
+            // leaderboardDataTx.add(separator).height(2).colspan(2).fillX().padBottom(10).row();
+            // ------------------------------------------
+
+            // Tambahkan garis pemisah sederhana menggunakan karakter string saja (opsional, lebih aman)
+            leaderboardDataTx.add(new Label("----------------", skin)).colspan(2).row();
+
+            for (JsonValue score : root) {
+                String name = score.getString("playerName");
+                int value = score.getInt("value");
+
+                leaderboardDataTx.add(new Label(name, skin)).left().pad(5);
+                leaderboardDataTx.add(new Label(String.valueOf(value), skin)).right().pad(5).row();
+            }
+        } catch (Exception e) {
+            leaderboardDataTx.add(new Label("Error parsing data.", skin));
+            Gdx.app.error("Leaderboard", "JSON Parse Error", e); // Print error ke console agar terlihat
+        }
+    }
+
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0.15f, 0.15f, 0.2f, 1);
@@ -190,6 +289,9 @@ public class MainMenuScreen extends ScreenAdapter {
         stage.getViewport().update(width, height, true);
         if (settingsWindow != null) {
             settingsWindow.setPosition(width / 2f - 225, height / 2f - 125);
+        }
+        if (leaderboardWindow != null) {
+            leaderboardWindow.setPosition(width / 2f - 200, height / 2f - 250);
         }
     }
 

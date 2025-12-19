@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.0' // PERBAIKAN 1: Versi Valid
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.kelompok2'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // PERBAIKAN 2: Menggunakan starter-web standar (Wajib untuk @RestController)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Opsional: Lombok untuk mempersingkat getter/setter (jika Anda memakainya)
+    // compileOnly 'org.projectlombok:lombok'
+    // annotationProcessor 'org.projectlombok:lombok'
+
+    // Testing
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

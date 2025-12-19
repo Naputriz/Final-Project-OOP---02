@@ -7,21 +7,38 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.kelompok2.frontend.managers.AssetManager;
+import com.kelompok2.frontend.managers.AudioManager;
 import com.kelompok2.frontend.screens.GameScreen;
 import com.kelompok2.frontend.screens.MainMenuScreen;
+import com.kelompok2.frontend.screens.NameInputScreen;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends Game {
     private SpriteBatch batch;
     private Texture image;
+    private String playerName = "Player";
 
     @Override
     public void create() {
-        setScreen(new MainMenuScreen(this)); // Langsung masuk ke game screen
+        this.setScreen(new NameInputScreen(this)); // input username dulu
     }
 
+    // Getter dan Setter untuk Player Name
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    public void setPlayerName(String playerName) {
+        this.playerName = playerName;
+    }
+
+    @Override
     public void dispose() {
-        super.dispose();
-        if (batch != null) batch.dispose();
+        if(batch != null){
+            batch.dispose();
+        }
+        AssetManager.getInstance().dispose();
+        AudioManager.getInstance().dispose();
     }
 }

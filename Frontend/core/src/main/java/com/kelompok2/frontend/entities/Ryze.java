@@ -163,8 +163,7 @@ public class Ryze extends GameCharacter {
     public void performInnateSkill() {
         // Check cooldown
         if (skillTimer > 0) {
-            System.out.println("[Ryze] Spectral Body on cooldown: " +
-                    String.format("%.1f", skillTimer) + "s remaining");
+            System.out.println("[Ryze] Spectral Body on cooldown: " + String.format("%.1f", skillTimer) + "s remaining");
             return;
         }
 
