@@ -33,8 +33,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     private int hoveredIndex = 0; // Currently hovered character
     private int selectedIndex = -1; // Selected character (-1 = none)
 
-    // UI layout constants (centered for 1920x1080) (Belum gw cek buat dimensi lain,
-    // kalo ga centered nanti ubah)
+    // UI layout constants (centered for 1920x1080) (Belum gw cek buat dimensi lain, kalo ga centered nanti ubah)
     private static final float GRID_X = 400; // Centered left side
     private static final float GRID_Y = 400; // Centered vertically
     private static final float PORTRAIT_SIZE = 100;
@@ -83,7 +82,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void initializeCharacters() {
         // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        characters = new CharacterInfo[7]; // Updated to 7 characters
+        // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
+        characters = new CharacterInfo[8]; // Updated to 8 characters
 
         // Ryze - The Ghost of Insania
         Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
@@ -167,6 +167,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 "Immobilized for 2s, blocks frontal damage\\nand reflects 50% damage back.\\nCooldown: 10s",
                 "AegisPlaceholder.png",
                 aegisSprite,
+                1, 1, 1, 0.1f);
+
+        // Lumi - The Pale Renegade
+        Texture lumiSprite = AssetManager.getInstance().loadTexture("LumiPlaceholder.png");
+        characters[7] = new CharacterInfo(
+                "Lumi",
+                "The Pale Renegade",
+                90, 45, 10, 15, 210,
+                "Returnious Pull",
+                "Marks enemies with attacks.\nSkill pulls marked enemy + Dmg + Stun.\nCooldown: 12s",
+                "LumiPlaceholder.png",
+                lumiSprite,
                 1, 1, 1, 0.1f);
     }
 

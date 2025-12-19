@@ -318,7 +318,7 @@ Each character has a unique innate skill but has a second skill slot that can be
      - Idle: 92 frames (4×23 grid)
      - Visual size: 128px
 
-5. **Aegis - The Impenetrable Shield** ✅ NEW
+5. **Aegis - The Impenetrable Shield** ✅
    - Role: Tank
    - Stats: High HP (120), Low ATK (15), Low Arts (10), High Defence (25), Moderate Speed (130)
    - Basic Attack: Shield Bash (Scaling: 0.7 ATK + 0.5 DEF) with forward dash
@@ -327,6 +327,31 @@ Each character has a unique innate skill but has a second skill slot that can be
      - Reflects 50% damage back to attacker
      - Immobilizes player for 2 seconds
      - Visual: Red shield arc
+   - Implementation Status: ✅ Fully implemented
+
+6. **Whisperwind - The Silent Caster** ✅
+   - Role: Arts Attacker
+   - Stats: Moderate HP (100), Low ATK (15), High Arts (40), Moderate Defence (20), Moderate Speed (170)
+   - Ranged Air Slash attacks
+   - Hurricane Bind skill (wind ball knockback + stun, 10s cooldown)
+   - Implementation Status: ✅ Fully implemented
+
+7. **Lumi - The Pale Renegade** ✅ **NEW**
+   - Role: Physical Attacker
+   - Stats: Low HP (90), High ATK (45), Low Arts (10), Moderate Defence (15), High Speed (210)
+   - Melee punch attacks with slash animation (manual click)
+   - **Marking Mechanic:** Basic attacks apply 5-second mark to enemies and bosses
+   - Returnious Pull skill (E key):
+     - Pulls nearest marked enemy/boss to player
+     - Deals 200% ATK damage on arrival
+     - Stuns target for 1 second
+     - Cooldown: 12 seconds
+     - Works on both regular enemies AND bosses
+   - **Special Mechanics:**
+     - Pulled enemies don't deal collision damage during pull
+     - Attack range: 120f, width: 100f (matching other melee characters)
+   - **Design Pattern:** Uses `MarkingMeleeAttackStrategy` (Strategy Pattern extension)
+   - Visual size: 128px
    - Implementation Status: ✅ Fully implemented
 
 #### UI/UX Features
@@ -353,8 +378,12 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 2. **Strategy Pattern** ✅
    - AttackStrategy interface
-   - MeleeAttackStrategy (Ryze, Insania, Blaze)
-   - RangedAttackStrategy (Isolde)
+   - MeleeAttackStrategy (Ryze, Insania, Blaze, Aegis)
+   - RangedAttackStrategy (Isolde, Aelita, Whisperwind)
+   - **MarkingMeleeAttackStrategy** ✨ **NEW** - Extends MeleeAttackStrategy for Lumi
+     - Adds mark application to melee attacks
+     - Demonstrates Strategy Pattern extension via inheritance
+     - Reuses attack positioning logic from parent class
 
 3. **State Pattern** ✅ NEW
    - AnimationState interface
@@ -433,11 +462,92 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Goal: Responsive layout for various resolutions
 
 #### Game Balancing (Critical)
-- **TODO:** Rebalance Aegis and Boss interactions
-  - Issue: Melee characters (especially Tanks like Aegis) struggle against Bosses due to unavoidable damage trading.
-  - Fix: Adjust Boss melee range or damage, improve Aegis damage mitigation.
-  - Issue: Isolde (Ranged Boss) kiting makes melee characters useless.
-  - Fix: Add gap closer mechanics or limit Isolde's retreat speed.
+- **TODO:** Boss Balancing Issues
+  - **Insania (Boss):** Insanity debuff duration too long
+    - Current: 5 seconds of chaotic movement + friendly fire
+    - Issue: Players lose control for too long, making fights frustrating
+    - Suggested Fix: Reduce duration to 1 second and add visual indicator for when insanity will end
+  
+  - **Isolde (Boss):** Movement speed makes melee characters unviable
+    - Current: Isolde kites away from melee characters constantly
+    - Issue: By the time melee characters catch up, they've lost half their HP from ranged attacks
+    - Suggested Fixes:
+      - Reduce Isolde's movement speed when not attacking
+      - Add gap-closer mechanics for melee characters (dash skill?)
+      - Implement attack cooldown that slows Isolde briefly
+      - Add minimum engagement range (Isolde stops retreating when far enough)
+  
+  - **Blaze (Boss):** Hellfire Pillar instant damage feels unfair
+    - Current: Pillar spawns and deals damage immediately
+    - Issue: Player HP suddenly drops with no warning, especially right after boss spawns
+    - Suggested Fix: Add 0.5s delay before pillar deals damage (visual warning period)
+  
+  - **Melee vs Boss Balance:** Melee characters struggle against all bosses
+    - Issue: Unavoidable damage trading makes tanks like Aegis ineffective
+    - Suggested Fixes:
+      - Improve Aegis damage mitigation (increase DEF scaling)
+      - Reduce boss melee attack range slightly
+
+#### New Features
+- **TODO:** Add Speed Buff to Level-Up Rewards
+  - Location: `LevelUpScreen.java` or level-up effect system
+  - Implementation: Create `IncreaseSpeedEffect` class (Command Pattern)
+  - Suggested Values: +10% or +15% speed per selection
+  - Balance: Should be comparable to ATK/Arts/DEF buffs
+
+- **TODO:** Implement Passive Stat Growth
+  - Current: Player stats remain static except for level-up choices
+  - Goal: Add small passive growth on level-up (before player chooses buff)
+  - Suggested Values:
+    - +2% Max HP per level
+    - +1% ATK per level
+    - +1% Arts per level
+    - +1% DEF per level
+  - Note: Growth rate should be lower than enemy scaling to maintain difficulty curve
+  - Location: `GameCharacter.levelUp()` method
+
+#### System Refactoring
+- **TODO:** Refactor Character Selection in GameScreen
+  - Location: `GameScreen.java` character initialization
+  - Current: Switch-case statement for each character type
+  - Issue: Adding new characters requires modifying switch statement
+  - Suggested Fix: Use Factory Pattern
+    - Create `CharacterFactory` class
+    - Register character constructors in a map
+    - Instantiate based on character ID/name
+  - Benefits: Adding new characters only requires registering them, no code changes needed
+
+- **TODO:** Implement Map Boundaries (Room System)
+  - Current: Map is unlimited, player can move infinitely
+  - Goal: Limit playable area to a defined "room"
+  - Implementation Suggestions:
+    - Add invisible walls at room boundaries
+    - Implement camera bounds to match room size
+    - Add visual indicators for room edges (walls, barriers)
+    - Consider: Different room sizes for different difficulty levels?
+  - Location: New `MapBoundarySystem` or add to existing movement logic
+  - Benefits: Better game feel, prevents players from running away indefinitely
+
+#### Code Quality Improvements
+- **TODO:** Extract Max HP Percentage Maintenance Logic
+  - Status: ✅ **IMPLEMENTED** 
+  - Location: `GameCharacter.setMaxHp()` method
+  - Current: When max HP increases, current HP percentage is maintained
+  - Example: Player at 90/100 HP (90%) gets +10% max HP → becomes 99/110 HP (90%)
+
+- ~~**TODO:** Refactor Skill System for Consistency~~ ✅ **FULLY IMPLEMENTED**
+  - All innate skills are now separate skill classes extending `BaseSkill`
+  - Implemented skills: `SpectralBodySkill`, `HellfirePillarSkill`, `MindFractureSkill`, `GlacialBreathSkill`, `VerdantDomainSkill`, `ShieldStanceSkill`, `ReturniousPullSkill`, `HurricaneBindSkill`
+  - Secondary skills: `BladeFurySkill`, `FireballSkill`, `IceShieldSkill`, `WindDashSkill`, `HealingWaveSkill`, etc.
+  - Benefits: Single Responsibility Principle achieved, easier testing and maintenance
+
+- ~~**TODO:** Improve Collision System Modularity~~ ✅ **FULLY IMPLEMENTED**
+  - Collision system fully modularized into separate handler classes:
+    - `PlayerCollisionHandler` - Player vs enemies/bosses collision
+    - `ProjectileCollisionHandler` - Projectile collision detection
+    - `SkillCollisionHandler` - Skill-specific collision (AoE, zones, etc.)
+    - `CollisionSystem` - Coordinates all collision handlers
+  - Benefits: Excellent separation of concerns, highly maintainable
 
 ### 📋 Pending Features (From Original GDD)
 
@@ -445,7 +555,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 - ~~Whisperwind - The Silent Caster~~ ✅ **IMPLEMENTED**
 - ~~Aelita - The Evergreen Healer~~ ✅ **IMPLEMENTED**
 - ~~Aegis - The Impenetrable Shield~~ ✅ **IMPLEMENTED**
-- Lumi - The Pale Renegade
+- ~~Lumi - The Pale Renegade~~ ✅ **IMPLEMENTED**
 - Alice - The Reckless Princess
 - Alex - The Calculating Prince
 - Raiden - The Speed Demon
