@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.kelompok2.frontend.skills.SpectralBodySkill;
 import com.kelompok2.frontend.strategies.MeleeAttackStrategy;
 import com.kelompok2.frontend.states.AnimationState;
 import com.kelompok2.frontend.states.IdleState;
@@ -15,24 +16,23 @@ public class Ryze extends GameCharacter {
     private AnimationState currentState;
     private AnimationState idleState;
     private AnimationState runningState;
-    private float stateTime; // Timer untuk tracking animation
+    private float stateTime; // Timer untuk tracking animation frame
 
     // Velocity tracking untuk state transitions
     private Vector2 previousPosition;
     private boolean isMoving;
 
-    // Spectral Body skill tracking
-    private float skillCooldown = 15f; // 15 seconds cooldown
-    private float skillTimer = 0f;
-    private boolean spectralBodyActive = false;
-    private float spectralDuration = 3f; // 3 seconds invulnerability
-    private float spectralTimer = 0f;
+    // Skill
+    private SpectralBodySkill innateSkill;
 
     public Ryze(float x, float y) {
         super(x, y, 200f, 100f);
         this.atk = 30f; // High ATK untuk melee
         this.arts = 10f; // Low Arts
         this.def = 5f; // Low Defence
+
+        // Initialize Skill
+        this.innateSkill = new SpectralBodySkill();
 
         // Initialize animation states dengan State Pattern
         // Idle: 8 frames in 3x3 grid (bottom-right is empty)
@@ -71,21 +71,7 @@ public class Ryze extends GameCharacter {
     public void update(float delta) {
         super.update(delta);
         stateTime += delta;
-
-        // Update skill cooldown
-        if (skillTimer > 0) {
-            skillTimer -= delta;
-        }
-
-        // Update Spectral Body duration
-        if (spectralBodyActive) {
-            spectralTimer -= delta;
-            if (spectralTimer <= 0) {
-                spectralBodyActive = false;
-                spectralTimer = 0;
-                System.out.println("[Ryze] Spectral Body ended");
-            }
-        }
+        innateSkill.update(delta);
 
         // Check movement untuk state transition
         checkMovementState();
@@ -124,7 +110,7 @@ public class Ryze extends GameCharacter {
         TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
         // Apply transparency saat Spectral Body aktif
-        if (spectralBodyActive) {
+        if (innateSkill.isSpectralActive()) {
             batch.setColor(1f, 1f, 1f, 0.5f);
         }
 
@@ -141,14 +127,14 @@ public class Ryze extends GameCharacter {
         batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
 
         // Reset color
-        if (spectralBodyActive) {
+        if (innateSkill.isSpectralActive()) {
             batch.setColor(Color.WHITE);
         }
     }
 
     @Override
     public void takeDamage(float damage) {
-        if (spectralBodyActive) {
+        if (innateSkill.isSpectralActive()) {
             System.out.println("[Ryze] Attack passed through! (Spectral Body)");
             return; // Ignore damage completely
         }
@@ -156,43 +142,32 @@ public class Ryze extends GameCharacter {
     }
 
     public boolean isInvulnerable() {
-        return spectralBodyActive;
+        return innateSkill.isSpectralActive();
     }
 
     @Override
     public void performInnateSkill() {
-        // Check cooldown
-        if (skillTimer > 0) {
-            System.out.println("[Ryze] Spectral Body on cooldown: " +
-                    String.format("%.1f", skillTimer) + "s remaining");
-            return;
-        }
-
-        // Activate Spectral Body
-        spectralBodyActive = true;
-        spectralTimer = spectralDuration;
-        skillTimer = skillCooldown;
-
-        System.out.println("[Ryze] Spectral Body activated! Invulnerable for 3 seconds!");
+        // Delegate to Skill
+        innateSkill.activate(this, null, null, null);
     }
 
     // Getter untuk skill cooldown bar
     public float getSkillTimer() {
-        return skillTimer;
+        return innateSkill.getRemainingCooldown();
     }
 
     public float getSkillCooldown() {
-        return skillCooldown;
+        return innateSkill.getCooldown();
     }
 
     @Override
     public float getInnateSkillTimer() {
-        return skillTimer;
+        return innateSkill.getRemainingCooldown();
     }
 
     @Override
     public float getInnateSkillCooldown() {
-        return skillCooldown;
+        return innateSkill.getCooldown();
     }
 
     @Override

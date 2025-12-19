@@ -88,6 +88,9 @@ public class GameScreen extends ScreenAdapter {
             case "Aegis":
                 player = new com.kelompok2.frontend.entities.Aegis(0, 0);
                 break;
+            case "Lumi":
+                player = new com.kelompok2.frontend.entities.Lumi(0, 0); // No EnemyPool yet
+                break;
             default:
                 player = new Isolde(0, 0);
                 this.selectedCharacter = "Isolde";
@@ -97,12 +100,20 @@ public class GameScreen extends ScreenAdapter {
         // Initialize EnemyPool
         enemyPool = new EnemyPool(player, 30);
 
+        if (player instanceof com.kelompok2.frontend.entities.Lumi) {
+            ((com.kelompok2.frontend.entities.Lumi) player).setEnemyPool(enemyPool);
+        }
+
         // Initialize GameManager
         GameManager.getInstance().startNewGame(this.selectedCharacter);
 
         // ✨ Initialize GameFacade - coordinates all subsystems
         gameFacade = new GameFacade(batch, shapeRenderer, background);
         gameFacade.initialize(player, enemyPool, projectilePool);
+
+        if (player instanceof com.kelompok2.frontend.entities.Lumi) {
+            ((com.kelompok2.frontend.entities.Lumi) player).setGameFacade(gameFacade);
+        }
 
         // Setup Input Handler (uses facade's attack arrays)
         inputHandler = new InputHandler(player, camera, projectilePool, gameFacade.getPlayerMeleeAttacks());
@@ -137,7 +148,6 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
-        // ✅ FIX: Check for level up and show selection screen
         if (player.isLevelUpPending()) {
             isPaused = true;
             game.setScreen(new LevelUpScreen(game, this, player));
@@ -151,7 +161,6 @@ public class GameScreen extends ScreenAdapter {
         // Update camera to follow player
         updateCamera(delta);
 
-        // ✅ FIX: Update game time in GameManager
         com.kelompok2.frontend.managers.GameManager.getInstance().updateGameTime(delta);
 
         // Handle input (movement, attacks, skills)
@@ -160,14 +169,12 @@ public class GameScreen extends ScreenAdapter {
         // Update player
         player.update(delta);
 
-        // ✅ FIX: Only update projectiles if NOT in cinematic
         if (!gameFacade.getBossCinematicSystem().isCinematicActive()) {
             projectilePool.update(delta);
         }
 
         // NOTE: Enemy updates moved to GameFacade to prevent double-updating
 
-        // ✅ FIX: Clean up dead enemies from pool after collision/damage
         for (int i = enemyPool.getActiveEnemies().size - 1; i >= 0; i--) {
             com.kelompok2.frontend.entities.DummyEnemy enemy = enemyPool.getActiveEnemies().get(i);
             if (enemy.isDead()) {
@@ -222,7 +229,6 @@ public class GameScreen extends ScreenAdapter {
     }
 
     public void resumeFromLevelUp() {
-        // ✅ FIX: Unpause game so inputs work (confirm button fix)
         isPaused = false;
         // Snap camera to player to prevent "shift/swoop" from potential resize resets
         firstFrame = true;

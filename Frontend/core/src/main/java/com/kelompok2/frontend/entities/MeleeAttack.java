@@ -27,8 +27,16 @@ public class MeleeAttack {
     // Damage tracking -mencegah hit multiple kali
     private HashSet<GameCharacter> hitEnemies;
 
+    // Lumi's Mark
+    private boolean appliesMark = false;
+
     public MeleeAttack(float x, float y, float width, float height, float damage, float duration, String animationType,
             float rotationAngle) {
+        this(x, y, width, height, damage, duration, animationType, rotationAngle, false);
+    }
+
+    public MeleeAttack(float x, float y, float width, float height, float damage, float duration, String animationType,
+            float rotationAngle, boolean appliesMark) {
         this.position = new Vector2(x, y);
         this.bounds = new Rectangle(x, y, width, height);
         this.damage = damage;
@@ -39,6 +47,7 @@ public class MeleeAttack {
         this.rotationAngle = rotationAngle;
         this.animationTime = 0;
         this.hitEnemies = new HashSet<>();
+        this.appliesMark = appliesMark;
 
         loadAnimation();
     }
@@ -164,5 +173,13 @@ public class MeleeAttack {
 
     public Rectangle getBounds() {
         return bounds;
+    }
+
+    public boolean appliesMark() {
+        return appliesMark;
+    }
+
+    public void setAppliesMark(boolean appliesMark) {
+        this.appliesMark = appliesMark;
     }
 }

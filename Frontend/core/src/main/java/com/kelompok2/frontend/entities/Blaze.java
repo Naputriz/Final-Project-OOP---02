@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.kelompok2.frontend.skills.HellfirePillarSkill;
 import com.kelompok2.frontend.strategies.MeleeAttackStrategy;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.states.AnimationState;
@@ -11,14 +12,6 @@ import com.kelompok2.frontend.states.IdleState;
 import com.kelompok2.frontend.states.RunningState;
 
 public class Blaze extends GameCharacter {
-
-    // Hellfire Pillar skill tracking
-    private float skillCooldown = 5f; // 5 seconds cooldown
-    private float skillTimer = 0f;
-    private Vector2 lastPillarPosition; // Track last pillar position
-    private float pillarDuration = 2f; // Pillar active for 2 seconds
-    private float pillarTimer = 0f;
-    private boolean pillarActive = false;
 
     // State Pattern for animations
     private AnimationState currentState;
@@ -29,6 +22,9 @@ public class Blaze extends GameCharacter {
     // Movement tracking for state transitions
     private Vector2 lastPosition;
 
+    // Skill
+    private HellfirePillarSkill innateSkill;
+
     public Blaze(float x, float y) {
         super(x, y, 180f, 110f); // Moderate speed, Moderate HP
 
@@ -36,6 +32,9 @@ public class Blaze extends GameCharacter {
         this.atk = 25f; // Moderate ATK
         this.arts = 40f; // High Arts - primary damage source
         this.def = 5f; // Low Defence
+
+        // Initialize Skill
+        this.innateSkill = new HellfirePillarSkill();
 
         // Initialize animation states
         // 4 columns × 23 rows = 92 frames total
@@ -63,11 +62,12 @@ public class Blaze extends GameCharacter {
         setPosition(x, y);
 
         // Flame Punch - Hybrid damage melee attack
-        this.attackStrategy = new MeleeAttackStrategy(100f, 90f, 1.0f, 0.25f);
+        // Flame Punch - Hybrid damage melee attack
+        // Increased range to 120f
+        this.attackStrategy = new MeleeAttackStrategy(120f, 90f, 1.0f, 0.25f);
         this.autoAttack = true;
         this.attackCooldown = 0.4f;
 
-        lastPillarPosition = new Vector2();
         lastPosition = new Vector2(x, y);
     }
 
@@ -78,20 +78,7 @@ public class Blaze extends GameCharacter {
         // Update state time
         stateTime += delta;
         currentState.update(this, delta);
-
-        // Update skill cooldown
-        if (skillTimer > 0) {
-            skillTimer -= delta;
-        }
-
-        // Update pillar duration
-        if (pillarActive) {
-            pillarTimer -= delta;
-            if (pillarTimer <= 0) {
-                pillarActive = false;
-                pillarTimer = 0;
-            }
-        }
+        innateSkill.update(delta);
 
         // Check for movement to transition states
         boolean isMoving = !position.epsilonEquals(lastPosition, 0.1f);
@@ -129,7 +116,7 @@ public class Blaze extends GameCharacter {
         batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
 
         // Render Hellfire Pillar if active (visual placeholder)
-        if (pillarActive) {
+        if (innateSkill.isPillarActive()) {
             // TODO: Add actual pillar sprite/animation
             // For now, pillar damage is handled in GameScreen
         }
@@ -145,51 +132,39 @@ public class Blaze extends GameCharacter {
 
     @Override
     public void performInnateSkill(Vector2 mousePos) {
-        // Check cooldown
-        if (skillTimer > 0) {
-            System.out.println("[Blaze] Hellfire Pillar on cooldown: " +
-                    String.format("%.1f", skillTimer) + "s remaining");
-            return;
-        }
-
-        // Activate Hellfire Pillar at cursor position
-        skillTimer = skillCooldown;
-        pillarActive = true;
-        pillarTimer = pillarDuration;
-        lastPillarPosition.set(mousePos);
-
-        System.out.println("[Blaze] Hellfire Pillar summoned at: " + mousePos);
+        // Delegate to Skill
+        innateSkill.activate(this, mousePos, null, null);
     }
 
     public boolean isPillarActive() {
-        return pillarActive;
+        return innateSkill.isPillarActive();
     }
 
     public Vector2 getPillarPosition() {
-        return lastPillarPosition;
+        return innateSkill.getPillarPosition();
     }
 
     public float getPillarRadius() {
-        return 40f; // 80px diameter = 40px radius
+        return innateSkill.getPillarRadius();
     }
 
     // Getter untuk skill cooldown bar
     public float getSkillTimer() {
-        return skillTimer;
+        return innateSkill.getRemainingCooldown();
     }
 
     public float getSkillCooldown() {
-        return skillCooldown;
+        return innateSkill.getCooldown();
     }
 
     @Override
     public float getInnateSkillTimer() {
-        return skillTimer;
+        return innateSkill.getRemainingCooldown();
     }
 
     @Override
     public float getInnateSkillCooldown() {
-        return skillCooldown;
+        return innateSkill.getCooldown();
     }
 
     @Override

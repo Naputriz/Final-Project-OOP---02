@@ -199,8 +199,7 @@ public class DummyEnemy extends GameCharacter {
             return;
         }
 
-        // Normal AI: chase player (jika tidak frozen dan tidak insane)
-        if (target != null) {
+        if (target != null && !isBeingPulled) {
             // titik tengah visual player
             float targetCenterX = target.getPosition().x + target.getVisualWidth() / 2;
             float targetFeetY = target.getPosition().y;

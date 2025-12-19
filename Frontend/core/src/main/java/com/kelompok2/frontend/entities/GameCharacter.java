@@ -34,6 +34,8 @@ public abstract class GameCharacter {
     protected float slowTimer = 0f;
     protected boolean isStunned = false; // Stun status - different from freeze
     protected float stunTimer = 0f;
+    protected boolean isMarked = false; // Lumi's mark
+    protected float markTimer = 0f;
     protected float boundsOffsetX = 0;
     protected float boundsOffsetY = 0;
     protected int level;
@@ -200,7 +202,66 @@ public abstract class GameCharacter {
                 clearStun();
             }
         }
+
+        // Update mark timer
+        if (markTimer > 0) {
+            markTimer -= delta;
+            if (markTimer <= 0) {
+                isMarked = false;
+            }
+        }
+
+        // Update Pull Movement
+        if (isBeingPulled && pullTarget != null) {
+            Vector2 toTarget = pullTarget.cpy().sub(position);
+            float dist = toTarget.len();
+
+            if (dist < 10f) {
+                // Arrived
+                isBeingPulled = false;
+                setPosition(pullTarget.x, pullTarget.y); // Snap to target
+                takeDamage(pullDamageOnArrival);
+                stun(pullStunOnArrival);
+            } else {
+                // Move towards target
+                toTarget.nor();
+                position.add(toTarget.x * pullSpeed * delta, toTarget.y * pullSpeed * delta);
+                bounds.setPosition(position.x + boundsOffsetX, position.y + boundsOffsetY);
+            }
+        }
     }
+
+    // Mark status (for Lumi)
+    public void mark(float duration) {
+        this.isMarked = true;
+        this.markTimer = duration;
+    }
+
+    public boolean isMarked() {
+        return isMarked;
+    }
+
+    public void pull(Vector2 target, float speed, float damage, float stunDuration) {
+        this.isBeingPulled = true;
+        this.pullTarget = target;
+        this.pullSpeed = speed;
+        this.pullDamageOnArrival = damage;
+        this.pullStunOnArrival = stunDuration;
+
+        // Interrupt other states if reasonable
+        clearFreeze();
+    }
+
+    public boolean isBeingPulled() {
+        return isBeingPulled;
+    }
+
+    // Pull mechanics (for Returnious Pull)
+    protected boolean isBeingPulled = false;
+    protected Vector2 pullTarget;
+    protected float pullSpeed;
+    protected float pullDamageOnArrival;
+    protected float pullStunOnArrival;
 
     // Check bisa attack jika timer habis
     public boolean canAttack() {
@@ -415,7 +476,15 @@ public abstract class GameCharacter {
     }
 
     public void setMaxHp(float maxHp) {
-        this.maxHp = maxHp;
+        if (this.maxHp > 0) {
+            float ratio = this.hp / this.maxHp;
+            this.maxHp = maxHp;
+            this.hp = maxHp * ratio;
+        } else {
+            // Edge case initialization
+            this.maxHp = maxHp;
+            this.hp = maxHp;
+        }
     }
 
     // Getter dan setter untuk level-up pending flag
