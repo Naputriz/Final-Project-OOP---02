@@ -31,6 +31,7 @@ public class GameFacade {
     private SpawningSystem spawningSystem;
     private UISystem uiSystem;
     private BossCinematicSystem bossCinematicSystem;
+    private MapBoundarySystem mapBoundarySystem;
 
     // Attack arrays (shared between systems)
     private Array<MeleeAttack> playerMeleeAttacks;
@@ -40,7 +41,7 @@ public class GameFacade {
     // Entity references
     private GameCharacter player;
     private EnemyPool enemyPool;
-    private ProjectilePool projectilePool;
+    // ProjectilePool passed to subsystems, not stored here if unused
 
     // Boss cinematic temporary state
     private Vector2 pendingBossCinematicPosition = null;
@@ -60,6 +61,7 @@ public class GameFacade {
         spawningSystem = new SpawningSystem();
         uiSystem = new UISystem(batch, shapeRenderer);
         bossCinematicSystem = new BossCinematicSystem();
+        mapBoundarySystem = new MapBoundarySystem();
 
         System.out.println("[GameFacade] All subsystems created");
     }
@@ -67,7 +69,6 @@ public class GameFacade {
     public void initialize(GameCharacter player, EnemyPool enemyPool, ProjectilePool projectilePool) {
         this.player = player;
         this.enemyPool = enemyPool;
-        this.projectilePool = projectilePool;
 
         // Initialize each subsystem
         renderingSystem.initialize(player, enemyPool, projectilePool, playerMeleeAttacks, bossMeleeAttacks,
@@ -105,7 +106,6 @@ public class GameFacade {
     private void onBossDefeated(BossDefeatedEvent event) {
         System.out.println("[GameFacade] Handling boss defeat: " + event.getBossName());
 
-        Boss boss = event.getBoss();
         Skill ultimate = event.getUltimateSkill();
 
         // Set enemy array for ultimate skills
@@ -146,6 +146,8 @@ public class GameFacade {
         // Update boss cinematic system
         if (bossCinematicSystem.isCinematicActive()) {
             bossCinematicSystem.updateCameraPan(delta, camera);
+        } else {
+            mapBoundarySystem.update(player, camera);
         }
 
         // Update spawning (enemies and bosses)

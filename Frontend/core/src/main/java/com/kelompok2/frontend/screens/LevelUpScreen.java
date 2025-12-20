@@ -66,6 +66,7 @@ public class LevelUpScreen extends ScreenAdapter {
         allEffects.add(new IncreaseArtsEffect());
         allEffects.add(new IncreaseMaxHPEffect());
         allEffects.add(new IncreaseDefenseEffect());
+        allEffects.add(new IncreaseSpeedEffect());
 
         // Add ONE random skill sebagai NewSkillEffect
         com.kelompok2.frontend.skills.Skill randomSkill = com.kelompok2.frontend.factories.SkillFactory

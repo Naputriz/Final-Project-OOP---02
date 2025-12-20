@@ -12,10 +12,20 @@ public interface Skill {
             Array<MeleeAttack> meleeAttacks);
 
     boolean canUse();
+
     void update(float delta);
+
     String getName();
+
     String getDescription();
+
     float getCooldown();
+
     float getRemainingCooldown();
+
     Skill copy();
+
+    default float onOwnerTakeDamage(GameCharacter owner, float amount) {
+        return amount;
+    }
 }

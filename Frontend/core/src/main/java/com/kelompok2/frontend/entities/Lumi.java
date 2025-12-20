@@ -48,12 +48,11 @@ public class Lumi extends GameCharacter {
         this.innateSkill = new ReturniousPullSkill();
     }
 
-    public void setEnemyPool(EnemyPool enemyPool) {
+    @Override
+    public void injectDependencies(GameFacade facade, EnemyPool enemyPool) {
+        this.innateSkill.setGameFacade(facade);
         this.innateSkill.setEnemyPool(enemyPool);
-    }
-
-    public void setGameFacade(GameFacade gameFacade) {
-        this.innateSkill.setGameFacade(gameFacade);
+        System.out.println("[Lumi] Dependencies injected for Returnious Pull");
     }
 
     @Override

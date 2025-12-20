@@ -498,22 +498,13 @@ Each character has a unique innate skill but has a second skill slot that can be
     - **Status:** ✅ Balanced - All character types viable, melee characters can survive boss fights
 
 #### New Features
-- **TODO:** Add Speed Buff to Level-Up Rewards
-  - Location: `LevelUpScreen.java` or level-up effect system
-  - Implementation: Create `IncreaseSpeedEffect` class (Command Pattern)
-  - Suggested Values: +10% or +15% speed per selection
-  - Balance: Should be comparable to ATK/Arts/DEF buffs
+- ~~**TODO:** Add Speed Buff to Level-Up Rewards~~ ✅ **COMPLETED**
+  - Added `IncreaseSpeedEffect` (+10% speed).
+  - Added `getSpeed()`/`setSpeed()` to `GameCharacter`.
 
-- **TODO:** Implement Passive Stat Growth
-  - Current: Player stats remain static except for level-up choices
-  - Goal: Add small passive growth on level-up (before player chooses buff)
-  - Suggested Values:
-    - +2% Max HP per level
-    - +1% ATK per level
-    - +1% Arts per level
-    - +1% DEF per level
-  - Note: Growth rate should be lower than enemy scaling to maintain difficulty curve
-  - Location: `GameCharacter.levelUp()` method
+- ~~**TODO:** Implement Passive Stat Growth~~ ✅ **COMPLETED**
+  - Players now gain +2% Max HP and +1% ATK/Arts/DEF per level automatically.
+  - Implemented in `GameCharacter.levelUp()`.
 
 #### System Refactoring
 - **TODO:** Refactor Character Selection in GameScreen ✅ **COMPLETED**
@@ -521,16 +512,11 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Status: Implemented `CharacterFactory` to centralize character creation using Factory Pattern.
   - Benefits: Adding new characters only requires registering them in the factory, no code changes in GameScreen.
 
-- **TODO:** Implement Map Boundaries (Room System)
-  - Current: Map is unlimited, player can move infinitely
-  - Goal: Limit playable area to a defined "room"
-  - Implementation Suggestions:
-    - Add invisible walls at room boundaries
-    - Implement camera bounds to match room size
-    - Add visual indicators for room edges (walls, barriers)
-    - Consider: Different room sizes for different difficulty levels?
-  - Location: New `MapBoundarySystem` or add to existing movement logic
-  - Benefits: Better game feel, prevents players from running away indefinitely
+- ~~**TODO:** Implement Map Boundaries (Room System)~~ ✅ **COMPLETED**
+  - Implemented `MapBoundarySystem`.
+  - Map Size: **4000x4000**.
+  - Player spawn randomized with safe padding (700 units) to ensure camera centering.
+  - Camera clamps to boundaries to prevent viewing the void.
 
 - **TODO:** Add Visual Hitbox Indicators for Ultimate Skills
   - Current: Ultimate skills (Insanity Burst, Inferno Nova, Frozen Apocalypse) have no visual indication of their area of effect
@@ -542,6 +528,23 @@ Each character has a unique innate skill but has a second skill slot that can be
     - Use different colors for different ultimates (purple for Insanity, red for Inferno, blue for Frozen)
   - Location: `RenderingSystem.java` or create `UltimateSkillRenderer`
   - Benefits: Better player feedback, more strategic ultimate usage
+
+- **TODO:** Background Asset Search
+  - **Priority:** High
+  - Current: Using placeholder "FireflyPlaceholder.jpg"
+  - Goal: Find/Create a high-quality map background asset (tiled or single large texture)
+  - Requirements: 4000x4000 or seamless tileable texture
+  - Theme: Dungeon / Frost / Chaos theme matching the game
+
+- **TODO:** Future Feature Suggestions
+  - **Minimap:** 
+    - Essential for the new 4000x4000 map size.
+    - Show player (Green dot), Enemies (Red dots), Boss (Skull icon).
+  - **Floating Damage Numbers:**
+    - Visual feedback when hitting enemies.
+    - Color coding: White (Normal), Yellow (Crit), Blue (Arts).
+  - **Save/Load System:**
+    - Persist unlocked characters and high scores between sessions.
 
 - **TODO:** Resolution Consistency and Responsive UI
   - **Priority:** High
@@ -825,14 +828,6 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ---
 
-#### 7. Bug Fix: Boss Isolde Issues
-**Priority:** High
-**Description:** 
-- **Basic Attacks:** Only the first basic attack deals damage; subsequent hits might be failing.
-- **Freeze Mechanic:** Isolde's freeze on player doesn't break when the player is hit (or vice-versa, verify behavior). "Freeze doesn't break when hit".
-**Action:** Debug `Isolde.java` attack logic and Freeze status effect handling in `GameCharacter`.
-**Status:** Split into `PlayerCollisionHandler`, `ProjectileCollisionHandler`, and `SkillCollisionHandler` managed by `CollisionSystem`.
-**Note:** `BladeFury` refactor also cleaned up `RenderingSystem`.
 #### 3. GameScreen Refactoring ✅ COMPLETED
 **Priority:** Done
 **Description:** `GameScreen.java` was refactored using Facade Pattern.
