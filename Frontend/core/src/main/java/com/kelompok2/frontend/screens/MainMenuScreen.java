@@ -246,33 +246,74 @@ public class MainMenuScreen extends ScreenAdapter {
         });
     }
 
+    // Method pembantu untuk mengubah detik menjadi format Jam/Menit/Detik
+    private String formatTime(int totalSeconds) {
+        if (totalSeconds < 0) return "0 detik";
+
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+
+        StringBuilder sb = new StringBuilder();
+
+        // Jika ada jam (misal: 1 jam ...)
+        if (hours > 0) {
+            sb.append(hours).append(" jam ");
+            sb.append(minutes).append(" menit ");
+            sb.append(seconds).append(" detik");
+        }
+        // Jika tidak ada jam, tapi ada menit (misal: 39 menit ...)
+        else if (minutes > 0) {
+            sb.append(minutes).append(" menit ");
+            sb.append(seconds).append(" detik");
+        }
+        // Jika hanya detik (misal: 55 detik)
+        else {
+            sb.append(seconds).append(" detik");
+        }
+
+        return sb.toString();
+    }
+
     private void updateLeaderboardUI(String jsonString) {
         leaderboardDataTx.clear();
         try {
             JsonValue root = new JsonReader().parse(jsonString);
 
-            // Header Tabel
+            // --- HEADER TABEL (3 Kolom) ---
+            // Kolom 1: Nama (Lebar)
             leaderboardDataTx.add(new Label("Nama", skin)).expandX().left().pad(5);
-            leaderboardDataTx.add(new Label("Waktu", skin)).expandX().right().pad(5).row();
 
-            // --- BAGIAN INI DIHAPUS AGAR TIDAK CRASH ---
-            // Image separator = new Image(skin.newDrawable("white", 1, 1, 1, 0.5f));
-            // leaderboardDataTx.add(separator).height(2).colspan(2).fillX().padBottom(10).row();
-            // ------------------------------------------
+            // Kolom 2: Level (Tengah, agak kecil)
+            leaderboardDataTx.add(new Label("Lvl", skin)).width(50).center().pad(5);
 
-            // Tambahkan garis pemisah sederhana menggunakan karakter string saja (opsional, lebih aman)
-            leaderboardDataTx.add(new Label("----------------", skin)).colspan(2).row();
+            // Kolom 3: Waktu (Kanan)
+            leaderboardDataTx.add(new Label("Waktu", skin)).right().pad(5).row();
 
+            // Garis Pemisah
+            leaderboardDataTx.add(new Label("--------------------------------------------------------------------", skin)).colspan(0).row();
+
+            // --- ISI DATA ---
             for (JsonValue score : root) {
                 String name = score.getString("playerName");
+
+                // Ambil level (default 1 jika data lama belum punya level)
+                int level = score.getInt("level", 1);
+
+                // Ambil waktu (detik)
                 int value = score.getInt("value");
 
+                // Format waktu menggunakan method baru kita
+                String timeString = formatTime(value);
+
+                // Masukkan ke Tabel
                 leaderboardDataTx.add(new Label(name, skin)).left().pad(5);
-                leaderboardDataTx.add(new Label(String.valueOf(value), skin)).right().pad(5).row();
+                leaderboardDataTx.add(new Label(String.valueOf(level), skin)).center().pad(5);
+                leaderboardDataTx.add(new Label(timeString, skin)).right().pad(5).row();
             }
         } catch (Exception e) {
-            leaderboardDataTx.add(new Label("Error parsing data.", skin));
-            Gdx.app.error("Leaderboard", "JSON Parse Error", e); // Print error ke console agar terlihat
+            leaderboardDataTx.add(new Label("Error parsing data.", skin)).colspan(3);
+            Gdx.app.error("Leaderboard", "JSON Parse Error", e);
         }
     }
 

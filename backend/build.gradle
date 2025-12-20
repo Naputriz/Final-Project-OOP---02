@@ -24,7 +24,8 @@ dependencies {
     // Opsional: Lombok untuk mempersingkat getter/setter (jika Anda memakainya)
     // compileOnly 'org.projectlombok:lombok'
     // annotationProcessor 'org.projectlombok:lombok'
-
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

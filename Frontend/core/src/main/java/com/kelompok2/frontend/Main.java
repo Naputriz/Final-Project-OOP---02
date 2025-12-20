@@ -11,7 +11,7 @@ import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.managers.AudioManager;
 import com.kelompok2.frontend.screens.GameScreen;
 import com.kelompok2.frontend.screens.MainMenuScreen;
-import com.kelompok2.frontend.screens.NameInputScreen;
+import com.kelompok2.frontend.screens.LoginScreen;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
 public class Main extends Game {
@@ -21,7 +21,7 @@ public class Main extends Game {
 
     @Override
     public void create() {
-        this.setScreen(new NameInputScreen(this)); // input username dulu
+        this.setScreen(new LoginScreen(this)); // input username dulu
     }
 
     // Getter dan Setter untuk Player Name
