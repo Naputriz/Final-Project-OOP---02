@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 import com.badlogic.gdx.utils.Scaling;
@@ -29,9 +30,12 @@ public class MainMenuScreen extends ScreenAdapter {
 
     // Window Settings
     private Window settingsWindow;
-
     private Window leaderboardWindow;
     private Table leaderboardDataTx;
+    private Window accountWindow;
+
+    // [BARU] Variabel untuk melacak Login Window
+    private LoginWindow activeLoginWindow;
 
     public MainMenuScreen(Main game) {
         this.game = game;
@@ -46,104 +50,171 @@ public class MainMenuScreen extends ScreenAdapter {
         // --- LOAD TEXTURES ---
         logoTexture = AssetManager.getInstance().loadTexture("maestra_trials_logo_pixel.png");
         logoTexture.setFilter(Texture.TextureFilter.Nearest, Texture.TextureFilter.Nearest);
-
-        // Load Icon Textures (Pastikan file ini ada di assets!)
         Texture settingsIconTex = AssetManager.getInstance().loadTexture("settings_icon.png");
         Texture leaderboardIconTex = AssetManager.getInstance().loadTexture("leaderboard_icon.png");
+        Texture accountIconTex = AssetManager.getInstance().loadTexture("settings_akun.png");
 
-        // Play main menu BGM
         AudioManager.getInstance().playMusic(
             "Audio/helmet_-_tales_of_the_helmets_knight_-_01_start_screen_theme_-_prelude (Start or main menu).wav",
             true);
 
-        // --- 1. TABLE TENGAH (Logo, Start, Exit) ---
+        // --- TABLE TENGAH ---
         Table centerTable = new Table();
         centerTable.setFillParent(true);
         stage.addActor(centerTable);
 
         Image logoImage = new Image(logoTexture);
         logoImage.setScaling(Scaling.fit);
-
         Label titleLabel = new Label("Roguelike Game", skin);
         titleLabel.setFontScale(0.5f);
-
         TextButton playButton = new TextButton("MULAI", skin);
         TextButton exitButton = new TextButton("KELUAR", skin);
 
-        // Susun Center Table
         centerTable.add(logoImage).width(800).height(250).padTop(50).padBottom(20).row();
         centerTable.add(titleLabel).padBottom(50).row();
         centerTable.add(playButton).width(200).height(50).padBottom(20).row();
         centerTable.add(exitButton).width(200).height(50).row();
 
-        // --- 2. TABLE POJOK KANAN ATAS (Leaderboard, Settings) ---
+        // --- TABLE KANAN ATAS ---
         Table topTable = new Table();
         topTable.setFillParent(true);
-        topTable.top().right(); // Anchor ke Atas - Kanan
+        topTable.top().right();
         stage.addActor(topTable);
 
-        // Buat ImageButton dari Texture
         ImageButton leaderboardBtn = new ImageButton(new TextureRegionDrawable(new TextureRegion(leaderboardIconTex)));
         ImageButton settingsBtn = new ImageButton(new TextureRegionDrawable(new TextureRegion(settingsIconTex)));
-
-        // Tambahkan ke Top Table dengan padding
-        // Urutan add menentukan posisi (kiri ke kanan)
         topTable.add(leaderboardBtn).size(64, 64).padRight(20).padTop(20);
         topTable.add(settingsBtn).size(64, 64).padRight(20).padTop(20);
 
+        // --- TABLE KIRI ATAS ---
+        Table topLeftTable = new Table();
+        topLeftTable.setFillParent(true);
+        topLeftTable.top().left();
+        stage.addActor(topLeftTable);
+
+        ImageButton accountBtn = new ImageButton(new TextureRegionDrawable(new TextureRegion(accountIconTex)));
+        topLeftTable.add(accountBtn).size(64, 64).padLeft(20).padTop(20);
+
         // --- EVENT LISTENERS ---
-
         playButton.addListener(new ClickListener() {
-            // Stop menu music before transitioning
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                AudioManager.getInstance().stopMusic();
-                game.setScreen(new CharacterSelectionScreen(game));
-                dispose();
+                if (game.isLoggedIn()) {
+                    AudioManager.getInstance().stopMusic();
+                    game.setScreen(new CharacterSelectionScreen(game));
+                    dispose();
+                }
             }
         });
-
-        exitButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.exit();
-            }
-        });
-
-        // Logic Tombol Leaderboard
+        exitButton.addListener(new ClickListener() { @Override public void clicked(InputEvent event, float x, float y) { Gdx.app.exit(); }});
         leaderboardBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 leaderboardWindow.setVisible(true);
+                // Center window saat dibuka
+                leaderboardWindow.setPosition(stage.getWidth() / 2f, stage.getHeight() / 2f, Align.center);
                 fetchLeaderboardData();
             }
         });
-
         settingsBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 settingsWindow.setVisible(true);
+                // Center window saat dibuka
+                settingsWindow.setPosition(stage.getWidth() / 2f, stage.getHeight() / 2f, Align.center);
+            }
+        });
+        accountBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                updateAccountInfo();
+                accountWindow.setVisible(true);
             }
         });
 
         createSettingsWindow();
         createLeaderboardWindow();
+        createAccountWindow();
+
+        // --- LOGIKA AWAL ---
+        if (!game.isLoggedIn()) {
+            showLoginWindow(false);
+        }
     }
 
+    // --- METHOD DIPERBAIKI: SHOW LOGIN WINDOW ---
+    private void showLoginWindow(boolean canCancel) {
+        // Hapus yang lama jika ada (safety)
+        if (activeLoginWindow != null) {
+            activeLoginWindow.remove();
+        }
+
+        activeLoginWindow = new LoginWindow("Login", skin, game, canCancel, new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("User Logged In: " + game.getPlayerName());
+                if(accountWindow != null) accountWindow.setVisible(false);
+                activeLoginWindow = null; // Clear referensi saat login sukses/window tutup
+            }
+        });
+
+        // Posisikan di tengah menggunakan Align.center
+        activeLoginWindow.setPosition(stage.getWidth() / 2f, stage.getHeight() / 2f, Align.center);
+        stage.addActor(activeLoginWindow);
+    }
+
+    private void createAccountWindow() {
+        accountWindow = new Window("Info Akun", skin);
+        accountWindow.setModal(true);
+        accountWindow.setVisible(false);
+        accountWindow.setSize(300, 200);
+        accountWindow.setPosition(20, Gdx.graphics.getHeight() - 300);
+
+        Label nameLabel = new Label("User: ...", skin);
+        nameLabel.setName("lblUsername");
+        nameLabel.setAlignment(Align.center);
+
+        TextButton switchAccountBtn = new TextButton("Ganti Akun", skin);
+        TextButton closeBtn = new TextButton("Tutup", skin);
+
+        accountWindow.add(nameLabel).pad(20).row();
+        accountWindow.add(switchAccountBtn).padBottom(10).width(150).row();
+        accountWindow.add(closeBtn).width(100);
+
+        switchAccountBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                accountWindow.setVisible(false);
+                showLoginWindow(true);
+            }
+        });
+        closeBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) { accountWindow.setVisible(false); }
+        });
+        stage.addActor(accountWindow);
+    }
+
+    private void updateAccountInfo() {
+        Label l = accountWindow.findActor("lblUsername");
+        if (l != null) l.setText("User: " + game.getPlayerName());
+    }
+
+    // --- METHOD DIPERBAIKI: SETTINGS WINDOW (Menggunakan Align.center) ---
     private void createSettingsWindow() {
         settingsWindow = new Window("Pengaturan", skin);
         settingsWindow.setModal(true);
         settingsWindow.setMovable(true);
         settingsWindow.setVisible(false);
         settingsWindow.setSize(450, 250);
-        settingsWindow.setPosition(Gdx.graphics.getWidth() / 2f - 225, Gdx.graphics.getHeight() / 2f - 125);
+        // Posisi awal (nanti dihandle resize juga)
+        settingsWindow.setPosition(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, Align.center);
 
         // music
         final Label musicLabel = new Label("Musik: " + (int)(AudioManager.getInstance().getMusicVolume() * 100) + "%", skin);
-        final Slider musicSlider = new Slider(0f, 1f, 0.01f, false, skin); // music slider
+        final Slider musicSlider = new Slider(0f, 1f, 0.01f, false, skin);
         musicSlider.setValue(AudioManager.getInstance().getMusicVolume());
 
-        // sfx (belum ada)
         final Label soundLabel = new Label("SFX: " + (int)(AudioManager.getInstance().getSoundVolume() * 100) + "%", skin);
         final Slider soundSlider = new Slider(0f, 1f, 0.01f, false, skin);
         soundSlider.setValue(AudioManager.getInstance().getSoundVolume());
@@ -158,7 +229,6 @@ public class MainMenuScreen extends ScreenAdapter {
                 musicLabel.setText("Musik: " + (int)(vol * 100) + "%");
             }
         });
-
         soundSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -167,12 +237,9 @@ public class MainMenuScreen extends ScreenAdapter {
                 soundLabel.setText("SFX: " + (int)(vol * 100) + "%");
             }
         });
-
         closeButton.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y) {
-                settingsWindow.setVisible(false);
-            }
+            public void clicked(InputEvent event, float x, float y) { settingsWindow.setVisible(false); }
         });
 
         settingsWindow.add(musicLabel).width(120).pad(10);
@@ -180,7 +247,6 @@ public class MainMenuScreen extends ScreenAdapter {
         settingsWindow.add(soundLabel).width(120).pad(10);
         settingsWindow.add(soundSlider).width(250).pad(10).row();
         settingsWindow.add(closeButton).colspan(2).width(100).padTop(20);
-
         stage.addActor(settingsWindow);
     }
 
@@ -190,7 +256,7 @@ public class MainMenuScreen extends ScreenAdapter {
         leaderboardWindow.setMovable(true);
         leaderboardWindow.setVisible(false);
         leaderboardWindow.setSize(400, 500);
-        leaderboardWindow.setPosition(Gdx.graphics.getWidth() / 2f - 200, Gdx.graphics.getHeight() / 2f - 250);
+        leaderboardWindow.setPosition(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, Align.center);
 
         leaderboardDataTx = new Table();
         ScrollPane scrollPane = new ScrollPane(leaderboardDataTx, skin);
@@ -199,79 +265,46 @@ public class MainMenuScreen extends ScreenAdapter {
         TextButton closeButton = new TextButton("Tutup", skin);
         closeButton.addListener(new ClickListener() {
             @Override
-            public void clicked(InputEvent event, float x, float y) {
-                leaderboardWindow.setVisible(false);
-            }
+            public void clicked(InputEvent event, float x, float y) { leaderboardWindow.setVisible(false); }
         });
 
         leaderboardWindow.add(scrollPane).width(350).height(380).pad(10).row();
         leaderboardWindow.add(closeButton).width(100).pad(10);
-
         stage.addActor(leaderboardWindow);
     }
 
+    // ... (fetchLeaderboardData, formatTime, updateLeaderboardUI SAMA SAJA, TIDAK PERLU DIUBAH) ...
+    // Copy paste bagian fetch, formatTime, updateUI dari kode Anda sebelumnya di sini
     private void fetchLeaderboardData() {
         leaderboardDataTx.clear();
         leaderboardDataTx.add(new Label("Memuat data...", skin)).pad(10);
-
         Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.GET);
         request.setUrl("http://localhost:8080/api/leaderboard");
         request.setHeader("Content-Type", "application/json");
-
         Gdx.net.sendHttpRequest(request, new Net.HttpResponseListener() {
-            @Override
-            public void handleHttpResponse(Net.HttpResponse httpResponse) {
+            @Override public void handleHttpResponse(Net.HttpResponse httpResponse) {
                 String result = httpResponse.getResultAsString();
                 Gdx.app.postRunnable(() -> updateLeaderboardUI(result));
             }
-
-            @Override
-            public void failed(Throwable t) {
+            @Override public void failed(Throwable t) {
                 Gdx.app.postRunnable(() -> {
                     leaderboardDataTx.clear();
                     leaderboardDataTx.add(new Label("Gagal koneksi!", skin)).row();
-                    Label errorLabel = new Label("Pastikan server nyala.", skin);
-                    errorLabel.setFontScale(0.8f);
-                    leaderboardDataTx.add(errorLabel).row();
                 });
             }
-
-            @Override
-            public void cancelled() {
-                Gdx.app.postRunnable(() -> {
-                    leaderboardDataTx.clear();
-                    leaderboardDataTx.add(new Label("Dibatalkan.", skin));
-                });
-            }
+            @Override public void cancelled() {}
         });
     }
 
-    // Method pembantu untuk mengubah detik menjadi format Jam/Menit/Detik
     private String formatTime(int totalSeconds) {
         if (totalSeconds < 0) return "0 detik";
-
         int hours = totalSeconds / 3600;
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
-
         StringBuilder sb = new StringBuilder();
-
-        // Jika ada jam (misal: 1 jam ...)
-        if (hours > 0) {
-            sb.append(hours).append(" jam ");
-            sb.append(minutes).append(" menit ");
-            sb.append(seconds).append(" detik");
-        }
-        // Jika tidak ada jam, tapi ada menit (misal: 39 menit ...)
-        else if (minutes > 0) {
-            sb.append(minutes).append(" menit ");
-            sb.append(seconds).append(" detik");
-        }
-        // Jika hanya detik (misal: 55 detik)
-        else {
-            sb.append(seconds).append(" detik");
-        }
-
+        if (hours > 0) { sb.append(hours).append(" jam "); sb.append(minutes).append(" menit "); sb.append(seconds).append(" detik"); }
+        else if (minutes > 0) { sb.append(minutes).append(" menit "); sb.append(seconds).append(" detik"); }
+        else { sb.append(seconds).append(" detik"); }
         return sb.toString();
     }
 
@@ -279,41 +312,25 @@ public class MainMenuScreen extends ScreenAdapter {
         leaderboardDataTx.clear();
         try {
             JsonValue root = new JsonReader().parse(jsonString);
-
-            // --- HEADER TABEL (3 Kolom) ---
-            // Kolom 1: Nama (Lebar)
             leaderboardDataTx.add(new Label("Nama", skin)).expandX().left().pad(5);
-
-            // Kolom 2: Level (Tengah, agak kecil)
-            leaderboardDataTx.add(new Label("Lvl", skin)).width(50).center().pad(5);
-
-            // Kolom 3: Waktu (Kanan)
+            leaderboardDataTx.add(new Label("Char", skin)).width(80).center().pad(5);
+            leaderboardDataTx.add(new Label("Lvl", skin)).width(80).center().pad(5);
             leaderboardDataTx.add(new Label("Waktu", skin)).right().pad(5).row();
-
-            // Garis Pemisah
-            leaderboardDataTx.add(new Label("--------------------------------------------------------------------", skin)).colspan(0).row();
-
-            // --- ISI DATA ---
+            leaderboardDataTx.add(new Label("---------------------------------------------------------------------", skin)).colspan(4).row();
             for (JsonValue score : root) {
                 String name = score.getString("playerName");
-
-                // Ambil level (default 1 jika data lama belum punya level)
+                String charName = score.getString("character", "-");
                 int level = score.getInt("level", 1);
-
-                // Ambil waktu (detik)
                 int value = score.getInt("value");
-
-                // Format waktu menggunakan method baru kita
                 String timeString = formatTime(value);
-
-                // Masukkan ke Tabel
                 leaderboardDataTx.add(new Label(name, skin)).left().pad(5);
+                if(charName.length() > 8) charName = charName.substring(0, 8) + ".";
+                leaderboardDataTx.add(new Label(charName, skin)).center().pad(5);
                 leaderboardDataTx.add(new Label(String.valueOf(level), skin)).center().pad(5);
                 leaderboardDataTx.add(new Label(timeString, skin)).right().pad(5).row();
             }
         } catch (Exception e) {
-            leaderboardDataTx.add(new Label("Error parsing data.", skin)).colspan(3);
-            Gdx.app.error("Leaderboard", "JSON Parse Error", e);
+            leaderboardDataTx.add(new Label("Error parsing data.", skin)).colspan(4);
         }
     }
 
@@ -325,14 +342,27 @@ public class MainMenuScreen extends ScreenAdapter {
         stage.draw();
     }
 
+    // --- METHOD DIPERBAIKI: RESIZE (Memaksa semua window ke tengah) ---
     @Override
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
+
+        // Paksa window Settings ke tengah
         if (settingsWindow != null) {
-            settingsWindow.setPosition(width / 2f - 225, height / 2f - 125);
+            settingsWindow.setPosition(stage.getWidth() / 2f, stage.getHeight() / 2f, Align.center);
         }
+        // Paksa window Leaderboard ke tengah
         if (leaderboardWindow != null) {
-            leaderboardWindow.setPosition(width / 2f - 200, height / 2f - 250);
+            leaderboardWindow.setPosition(stage.getWidth() / 2f, stage.getHeight() / 2f, Align.center);
+        }
+        // Window Akun tetap di kiri bawah
+        if (accountWindow != null) {
+            accountWindow.setPosition(20, height - 300);
+        }
+
+        // [PENTING] Paksa Login Window ke tengah jika sedang aktif
+        if (activeLoginWindow != null) {
+            activeLoginWindow.setPosition(stage.getWidth() / 2f, stage.getHeight() / 2f, Align.center);
         }
     }
 
