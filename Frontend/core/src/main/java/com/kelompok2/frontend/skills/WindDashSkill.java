@@ -68,9 +68,11 @@ public class WindDashSkill extends BaseSkill {
     public boolean isInvulnerable() {
         return invulnerable;
     }
+
     public float getInvulnerabilityTimeRemaining() {
         return invulnerabilityTimer;
     }
+
     public GameCharacter getDashedUser() {
         return dashedUser;
     }
@@ -78,5 +80,14 @@ public class WindDashSkill extends BaseSkill {
     @Override
     public Skill copy() {
         return new WindDashSkill();
+    }
+
+    @Override
+    public float onOwnerTakeDamage(GameCharacter owner, float amount) {
+        if (invulnerable) {
+            System.out.println("[Wind Dash] Invulnerable! Damage negated.");
+            return 0f;
+        }
+        return amount;
     }
 }

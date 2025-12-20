@@ -66,4 +66,14 @@ public class IceShieldSkill extends BaseSkill {
     public Skill copy() {
         return new IceShieldSkill();
     }
+
+    @Override
+    public float onOwnerTakeDamage(GameCharacter owner, float amount) {
+        if (shieldActive) {
+            float reduced = amount * 0.5f;
+            System.out.println("[Ice Shield] Shield active! Damage reduced from " + amount + " to " + reduced);
+            return reduced;
+        }
+        return amount;
+    }
 }

@@ -8,9 +8,6 @@ import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.strategies.AttackStrategy;
 import com.kelompok2.frontend.managers.GameManager;
 import com.kelompok2.frontend.skills.Skill;
-import com.kelompok2.frontend.skills.IceShieldSkill;
-import com.kelompok2.frontend.skills.WindDashSkill;
-
 import com.kelompok2.frontend.managers.GameEventManager;
 import com.kelompok2.frontend.events.HealthChangedEvent;
 import com.kelompok2.frontend.events.XpChangedEvent;
@@ -61,6 +58,12 @@ public abstract class GameCharacter {
     // Secondary Skill System (Q key) - Command Pattern
     protected Skill secondarySkill; // Q skill slot
     protected boolean hasSecondarySkill; // Flag untuk cek apakah ada skill
+
+    // Dependency Injection for complex characters (e.g. Lumi)
+    public void injectDependencies(com.kelompok2.frontend.systems.GameFacade facade,
+            com.kelompok2.frontend.pools.EnemyPool enemyPool) {
+        // Default implementation does nothing
+    }
 
     public GameCharacter(float x, float y, float speed, float maxHp) {
         this.position = new Vector2(x, y);
@@ -363,19 +366,14 @@ public abstract class GameCharacter {
             return;
         }
 
-        // Check for specific defensive skills
+        // Check for specific defensive skills via polymorphic hook
         if (secondarySkill != null) {
-            if (secondarySkill instanceof WindDashSkill) {
-                if (((WindDashSkill) secondarySkill).isInvulnerable()) {
-                    System.out.println("Wind Dash! Generated Invulnerability!");
-                    return; // No damage taken
-                }
-            } else if (secondarySkill instanceof IceShieldSkill) {
-                if (((IceShieldSkill) secondarySkill).isShieldActive()) {
-                    amount *= 0.5f; // 50% damage reduction
-                    System.out.println("Ice Shield! Reduced damage to " + amount);
-                }
-            }
+            amount = secondarySkill.onOwnerTakeDamage(this, amount);
+        }
+
+        // If damage is negated (0 or less), return early
+        if (amount <= 0) {
+            return;
         }
 
         hp -= amount;
@@ -419,7 +417,20 @@ public abstract class GameCharacter {
         this.currentXp -= this.xpToNextLevel;
         this.level++;
         this.xpToNextLevel = (float) Math.ceil(this.xpToNextLevel * 1.2f);
-        // TIDAK lagi auto-increase maxHp, akan ditangani oleh LevelUpEffect yang dipilih
+
+        // ✨ Passive Stat Growth (1-2% per level)
+        // Max HP +2%
+        float oldMaxHp = this.maxHp;
+        this.maxHp = (float) Math.ceil(this.maxHp * 1.02f);
+        this.hp += (this.maxHp - oldMaxHp); // Heal the amount gained
+
+        // ATK, Arts, DEF +1%
+        this.atk = (float) Math.ceil(this.atk * 1.01f);
+        this.arts = (float) Math.ceil(this.arts * 1.01f);
+        this.def = (float) Math.ceil(this.def * 1.01f);
+
+        // TIDAK lagi auto-increase maxHp secara besar, akan ditangani oleh
+        // LevelUpEffect yang dipilih
 
         // Set flag bahwa level-up belum dipilih effectnya
         this.levelUpPending = true;
@@ -427,7 +438,7 @@ public abstract class GameCharacter {
         // Sync dengan GameManager (Singleton Pattern)
         GameManager.getInstance().incrementLevel();
 
-        System.out.println(this.getClass().getSimpleName() + " Level Up! lv: " + level);
+        System.out.println(this.getClass().getSimpleName() + " Level Up! lv: " + level + " (Stats grown passively)");
     }
 
     public boolean isDead() {
@@ -570,6 +581,14 @@ public abstract class GameCharacter {
         GameEventManager.getInstance().publish(new HealthChangedEvent(this, this.hp, this.maxHp));
     }
 
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
     // Getter dan setter untuk level-up pending flag
     public boolean isLevelUpPending() {
         return levelUpPending;
@@ -662,7 +681,8 @@ public abstract class GameCharacter {
         ultimateUsed = true;
 
         // Publish event to update UI immediately (Cooldown > 0 means not ready)
-        // Using arbitrary value 999 to signify "used/unavailable" since it's one-time use
+        // Using arbitrary value 999 to signify "used/unavailable" since it's one-time
+        // use
         GameEventManager.getInstance()
                 .publish(new CooldownChangedEvent(this, CooldownChangedEvent.SkillType.ULTIMATE, 999, 999));
 

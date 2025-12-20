@@ -11,13 +11,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.entities.GameCharacter;
-import com.kelompok2.frontend.entities.MeleeAttack;
-import com.kelompok2.frontend.entities.Ryze;
-import com.kelompok2.frontend.entities.Isolde;
-import com.kelompok2.frontend.entities.Insania;
-import com.kelompok2.frontend.entities.Blaze;
-import com.kelompok2.frontend.entities.Whisperwind;
-import com.kelompok2.frontend.entities.Aelita;
 import com.kelompok2.frontend.factories.CharacterFactory;
 import com.kelompok2.frontend.utils.InputHandler;
 import com.kelompok2.frontend.managers.AssetManager;
@@ -26,8 +19,6 @@ import com.kelompok2.frontend.managers.AudioManager;
 import com.kelompok2.frontend.pools.ProjectilePool;
 import com.kelompok2.frontend.pools.EnemyPool;
 import com.kelompok2.frontend.systems.GameFacade;
-import com.kelompok2.frontend.screens.PauseScreen;
-import com.kelompok2.frontend.screens.GameOverScreen;
 
 public class GameScreen extends ScreenAdapter {
     // Core resources
@@ -66,15 +57,18 @@ public class GameScreen extends ScreenAdapter {
         // Initialize pools
         projectilePool = new ProjectilePool(50);
 
-        // Call factory to create player char
-        player = CharacterFactory.createCharacter(selectedCharacter, 0, 0);
+
+        float mapW = com.kelompok2.frontend.systems.MapBoundarySystem.getMapWidth();
+        float mapH = com.kelompok2.frontend.systems.MapBoundarySystem.getMapHeight();
+        float padding = 700f;
+
+        float startX = com.badlogic.gdx.math.MathUtils.random(padding, mapW - padding);
+        float startY = com.badlogic.gdx.math.MathUtils.random(padding, mapH - padding);
+
+        player = CharacterFactory.createCharacter(selectedCharacter, startX, startY);
 
         // Initialize EnemyPool
         enemyPool = new EnemyPool(player, 30);
-
-        if (player instanceof com.kelompok2.frontend.entities.Lumi) {
-            ((com.kelompok2.frontend.entities.Lumi) player).setEnemyPool(enemyPool);
-        }
 
         // Initialize GameManager
         GameManager.getInstance().startNewGame(this.selectedCharacter);
@@ -83,9 +77,8 @@ public class GameScreen extends ScreenAdapter {
         gameFacade = new GameFacade(batch, shapeRenderer, background);
         gameFacade.initialize(player, enemyPool, projectilePool);
 
-        if (player instanceof com.kelompok2.frontend.entities.Lumi) {
-            ((com.kelompok2.frontend.entities.Lumi) player).setGameFacade(gameFacade);
-        }
+        // Inject dependencies into player (e.g. Lumi needs access to pools)
+        player.injectDependencies(gameFacade, enemyPool);
 
         // Setup Input Handler (uses facade's attack arrays)
         inputHandler = new InputHandler(player, camera, projectilePool, gameFacade.getPlayerMeleeAttacks());
