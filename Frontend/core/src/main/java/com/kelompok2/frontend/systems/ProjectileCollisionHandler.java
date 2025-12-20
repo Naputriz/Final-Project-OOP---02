@@ -33,6 +33,10 @@ public class ProjectileCollisionHandler {
             if (!projectile.active)
                 continue;
 
+            // ✅ FIX: Skip enemy projectiles in player collision check
+            if (projectile.isEnemyProjectile())
+                continue;
+
             Rectangle projBounds = projectile.getBounds();
 
             for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
@@ -62,6 +66,10 @@ public class ProjectileCollisionHandler {
     public void checkPlayerProjectilesVsBoss(Boss boss) {
         for (Projectile projectile : projectilePool.getActiveProjectiles()) {
             if (!projectile.active)
+                continue;
+
+            // ✅ FIX: Skip enemy projectiles against boss
+            if (projectile.isEnemyProjectile())
                 continue;
 
             if (projectile.getBounds().overlaps(boss.getBounds())) {
@@ -97,5 +105,24 @@ public class ProjectileCollisionHandler {
         player.gainXp(xpGain);
         eventManager.publish(new EnemyKilledEvent(enemy, player, xpGain));
         System.out.println("[Collision] Enemy killed! XP gained: " + xpGain);
+    }
+
+    public void checkEnemyProjectilesVsPlayer() {
+        for (Projectile projectile : projectilePool.getActiveProjectiles()) {
+            if (!projectile.active)
+                continue;
+
+            // ✅ FIX: Only check enemy projectiles
+            if (!projectile.isEnemyProjectile())
+                continue;
+
+            if (projectile.getBounds().overlaps(player.getBounds())) {
+                float damage = projectile.getDamage();
+                player.takeDamage(damage, null); // Attacker unknown for generic projectiles
+                projectile.active = false;
+                eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                System.out.println("[Collision] Player hit by Ranged Enemy! HP: " + player.getHp());
+            }
+        }
     }
 }

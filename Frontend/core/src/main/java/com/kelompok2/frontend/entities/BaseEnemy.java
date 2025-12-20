@@ -11,6 +11,11 @@ public abstract class BaseEnemy extends GameCharacter {
     protected boolean frozen = false;
     protected float freezeTimer = 0f;
     protected static final float FREEZE_DURATION = 3.0f;
+    protected com.badlogic.gdx.utils.Array<Projectile> projectileList;
+
+    public void setProjectileList(com.badlogic.gdx.utils.Array<Projectile> projectileList) {
+        this.projectileList = projectileList;
+    }
 
     // Insanity behavior
     protected Vector2 randomDirection = new Vector2();

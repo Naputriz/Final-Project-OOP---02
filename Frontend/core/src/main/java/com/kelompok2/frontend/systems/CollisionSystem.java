@@ -58,6 +58,8 @@ public class CollisionSystem {
             projectileCollisionHandler.checkPlayerProjectilesVsBoss(currentBoss);
         }
         projectileCollisionHandler.checkBossProjectilesVsPlayer(currentBoss);
+        // ✅ FIX: Check Ranged Enemy projectiles
+        projectileCollisionHandler.checkEnemyProjectilesVsPlayer();
 
         // 2. Melee Attack Collisions
         playerCollisionHandler.checkPlayerMeleeVsEnemies();

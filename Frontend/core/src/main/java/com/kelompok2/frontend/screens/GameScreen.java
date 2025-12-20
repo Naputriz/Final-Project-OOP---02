@@ -66,7 +66,7 @@ public class GameScreen extends ScreenAdapter {
         player = CharacterFactory.createCharacter(selectedCharacter, startX, startY);
 
         // Initialize EnemyPool
-        enemyPool = new EnemyPool(player, 30);
+        enemyPool = new EnemyPool(player, 30, projectilePool);
 
         // Initialize GameManager
         GameManager.getInstance().startNewGame(this.selectedCharacter);
