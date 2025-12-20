@@ -148,6 +148,10 @@ public class Blaze extends GameCharacter {
         return innateSkill.getPillarRadius();
     }
 
+    public boolean shouldShowPillarVisual() {
+        return innateSkill.shouldShowVisual();
+    }
+
     // Getter untuk skill cooldown bar
     public float getSkillTimer() {
         return innateSkill.getRemainingCooldown();

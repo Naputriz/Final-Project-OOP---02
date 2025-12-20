@@ -123,7 +123,7 @@ public class SkillCollisionHandler {
 
                     if (distance <= radius) {
                         float damage = player.getArts() * 0.75f;
-                        enemy.makeInsane(5.0f);
+                        enemy.makeInsane(1.5f);
                         enemy.takeDamage(damage);
                         enemy.markMindFractureHit(activationId);
 
@@ -222,7 +222,7 @@ public class SkillCollisionHandler {
                         bossBlaze.getPillarRadius() * 2);
 
                 if (pillarBounds.overlaps(player.getBounds())) {
-                    float damagePerSecond = bossBlaze.getArts() * 1.25f;
+                    float damagePerSecond = bossBlaze.getArts() * 35.0f; // Increased to compensate for 0.5s warning delay
                     float damage = damagePerSecond * currentDelta;
                     player.takeDamage(damage, boss);
                     eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
@@ -267,7 +267,7 @@ public class SkillCollisionHandler {
                     if (distance <= radius) {
                         float damage = boss.getArts() * 0.75f;
                         player.takeDamage(damage, boss);
-                        player.makeInsane(5.0f);
+                        player.makeInsane(0.5f);
                         eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
                         lastMindFractureHitOnPlayer = activationId;
                     }

@@ -136,7 +136,8 @@ public class GameFacade {
     public void update(float delta, OrthographicCamera camera) {
         Boss currentBoss = spawningSystem.getCurrentBoss();
 
-        // ✅ FIX: Start boss cinematic if pending
+        updateUltimateSkillReferences(currentBoss);
+
         if (pendingBossCinematicPosition != null) {
             bossCinematicSystem.startBossPanSequence(pendingBossCinematicPosition, camera);
             pendingBossCinematicPosition = null; // Clear pending
@@ -195,6 +196,26 @@ public class GameFacade {
         }
     }
 
+    // Update ultimate skill references to current boss and enemies
+    private void updateUltimateSkillReferences(Boss currentBoss) {
+        if (player.hasUltimateSkill() || player.isUltimateUsed()) {
+            Skill ultimate = player.getUltimateSkill();
+            if (ultimate != null) {
+                // Update boss reference
+                if (ultimate instanceof InsanityBurstSkill) {
+                    ((InsanityBurstSkill) ultimate).setBoss(currentBoss);
+                    ((InsanityBurstSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
+                } else if (ultimate instanceof InfernoNovaSkill) {
+                    ((InfernoNovaSkill) ultimate).setBoss(currentBoss);
+                    ((InfernoNovaSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
+                } else if (ultimate instanceof FrozenApocalypseSkill) {
+                    ((FrozenApocalypseSkill) ultimate).setBoss(currentBoss);
+                    ((FrozenApocalypseSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
+                }
+            }
+        }
+    }
+
     public void render(OrthographicCamera camera) {
         Boss currentBoss = spawningSystem.getCurrentBoss();
 
@@ -243,30 +264,39 @@ public class GameFacade {
     public RenderingSystem getRenderingSystem() {
         return renderingSystem;
     }
+
     public CollisionSystem getCollisionSystem() {
         return collisionSystem;
     }
+
     public SpawningSystem getSpawningSystem() {
         return spawningSystem;
     }
+
     public UISystem getUISystem() {
         return uiSystem;
     }
+
     public BossCinematicSystem getBossCinematicSystem() {
         return bossCinematicSystem;
     }
+
     public GameEventManager getEventManager() {
         return eventManager;
     }
+
     public Array<MeleeAttack> getPlayerMeleeAttacks() {
         return playerMeleeAttacks;
     }
+
     public Array<MeleeAttack> getBossMeleeAttacks() {
         return bossMeleeAttacks;
     }
+
     public Array<Projectile> getBossProjectiles() {
         return bossProjectiles;
     }
+
     public void dispose() {
         uiSystem.dispose();
     }

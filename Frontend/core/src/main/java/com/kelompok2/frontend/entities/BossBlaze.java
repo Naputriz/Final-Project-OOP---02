@@ -22,6 +22,9 @@ public class BossBlaze extends Boss {
     private float pillarDuration = 2f;
     private float pillarTimer = 0f;
     private boolean pillarActive = false;
+    private static final float WARNING_DURATION = 0.5f; // Balance Fix: Warning before damage
+    private boolean pillarWarning = false; // Warning phase (no damage yet)
+    private float pillarWarningTimer = 0f;
 
     // State Pattern for animations
     private AnimationState currentState;
@@ -80,9 +83,10 @@ public class BossBlaze extends Boss {
         setPosition(x, y);
 
         // Attack strategy - Melee aggressive (Flame Punch)
-        this.attackStrategy = new MeleeAttackStrategy(100f, 70f, 1.5f, 0.5f); // Range, width, damage mult, duration
+        this.attackStrategy = new MeleeAttackStrategy(100f, 70f, 1.0f, 0.5f); // Range, width, damage mult (reduced from
+                                                                              // 1.5f), duration
         this.autoAttack = true;
-        this.attackCooldown = 1.0f; // ✅ FIX: Attack every 1 second (reduced from 1.5s)
+        this.attackCooldown = 1.0f; //
 
         lastPillarPosition = new Vector2();
         lastPosition = new Vector2(x, y);
@@ -104,7 +108,18 @@ public class BossBlaze extends Boss {
             skillTimer -= delta;
         }
 
-        // Update pillar duration
+        // Update pillar warning phase
+        if (pillarWarning) {
+            pillarWarningTimer -= delta;
+            if (pillarWarningTimer <= 0) {
+                pillarWarning = false;
+                pillarActive = true; // Now start dealing damage
+                pillarTimer = pillarDuration; // Set timer when entering active phase
+                System.out.println("[BossBlaze] Warning ended, pillar now active!");
+            }
+        }
+
+        // Update pillar duration (damage phase)
         if (pillarActive) {
             pillarTimer -= delta;
             if (pillarTimer <= 0) {
@@ -247,13 +262,15 @@ public class BossBlaze extends Boss {
 
     @Override
     public void performInnateSkill(Vector2 targetPos) {
-        // Activate Hellfire Pillar at target position
+        // Activate Hellfire Pillar at target position with warning phase
         skillTimer = skillCooldown;
-        pillarActive = true;
-        pillarTimer = pillarDuration;
+        pillarWarning = true; // Start with warning
+        pillarActive = false; // Not dealing damage yet
+        pillarWarningTimer = WARNING_DURATION;
+        // Don't set pillarTimer here - it will be set when warning ends
         lastPillarPosition.set(targetPos);
 
-        System.out.println("[BossBlaze] Hellfire Pillar summoned at: " + targetPos);
+        System.out.println("[BossBlaze] Hellfire Pillar warning phase started at: " + targetPos);
     }
 
     public boolean isPillarActive() {
@@ -266,6 +283,15 @@ public class BossBlaze extends Boss {
 
     public float getPillarRadius() {
         return 40f; // 80px diameter
+    }
+
+    public boolean isInWarningPhase() {
+        return pillarWarning;
+    }
+
+    // Balance Fix: Show visual during both warning and active phases
+    public boolean shouldShowPillarVisual() {
+        return pillarWarning || pillarActive;
     }
 
     @Override

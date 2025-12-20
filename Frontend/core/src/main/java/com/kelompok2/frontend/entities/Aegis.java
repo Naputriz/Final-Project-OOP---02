@@ -140,7 +140,12 @@ public class Aegis extends GameCharacter {
             }
         }
 
-        super.takeDamage(damage, attacker);
+        // Balance Fix: Improved DEF scaling for tank role (1.5x instead of 1.0x)
+        float mitigatedDamage = damage - (def * 1.5f);
+        // Ensure minimum 30% damage is taken (prevent invincibility)
+        mitigatedDamage = Math.max(mitigatedDamage, damage * 0.3f);
+
+        super.takeDamage(mitigatedDamage, attacker);
     }
 
     @Override

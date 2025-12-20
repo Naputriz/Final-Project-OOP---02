@@ -244,7 +244,7 @@ public class RenderingSystem {
         if (!(player instanceof com.kelompok2.frontend.entities.Blaze))
             return;
         com.kelompok2.frontend.entities.Blaze blaze = (com.kelompok2.frontend.entities.Blaze) player;
-        if (blaze.isPillarActive()) {
+        if (blaze.shouldShowPillarVisual()) { // Show during warning AND active
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(1f, 0.5f, 0f, 0.4f);
             shapeRenderer.circle(blaze.getPillarPosition().x, blaze.getPillarPosition().y, blaze.getPillarRadius(), 50);
@@ -406,7 +406,7 @@ public class RenderingSystem {
         // Render Hellfire Pillar for BossBlaze
         if (boss instanceof com.kelompok2.frontend.entities.BossBlaze) {
             com.kelompok2.frontend.entities.BossBlaze bossBlaze = (com.kelompok2.frontend.entities.BossBlaze) boss;
-            if (bossBlaze.isPillarActive()) {
+            if (bossBlaze.shouldShowPillarVisual()) { // Show during warning AND active
                 shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
                 shapeRenderer.setColor(1f, 0.5f, 0f, 0.4f);
                 shapeRenderer.circle(bossBlaze.getPillarPosition().x, bossBlaze.getPillarPosition().y,
