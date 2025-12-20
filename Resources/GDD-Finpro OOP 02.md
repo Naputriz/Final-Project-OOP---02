@@ -516,15 +516,10 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Location: `GameCharacter.levelUp()` method
 
 #### System Refactoring
-- **TODO:** Refactor Character Selection in GameScreen
+- **TODO:** Refactor Character Selection in GameScreen ✅ **COMPLETED**
   - Location: `GameScreen.java` character initialization
-  - Current: Switch-case statement for each character type
-  - Issue: Adding new characters requires modifying switch statement
-  - Suggested Fix: Use Factory Pattern
-    - Create `CharacterFactory` class
-    - Register character constructors in a map
-    - Instantiate based on character ID/name
-  - Benefits: Adding new characters only requires registering them, no code changes needed
+  - Status: Implemented `CharacterFactory` to centralize character creation using Factory Pattern.
+  - Benefits: Adding new characters only requires registering them in the factory, no code changes in GameScreen.
 
 - **TODO:** Implement Map Boundaries (Room System)
   - Current: Map is unlimited, player can move infinitely
@@ -606,6 +601,16 @@ Each character has a unique innate skill but has a second skill slot that can be
     - Especially useful if map boundaries are implemented
   - Benefits: Better player feedback, more engaging gameplay, improved UX
 
+#### UI System Improvements
+- **TODO:** Implement Observer Pattern for UI Bars
+  - Current: `UISystem` manually checks player stats and renders bars at world coordinates above character.
+  - Goal: Decouple UI from game logic and move UI to a HUD (Head-Up Display) layout.
+  - Implementation:
+    - `GameCharacter` publishes events (HealthChanged, XPChanged, CooldownChanged).
+    - `UISystem` subscribes to these events (Observer).
+    - Render bars at fixed screen coordinates (top-left) instead of world coordinates.
+  - Benefits: Better performance (no polling), cleaner code, professional HUD look.
+
 
 #### Code Quality Improvements
 - **TODO:** Extract Max HP Percentage Maintenance Logic
@@ -669,77 +674,107 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ---
 
-## 9. Design Patterns Implemented
+## 9. Deep Design Pattern Analysis
 
-### ✅ Currently Implemented Patterns
+### ✅ 9.1 Implemented Patterns (By Module)
 
-#### 1. Singleton Pattern
-**Purpose:** Ensure only one instance of critical managers exists
-**Implementations:**
-- **AssetManager:** Centralized texture and audio asset loading with caching
-- **GameManager:** Game state management (level, score, XP)
-- **AudioManager:** Music and SFX playback with volume control
+#### Modul 4: Generic Type, Collection, and Iterator Pattern
+*   **Where it's used:**
+    *   **Generics:** Used in `GameEventManager` (`subscribe<T>`), `ObjectPool<T>`, and LibGDX `Array<T>`.
+    *   **Collections:** `HashMap` for `attackerCooldowns` in `GameCharacter`, `ArrayList` for event listeners.
+    *   **Iterator:** Explicit `Iterator` usage in `GameCharacter.update()` to safely remove expired cooldowns from the `attackerCooldowns` map while iterating.
+*   **Why:** Ensures type safety and allows flexible data structure manipulation without runtime type errors.
 
-**Benefits:**
-- Global access point for shared resources
-- Prevents resource duplication
-- Simplified state management
+#### Modul 7: Singleton Pattern
+*   **Where it's used:**
+    *   **`GameManager`:** Manages global game state (score, level).
+    *   **`AssetManager`:** Centralized loading/caching of textures and sounds.
+    *   **`AudioManager`:** Controls BGM/SFX playback globally.
+    *   **`GameEventManager`:** Global event bus for system communication.
+*   **Why:** Ensures exactly one instance manages these shared resources, preventing conflicts (e.g., trying to load the same asset twice) and providing a global access point.
 
-#### 2. Strategy Pattern
-**Purpose:** Define interchangeable attack behaviors
-**Implementations:**
-- **RangedAttackStrategy:** Projectile-based attacks (Isolde, Aelita, Whisperwind)
-- **MeleeAttackStrategy:** Close-range attacks (Ryze, Insania, Blaze)
+#### Modul 8: Factory Method and Object Pool Pattern
+*   **Factory Method:**
+    *   **`CharacterFactory`:** Centralizes player character creation. Replaces complex `switch-case` logic in `GameScreen`.
+    *   **`EnemyFactory`:** (Planned/Implicit) Spawning logic creates specific enemy types based on level.
+*   **Object Pool:**
+    *   **`ProjectilePool`:** Reuses `Projectile` objects.
+    *   **`EnemyPool`:** Reuses `DummyEnemy` objects.
+*   **Why:**
+    *   **Factory:** Decouples object creation from usage. Adding a new character doesn't break the game loop codebase.
+    *   **Pool:** Eliminates lag spikes from Garbage Collection by reusing memory instead of constantly creating/destroying thousands of bullets/enemies.
 
-**Benefits:**
-- Characters can switch attack types at runtime
-- Easy to add new attack strategies
-- Separates attack logic from character logic
+#### Modul 9: Command and Observer Pattern
+*   **Command Pattern:**
+    *   **`Skill` / `BaseSkill`:** Each skill is an object with an `activate()` method. Allows skills to be queued, swapped, or executed generically.
+    *   **`LevelUpEffect`:** Effects like "Increase HP" are commands executed upon selection.
+*   **Observer Pattern:**
+    *   **`GameEventManager`:** Acts as the Subject.
+    *   **`UISystem`, `GameFacade`:** Act as Observers.
+    *   **Usage:** When a boss is defeated, `GameFacade` publishes `BossDefeatedEvent`. `UISystem` listens and shows the victory text.
+*   **Why:**
+    *   **Command:** Encapsulates "actions" as objects, allowing flexible skill systems (e.g., picking up a random skill).
+    *   **Observer:** Decouples systems. The Boss logic doesn't need to know the UI exists; it just fires an event.
 
-#### 3. State Pattern  
-**Purpose:** Manage character animation states
-**Implementations:**
-- **IdleState:** Stationary character animation
-- **RunningState:** Movement animation
+#### Modul 10: State and Strategy Pattern
+*   **State Pattern:**
+    *   **Animation System:** `IdleState`, `RunningState`. The character delegates animation logic to the current state object.
+*   **Strategy Pattern:**
+    *   **`AttackStrategy`:** `MeleeAttackStrategy`, `RangedAttackStrategy`, `MarkingMeleeAttackStrategy`.
+    *   **Usage:** Characters delegate *how* they attack to their strategy. Lumi uses a special strategy that applies a "Mark" on hit.
+*   **Why:**
+    *   **State:** Prevents massive `if-else` chains for animation (e.g., `if (running) ... else if (jumping)...`).
+    *   **Strategy:** Allows swapping, extending, or reusing attack behaviors without modifying the character class (Composition over Inheritance).
 
-**Benefits:**
-- Clean state transitions
-- Animation logic separated from character class
-- Easy to add new states (AttackState, DamagedState, etc.)
+#### Modul 11: Template Method and Facade Pattern
+*   **Template Method:**
+    *   **`BaseSkill` (Implicit):** The `activate()` method (Skeleton) handles cooldown checks and logging, then calls the abstract `executeSkill()` (Implementation) which subclasses must define.
+*   **Facade Pattern:**
+    *   **`GameFacade`:** Wraps `RenderingSystem`, `CollisionSystem`, `SpawningSystem`, `UISystem`.
+*   **Why:**
+    *   **Template:** Guarantees that cooldowns are *always* checked before any skill executes, preventing duplicate code in every skill.
+    *   **Facade:** The `GameScreen` is clean and readable. It calls `facade.update()` instead of manually managing 5 different systems and their dependencies.
 
-#### 4. Command Pattern
-**Purpose:** Encapsulate skills and level-up effects as objects
-**Implementations:**
-- **BaseSkill:** Abstract command for all skills
-- **Level-up effects:** Heal, IncreaseMaxHP, IncreaseATK, IncreaseDEF, PickNewSkill
-- **Skills:** VerdantDomainSkill, BladeFurySkill, HurricaneBindSkill, etc.
+---
 
-**Benefits:**
-- Skills are self-contained and reusable
-- Easy to add/remove skills
-- Undo/redo potential for future features
+### 🚀 9.2 Potential Future Patterns (How to Implement)
 
-#### 5. Object Pool Pattern
-**Purpose:** Reuse expensive objects instead of creating/destroying
-**Implementations:**
-- **ProjectilePool:** Manages projectile instances
-- **EnemyPool:** Manages enemy spawning and recycling
+#### 1. Decorator Pattern (For Status Effects)
+*   **Current State:** Status effects (Frozen, Stunned, Insane) are boolean flags inside `GameCharacter`. This violates OCP (Open-Closed Principle) because adding a "Burn" effect requires modifying `GameCharacter`.
+*   **How to Implement:**
+    *   Create `CharacterDecorator` abstract class implementing `GameCharacter`.
+    *   Create `FrozenCharacter`, `BurningCharacter` wrappers.
+    *   **Usage:** `player = new FrozenCharacter(player);`
+    *   **Benefit:** Dynamically stack infinite effects (Burning + Frozen) without touching the `GameCharacter` class.
 
-**Benefits:**
-- Reduces garbage collection overhead
-- Prevents memory spikes during intense gameplay
-- Improved performance
+#### 2. Builder Pattern (For Complex Entities)
+*   **Current State:** Bosses/Levels are created with long constructors.
+*   **How to Implement:**
+    *   Create `BossBuilder`.
+    *   `new BossBuilder().setName("Insania").setHp(5000).addSkill(new MindFracture()).build();`
+*   **Benefit:** Readable creation code, easier to create variations of bosses/enemies.
 
-#### 6. Factory Method Pattern
-**Purpose:** Centralize character creation logic
-**Implementation:**
-- Character selection screen creates character instances based on selection
-- Consistent character initialization process
+#### 3. Flyweight Pattern (For Enemy Data)
+*   **Current State:** Each `DummyEnemy` stores its own `texture`, `maxHp` stats, etc. If there are 1000 enemies, that's 1000 duplicate float values and texture references.
+*   **How to Implement:**
+    *   Create `EnemyTypeData` (Flyweight) storing shared data (Texture, MaxHP, DEF).
+    *   `DummyEnemy` only stores specific state (CurrentHP, Position) and a reference to `EnemyTypeData`.
+*   **Benefit:** Significant memory savings for large hordes of enemies.
 
-**Benefits:**
-- Simplified character creation
-- Easy to add new characters
-- Centralized initialization logic
+#### 4. Prototype Pattern (For Spawning)
+*   **Current State:** Factory creates new instances.
+*   **How to Implement:**
+    *   Create a "prototype" enemy instance.
+    *   When spawning, call `prototype.clone()`.
+    *   (Note: `Skill.copy()` already implements this for skills).
+*   **Benefit:** Efficiently spawn pre-configured enemy variants without hardcoding factory logic for every variation.
+
+#### 5. Mediator Pattern (For UI-Game Logic)
+*   **Current State:** `GameEventManager` handles events, but UI sometimes polls data directly from Player.
+*   **How to Implement:**
+    *   Create `UIMediator`.
+    *   UI components only talk to Mediator. Mediator talks to Player/Game components.
+*   **Benefit:** Complete decoupling. The UI becomes a separate "skin" that can be swapped entirely.
 
 ---
 
@@ -747,79 +782,28 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ### 🔧 Pending Bug Fixes and Enhancements
 
-#### 1. Max HP Buff HP Recovery
-**Priority:** Medium  
-**Description:** When picking "Increase Max HP" buff at non-full health, HP percentage should be maintained
-
-**Current Behavior:**
-- Player at 90/100 HP picks +10% Max HP buff
-- **Bug:** HP becomes 90/110 (81.8% health)
-
-**Expected Behavior:**
-- Player at 90/100 HP (90% health) picks +10% Max HP buff
-- **Fix:** HP should become 99/110 (90% health maintained)
-
-**Implementation:**
-- Calculate current HP percentage before buff
-- After applying max HP increase, set HP to match previous percentage
-- Located in: `LevelUpScreen.java` level-up effect handlers
+#### 1. Max HP Buff HP Recovery ✅ **FIXED**
+**Priority:** Done
+**Description:** Logic to maintain HP percentage when Max HP increases has been implemented in `GameCharacter.setMaxHp()`.
 
 ---
 
-#### 2. Blade Fury Attack Animation
-**Priority:** Low  
-**Description:** Blade Fury currently shows stationary attack sprites, needs rotating animation
-
-**Current Behavior:**
-- Attack sprites render at fixed positions around player
-- Looks static and unpolished
-
-**Expected Behavior:**
-- Attack sprites should rotate around player like a spinning blade
-- Smooth animation for visual feedback
-
-**Implementation:**
-- Add rotation parameter to sprite rendering
-- Calculate rotation angle based on time/position
-- Update `renderBladeFury()` in `GameScreen.java`
+#### 2. Blade Fury Attack Animation ✅ **FIXED**
+**Priority:** Done
+**Description:** Blade Fury now spawns randomized melee attacks around the player instead of static sprites.
+**Status:** Implemented dynamic spawning of `MeleeAttack` entities with random rotation and positioning.
 
 ---
 
-#### 3. Collision System Refactoring
-**Priority:** High
-**Description:** `CollisionSystem.java` is still handling too much logic.
-**Issue:** Handles projectiles, melee, enemy detection, and damage application in one place.
-**Goal:** Split into:
-- `ProjectileCollisionHandler`
-- `MeleeCollisionHandler`
-- `EntityCollisionManager`
+#### 3. Collision System Refactoring ✅ **COMPLETED**
+**Priority:** Done
+**Description:** `CollisionSystem.java` was handling too much logic.
+**Status:** Split into `PlayerCollisionHandler`, `ProjectileCollisionHandler`, and `SkillCollisionHandler` managed by `CollisionSystem`.
+**Note:** `BladeFury` refactor also cleaned up `RenderingSystem`.
 #### 3. GameScreen Refactoring ✅ COMPLETED
 **Priority:** Done
 **Description:** `GameScreen.java` was refactored using Facade Pattern.
 **Status:** Implemented `GameFacade` to coordinate `RenderingSystem`, `CollisionSystem`, `SpawningSystem`, `UISystem`, and `BossCinematicSystem`. Line count reduced from ~2000 to ~350.
-
----
-
-#### 4. Innate Skill Refactoring
-**Priority:** Medium  
-**Description:** Some characters have innate skills integrated into character classes instead of separate skill classes
-
-**Current State:**
-- Aelita: ✅ VerdantDomainSkill (separate class)
-- Isolde: ❌ Glacial Breath (integrated in Isolde class)
-- Insania: ❌ Mind Fracture (integrated in Insania class)
-- Blaze: ❌ Hellfire Pillar (integrated in Blaze class)
-- Ryze: ❌ Spectral Body (integrated in Ryze class)
-- Whisperwind: ❌ Hurricane Bind (integrated in Whisperwind class)
-
-**Expected State:**
-- All innate skills should be separate skill classes extending `BaseSkill`
-- Follows Single Responsibility Principle
-- Easier to test and modify skills independently
-
-**Implementation:**
-- Create skill classes: `GlacialBreathSkill`, `MindFractureSkill`, `HellfirePillarSkill`, `SpectralBodySkill`, `HurricaneBindSkill`
-- Refactor character classes to use skill composition instead of direct implementation
 
 ---
 

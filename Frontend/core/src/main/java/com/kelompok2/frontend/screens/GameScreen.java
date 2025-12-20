@@ -12,12 +12,7 @@ import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
-import com.kelompok2.frontend.entities.Ryze;
-import com.kelompok2.frontend.entities.Isolde;
-import com.kelompok2.frontend.entities.Insania;
-import com.kelompok2.frontend.entities.Blaze;
-import com.kelompok2.frontend.entities.Whisperwind;
-import com.kelompok2.frontend.entities.Aelita;
+
 import com.kelompok2.frontend.utils.InputHandler;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.managers.GameManager;
@@ -66,35 +61,15 @@ public class GameScreen extends ScreenAdapter {
         projectilePool = new ProjectilePool(50);
 
         // Spawn Player based on character selection
-        switch (selectedCharacter) {
-            case "Ryze":
-                player = new Ryze(0, 0);
-                break;
-            case "Isolde":
-                player = new Isolde(0, 0);
-                break;
-            case "Insania":
-                player = new Insania(0, 0);
-                break;
-            case "Blaze":
-                player = new Blaze(0, 0);
-                break;
-            case "Whisperwind":
-                player = new Whisperwind(0, 0);
-                break;
-            case "Aelita":
-                player = new Aelita(0, 0);
-                break;
-            case "Aegis":
-                player = new com.kelompok2.frontend.entities.Aegis(0, 0);
-                break;
-            case "Lumi":
-                player = new com.kelompok2.frontend.entities.Lumi(0, 0); // No EnemyPool yet
-                break;
-            default:
-                player = new Isolde(0, 0);
-                this.selectedCharacter = "Isolde";
-                break;
+        // Spawn Player using Factory Pattern
+        player = com.kelompok2.frontend.factories.CharacterFactory.createCharacter(selectedCharacter, 0, 0);
+
+        // If default fallback was triggered, update selectedCharacter
+        // (Optional check, but good for consistency)
+        if (!player.getClass().getSimpleName().equals(selectedCharacter) && !"Lumi".equals(selectedCharacter)) {
+            // Note: SimpleName might not match selectedCharacter exactly if we used
+            // "Default" case
+            // But for now, let's just keep the logic simple.
         }
 
         // Initialize EnemyPool

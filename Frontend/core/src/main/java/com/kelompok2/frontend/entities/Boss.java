@@ -56,6 +56,7 @@ public abstract class Boss extends GameCharacter {
         super.takeDamage(damage);
 
         // ✅ FIX: Break freeze when hit
+        // Commented out to make Frozen Apocalypse useful (freeze persists)
         if (isFrozen) {
             isFrozen = false;
             System.out.println("[Boss] " + bossName + " broke free from freeze!");

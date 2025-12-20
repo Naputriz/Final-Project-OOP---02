@@ -50,10 +50,9 @@ public class FrozenApocalypseSkill extends BaseSkill {
             if (enemy.isDead())
                 continue; // Skip already dead enemies
 
-            // Freeze all enemies
-            enemy.freeze();
-            // Deal damage
+
             enemy.takeDamage(damage);
+            enemy.freeze();
 
             // Grant XP if enemy was killed
             if (enemy.isDead()) {
@@ -65,8 +64,8 @@ public class FrozenApocalypseSkill extends BaseSkill {
 
         // Also affect boss if present
         if (currentBoss != null && !currentBoss.isDead()) {
-            currentBoss.freeze(5.0f); // 5 second freeze
-            currentBoss.takeDamage(damage);
+            currentBoss.takeDamage(damage); // Damage first
+            currentBoss.freeze(5.0f); // 5 second freeze after damage
             System.out.println("[ULTIMATE] Frozen Apocalypse hit boss! Damage: " + damage);
         }
 
