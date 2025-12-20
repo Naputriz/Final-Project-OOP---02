@@ -13,6 +13,11 @@ public class InfernoNovaSkill extends BaseSkill {
     private static final float RADIUS = 400f; // 400px radius
     private static final float DAMAGE_MULTIPLIER = 4.0f; // Arts × 4.0 (highest damage)
 
+    @Override
+    public float getRadius() {
+        return RADIUS;
+    }
+
     // Enemy array untuk damage
     private Array<DummyEnemy> enemies;
 

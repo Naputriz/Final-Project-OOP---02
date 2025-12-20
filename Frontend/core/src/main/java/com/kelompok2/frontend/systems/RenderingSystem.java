@@ -80,7 +80,11 @@ public class RenderingSystem {
         renderGroundSlam();
         renderIceShield();
         renderShieldStance();
+        renderShieldStance();
         renderBossSkills(currentBoss);
+
+        // ✅ FIX: Render Ultimate Aiming Visualization
+        renderUltimateAiming(camera);
     }
 
     private void renderShieldStance() {
@@ -374,6 +378,66 @@ public class RenderingSystem {
             }
             shapeRenderer.end();
         }
+    }
+
+    private void renderUltimateAiming(OrthographicCamera camera) {
+        if (!player.isAimingUltimate() || !player.hasUltimateSkill()) {
+            return;
+        }
+
+        com.kelompok2.frontend.skills.Skill ultimate = player.getUltimateSkill();
+        if (ultimate == null)
+            return;
+
+        // Visual is centered on PLAYER, not MOUSE, because these skills are
+        // self-centered AoE
+        float centerX = player.getPosition().x + player.getVisualWidth() / 2;
+        float centerY = player.getPosition().y + player.getVisualHeight() / 2;
+
+        float radius = ultimate.getRadius();
+
+        // 1. Draw Range/Radius Indicator
+        com.badlogic.gdx.Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+        com.badlogic.gdx.Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
+                com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        // Color coding based on skill type
+        if (ultimate instanceof com.kelompok2.frontend.skills.InfernoNovaSkill) {
+            shapeRenderer.setColor(1f, 0.4f, 0f, 0.3f); // Orange semi-transparent
+        } else if (ultimate instanceof com.kelompok2.frontend.skills.InsanityBurstSkill) {
+            shapeRenderer.setColor(0.8f, 0f, 0.8f, 0.3f); // Purple semi-transparent
+        } else if (ultimate instanceof com.kelompok2.frontend.skills.FrozenApocalypseSkill) {
+            shapeRenderer.setColor(0f, 0.8f, 1f, 0.3f); // Cyan semi-transparent
+        } else {
+            shapeRenderer.setColor(1f, 1f, 1f, 0.3f); // White default
+        }
+
+        if (radius > 1500) {
+            // Full screen effect (Frozen Apocalypse)
+            shapeRenderer.rect(camera.position.x - camera.viewportWidth / 2,
+                    camera.position.y - camera.viewportHeight / 2,
+                    camera.viewportWidth, camera.viewportHeight);
+        } else {
+            // Circle Area Effect around PLAYER
+            // Use high segment count for smooth circle
+            shapeRenderer.circle(centerX, centerY, radius, 64);
+        }
+
+        shapeRenderer.end();
+
+        // 2. Draw Border Line
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        com.badlogic.gdx.Gdx.gl.glLineWidth(2);
+        shapeRenderer.setColor(1f, 1f, 1f, 0.7f); // White border
+
+        if (radius <= 1500) {
+            shapeRenderer.circle(centerX, centerY, radius, 64);
+        }
+
+        com.badlogic.gdx.Gdx.gl.glLineWidth(1);
+        shapeRenderer.end();
+        com.badlogic.gdx.Gdx.gl.glDisable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
     }
 
     public SpriteBatch getBatch() {

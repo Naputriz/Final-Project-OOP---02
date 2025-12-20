@@ -12,6 +12,11 @@ public class FrozenApocalypseSkill extends BaseSkill {
 
     private static final float DAMAGE_MULTIPLIER = 2.5f; // Arts × 2.5
 
+    @Override
+    public float getRadius() {
+        return 2000f; // Screen-wide (larger than viewport diagonal)
+    }
+
     // Enemy array untuk damage
     private Array<DummyEnemy> enemies;
 
@@ -49,7 +54,6 @@ public class FrozenApocalypseSkill extends BaseSkill {
         for (DummyEnemy enemy : enemies) {
             if (enemy.isDead())
                 continue; // Skip already dead enemies
-
 
             enemy.takeDamage(damage);
             enemy.freeze();

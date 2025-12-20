@@ -640,6 +640,15 @@ public abstract class GameCharacter {
     // Ultimate Skill System (R key) - Looted from bosses
     protected Skill ultimateSkill = null;
     protected boolean ultimateUsed = false;
+    protected boolean isAimingUltimate = false;
+
+    public void setAimingUltimate(boolean isAiming) {
+        this.isAimingUltimate = isAiming;
+    }
+
+    public boolean isAimingUltimate() {
+        return isAimingUltimate;
+    }
 
     public void setUltimateSkill(Skill skill) {
         this.ultimateSkill = skill;
