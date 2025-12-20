@@ -92,7 +92,7 @@ public class ReturniousPullSkill extends BaseSkill {
 
             // Use the new Pull Mechanic
             // Speed 1200f -> Fast pull (almost instant but travels)
-            nearestMarkedEnemy.pull(pullPos, 1200f, damage, 1.0f);
+            nearestMarkedEnemy.pull(pullPos, 1200f, damage, 1.0f, user);
 
             // Visual effect or log
             System.out.println("[Lumi] Pulling marked enemy: " + nearestMarkedEnemy.getClass().getSimpleName());
