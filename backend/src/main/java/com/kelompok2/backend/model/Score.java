@@ -11,26 +11,30 @@ public class Score {
 
     private String playerName;
 
-    private int level; // <--- TAMBAHKAN INI
+    private String character; // <--- 1. TAMBAHKAN INI
 
-    private int value; // Ini adalah waktu dalam detik
+    private int level;
+    private int value;
 
     public Score() {}
 
-    // Update Constructor
-    public Score(String playerName, int level, int value) {
+    // Update Constructor (Opsional, tapi bagus untuk kerapihan)
+    public Score(String playerName, String character, int level, int value) {
         this.playerName = playerName;
+        this.character = character;
         this.level = level;
         this.value = value;
     }
 
-    // Getter & Setter untuk Level
-    public int getLevel() { return level; }
-    public void setLevel(int level) { this.level = level; }
+    // --- 2. TAMBAHKAN GETTER & SETTER ---
+    public String getCharacter() { return character; }
+    public void setCharacter(String character) { this.character = character; }
 
-    // ... Getter Setter lain (playerName, value, id) biarkan saja
+    // ... Getter Setter yang lama (playerName, level, value) biarkan saja ...
     public String getPlayerName() { return playerName; }
     public void setPlayerName(String playerName) { this.playerName = playerName; }
+    public int getLevel() { return level; }
+    public void setLevel(int level) { this.level = level; }
     public int getValue() { return value; }
     public void setValue(int value) { this.value = value; }
 }
