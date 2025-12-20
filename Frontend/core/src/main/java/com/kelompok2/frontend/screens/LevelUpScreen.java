@@ -183,6 +183,9 @@ public class LevelUpScreen extends ScreenAdapter {
     private void applyAndClose() {
         LevelUpEffect effect = selectedEffects.get(selectedCardIndex);
         effect.apply(player);
+
+        player.levelUp();
+
         player.setLevelUpPending(false);
         gameScreen.resumeFromLevelUp();
         game.setScreen(gameScreen);

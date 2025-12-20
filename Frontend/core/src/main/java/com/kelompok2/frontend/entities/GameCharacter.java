@@ -21,15 +21,17 @@ public abstract class GameCharacter {
     protected float atk;
     protected float arts;
     protected float def;
+
+    // Texture
     protected boolean isFacingRight;
     protected Texture texture; // Sprite karakter
     protected Rectangle bounds; // Hitbox untuk collision
     protected float renderWidth = -1; // -1 artinya belum diset (default ikut bounds)
     protected float renderHeight = -1;
-    protected boolean isInsane = false;
-    protected float insanityTimer = 0f;
 
     // Player status effects (for boss skills)
+    protected boolean isInsane = false;
+    protected float insanityTimer = 0f;
     protected boolean isFrozen = false;
     protected float freezeTimer = 0f;
     protected boolean isSlowed = false;
@@ -44,6 +46,8 @@ public abstract class GameCharacter {
     protected static final float PER_ATTACKER_COOLDOWN = 0.2f; // 0.2 seconds per attacker
     protected float boundsOffsetX = 0;
     protected float boundsOffsetY = 0;
+
+    // Leveling
     protected int level;
     protected float currentXp;
     protected float xpToNextLevel;
@@ -427,16 +431,18 @@ public abstract class GameCharacter {
 
     public void gainXp(float xpAmount) {
         this.currentXp += xpAmount;
-        if (this.currentXp >= this.xpToNextLevel) {
-            levelUp();
-        }
-
         // Publish XpChangedEvent
         GameEventManager.getInstance()
                 .publish(new XpChangedEvent(this, this.currentXp, this.xpToNextLevel, this.level));
     }
 
-    protected void levelUp() {
+    public boolean canLevelUp(){
+        return this.currentXp >= this.xpToNextLevel;
+    }
+
+    public void levelUp(){
+        if (!canLevelUp()) return;
+
         this.currentXp -= this.xpToNextLevel;
         this.level++;
         this.xpToNextLevel = (float) Math.ceil(this.xpToNextLevel * 1.2f);
@@ -461,7 +467,11 @@ public abstract class GameCharacter {
         // Sync dengan GameManager (Singleton Pattern)
         GameManager.getInstance().incrementLevel();
 
+        GameEventManager.getInstance()
+            .publish(new XpChangedEvent(this, this.currentXp, this.xpToNextLevel, this.level));
+
         System.out.println(this.getClass().getSimpleName() + " Level Up! lv: " + level + " (Stats grown passively)");
+
     }
 
     public boolean isDead() {

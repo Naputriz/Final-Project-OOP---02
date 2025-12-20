@@ -111,7 +111,7 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
-        if (player.isLevelUpPending()) {
+        if (player.canLevelUp()) {
             isPaused = true;
             game.setScreen(new LevelUpScreen(game, this, player));
             return;
