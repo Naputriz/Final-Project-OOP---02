@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.kelompok2.frontend.entities.Boss;
 import com.kelompok2.frontend.entities.GameCharacter;
@@ -29,6 +30,23 @@ public class UISystem {
     private static final float ULTIMATE_MESSAGE_DURATION = 3.0f;
     private float gameTimer = 0f;
 
+    // Cached Player State (Observer Pattern)
+    private float playerHp;
+    private float playerMaxHp;
+    private float playerXp;
+    private float playerMaxXp;
+    private int playerLevel;
+    private float innateSkillTimer;
+    private float innateSkillCooldown;
+    private float secondarySkillTimer;
+    private float secondarySkillCooldown;
+    private boolean ultimateReady;
+
+    // Cached Boss State
+    private float bossHp;
+    private float bossMaxHp;
+    private String bossNameCached; // Rename to avoid confusion if needed, but bossName is fine
+
     public UISystem(SpriteBatch batch, ShapeRenderer shapeRenderer) {
         this.batch = batch;
         this.shapeRenderer = shapeRenderer;
@@ -41,6 +59,18 @@ public class UISystem {
     public void initialize(GameCharacter player, EnemyPool enemyPool, GameEventManager eventManager) {
         this.player = player;
         this.enemyPool = enemyPool;
+
+        // Initialize cached values from player
+        this.playerHp = player.getHp();
+        this.playerMaxHp = player.getMaxHp();
+        this.playerXp = player.getCurrentXp();
+        this.playerMaxXp = player.getXpToNextLevel();
+        this.playerLevel = player.getLevel();
+        this.innateSkillTimer = 0;
+        this.innateSkillCooldown = 0; // Will be updated by event or we can poll once? Better to wait for event or
+                                      // poll once here?
+        // Poll once for initial state if static, but cooldowns change.
+        // Assuming cooldowns start at 0 (ready).
 
         // Subscribe to events (Observer Pattern)
         subscribeToEvents(eventManager);
@@ -61,22 +91,27 @@ public class UISystem {
 
         // Ultimate activated -> show activation message
         eventManager.subscribe(UltimateActivatedEvent.class, this::onUltimateActivated);
+
+        // NEW: State Change Events
+        eventManager.subscribe(HealthChangedEvent.class, this::onHealthChanged);
+        eventManager.subscribe(XpChangedEvent.class, this::onXpChanged);
+        eventManager.subscribe(CooldownChangedEvent.class, this::onCooldownChanged);
     }
 
     // Event handlers
     private void onPlayerDamaged(PlayerDamagedEvent event) {
-        // UI auto-updates by reading player.getHp() in render
         System.out.println("[UISystem] Player damaged: " + event.getDamage());
     }
 
     private void onEnemyKilled(EnemyKilledEvent event) {
-        // UI auto-updates by reading player.getCurrentXp() in render
         System.out.println("[UISystem] Enemy killed, XP gained: " + event.getXpGained());
     }
 
     private void onBossSpawned(BossSpawnedEvent event) {
         System.out.println("[UISystem] Boss spawned: " + event.getBossName());
-        // Boss UI will be shown in render if boss != null
+        this.bossHp = event.getBoss().getHp();
+        this.bossMaxHp = event.getBoss().getMaxHp();
+        this.bossNameCached = event.getBossName();
     }
 
     private void onBossDefeated(BossDefeatedEvent event) {
@@ -89,6 +124,43 @@ public class UISystem {
         System.out.println("[UISystem] Ultimate activated: " + event.getUltimateName());
         ultimateMessage = "*** " + event.getUltimateName().toUpperCase() + " ACTIVATED! ***";
         ultimateMessageTimer = ULTIMATE_MESSAGE_DURATION;
+    }
+
+    private void onHealthChanged(HealthChangedEvent event) {
+        if (event.getCharacter() == this.player) {
+            this.playerHp = event.getCurrentHp();
+            this.playerMaxHp = event.getMaxHp();
+        } else if (event.getCharacter() instanceof Boss) {
+            this.bossHp = event.getCurrentHp();
+            this.bossMaxHp = event.getMaxHp();
+        }
+    }
+
+    private void onXpChanged(XpChangedEvent event) {
+        if (event.getCharacter() == this.player) {
+            this.playerXp = event.getCurrentXp();
+            this.playerMaxXp = event.getMaxXp();
+            this.playerLevel = event.getLevel();
+        }
+    }
+
+    private void onCooldownChanged(CooldownChangedEvent event) {
+        if (event.getCharacter() == this.player) {
+            switch (event.getSkillType()) {
+                case INNATE:
+                    this.innateSkillTimer = event.getRemainingTime();
+                    this.innateSkillCooldown = event.getTotalCooldown();
+                    break;
+                case SECONDARY:
+                    this.secondarySkillTimer = event.getRemainingTime();
+                    this.secondarySkillCooldown = event.getTotalCooldown();
+                    break;
+                case ULTIMATE:
+                    // If remaining is 0, it means ready.
+                    this.ultimateReady = (event.getRemainingTime() <= 0);
+                    break;
+            }
+        }
     }
 
     public void update(float delta) {
@@ -104,242 +176,189 @@ public class UISystem {
     }
 
     public void render(OrthographicCamera camera, Boss currentBoss) {
-        drawHealthBars(currentBoss);
+        // Draw HUD (Fixed Screen Coordinates)
+        drawHUD(camera, currentBoss);
+
         drawUltimateMessage(camera);
         drawGameTimer(camera);
     }
 
-    // TODO: Extract these methods from GameScreen gradually
-    private void drawHealthBars(Boss currentBoss) {
+    private OrthographicCamera uiCamera;
+
+    private void drawHUD(OrthographicCamera gameCamera, Boss currentBoss) {
+        // --- UI CAMERA SETUP (Static Screen Space) ---
+        if (uiCamera == null) {
+            uiCamera = new OrthographicCamera();
+        }
+
+        // Sync UI camera with current viewport size, but keep position static
+        // (centered)
+        if (uiCamera.viewportWidth != gameCamera.viewportWidth
+                || uiCamera.viewportHeight != gameCamera.viewportHeight) {
+            uiCamera.setToOrtho(false, gameCamera.viewportWidth, gameCamera.viewportHeight);
+        }
+        uiCamera.update();
+
+        // Screen Coordinates (0,0 is bottom-left)
+        float screenW = uiCamera.viewportWidth;
+        float screenH = uiCamera.viewportHeight;
+
+        // HUD Anchors
+        float hudLeft = 0; // Left edge
+        float hudTop = screenH; // Top edge
+        float hudCenterX = screenW / 2;
+
+        // --- 0. XP Bar (Top Screen Edge, Full Width) ---
+        float xpBarHeight = 15;
+        float xpY = hudTop - xpBarHeight;
+
+        // Use UI Camera for rendering
+        shapeRenderer.setProjectionMatrix(uiCamera.combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        // Render HP Player
-        drawBar(player);
-        // Render XP player
-        drawXpBar(player);
-        // Render E Skill Cooldown player
-        drawSkillCooldownBar(player);
-        // Render Q Secondary Skill Cooldown player
-        drawSecondarySkillBar(player);
-        // ✨ NEW: Render R Ultimate Skill Indicator
-        drawUltimateSkillIndicator(player);
-
-        // Render Boss Health Bar if active
-        if (currentBoss != null && !currentBoss.isDead()) {
-            drawBossHealthBar(currentBoss);
-        }
-
-        // Render enemy HP bars
-        // TODO: Extract
-
-        shapeRenderer.end();
-
-        // Render boss title
-        if (currentBoss != null && !currentBoss.isDead()) {
-            drawBossTitle(currentBoss);
-        }
-    }
-
-    // Extracted from GameScreen lines 533-553
-    private void drawBar(GameCharacter character) {
-        float x = character.getPosition().x;
-
-        // HP bar at top (furthest from character)
-        // Use Template Method pattern - check if has innate skill
-        boolean isPlayer = (character.getInnateSkillCooldown() > 0);
-        float offset = isPlayer ? 25 : 5;
-        float y = character.getPosition().y + character.getVisualHeight() + offset;
-
-        float width = character.getVisualWidth();
-        float height = 5;
-
-        float hpPercent = character.getHp() / character.getMaxHp();
-
-        shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(x, y, width, height);
-
-        shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(x, y, width * hpPercent, height);
-    }
-
-    // Extracted from GameScreen lines 517-531
-    private void drawXpBar(GameCharacter character) {
-        float x = character.getPosition().x;
-        float y = character.getPosition().y + character.getVisualHeight() + 13;
-        float width = character.getVisualWidth();
-        float height = 4;
-
-        float maxXp = character.getXpToNextLevel();
-        float xpPercent = (maxXp > 0) ? character.getCurrentXp() / maxXp : 0;
-
-        shapeRenderer.setColor(Color.DARK_GRAY);
-        shapeRenderer.rect(x, y, width, height);
-
-        shapeRenderer.setColor(Color.CYAN);
-        shapeRenderer.rect(x, y, width * xpPercent, height);
-    }
-
-    // Extracted from GameScreen lines 555-587
-    private void drawSkillCooldownBar(GameCharacter character) {
-        // Use Template Method pattern - check if character has innate skill
-        // Characters with no innate skill return 0 for cooldown
-        if (character.getInnateSkillCooldown() == 0) {
-            return;
-        }
-
-        float x = character.getPosition().x;
-        float y = character.getPosition().y + character.getVisualHeight() + 19;
-        float width = character.getVisualWidth();
-        float height = 4;
-
-        float skillTimer = 0f;
-        float skillCooldown = 1f; // Default to avoid division by zero
-
-        // Use Template Method pattern - polymorphic call instead of instanceof
-        skillTimer = character.getInnateSkillTimer();
-        skillCooldown = character.getInnateSkillCooldown();
-
-        // Safety check to avoid division by zero
-        if (skillCooldown == 0) {
-            skillCooldown = 1f;
-        }
-
-        float cooldownPercent = (skillCooldown > 0) ? (skillCooldown - skillTimer) / skillCooldown : 1f;
-
-        // Background (Dark gray)
-        shapeRenderer.setColor(Color.DARK_GRAY);
-        shapeRenderer.rect(x, y, width, height);
-
-        shapeRenderer.setColor(new Color(1f, 0.8f, 0f, 1f));
-        shapeRenderer.rect(x, y, width * cooldownPercent, height);
-    }
-
-    // Extracted from GameScreen lines 589-620
-    private void drawSecondarySkillBar(GameCharacter character) {
-        // Only draw if character has secondary skill
-        if (!character.hasSecondarySkill()) {
-            return;
-        }
-
-        float x = character.getPosition().x;
-        // Q Skill Bar below E Skill, above XP bar
-        // HP at +25 (height 5)
-        // E Skill at +19 (height 4)
-        // Q Skill at +16 (height 3)
-        // XP at +13 (height 4)
-        float y = character.getPosition().y + character.getVisualHeight() + 16;
-
-        float width = character.getVisualWidth();
-        float height = 3; // Slightly smaller untuk distinguish
-
-        // Get Q skill cooldown data
-        float skillTimer = character.getSecondarySkill().getRemainingCooldown();
-        float skillCooldown = character.getSecondarySkill().getCooldown();
-
-        // Calculate percentage remaining (skill is ready when timer = 0)
-        float cooldownPercent = (skillCooldown > 0) ? (skillCooldown - skillTimer) / skillCooldown : 1f;
-
-        // Background (Dark gray)
-        shapeRenderer.setColor(Color.DARK_GRAY);
-        shapeRenderer.rect(x, y, width, height);
-
-        // Foreground (Blue for Q skill cooldown - different from E skill's orange)
-        shapeRenderer.setColor(new Color(0.2f, 0.6f, 1f, 1f)); // Light blue
-        shapeRenderer.rect(x, y, width * cooldownPercent, height);
-    }
-
-    // ✨ NEW FEATURE - Ultimate Skill Indicator
-    private void drawUltimateSkillIndicator(GameCharacter character) {
-        // Only draw for player (check if has innate skill cooldown > 0)
-        if (character.getInnateSkillCooldown() == 0) {
-            return;
-        }
-
-        float x = character.getPosition().x;
-        // R Skill Indicator below Q Skill (or E Skill if no Q skill), above XP bar
-        // HP at +25 (height 5)
-        // E Skill at +19 (height 4)
-        // Q Skill at +16 (height 3) - if has secondary
-        // R Indicator at +10 (height 2)
-        // XP at +13 (height 4)
-        float y = character.getPosition().y + character.getVisualHeight() + 10;
-
-        float width = character.getVisualWidth();
-        float height = 2; // Thin bar
 
         // Background
         shapeRenderer.setColor(Color.DARK_GRAY);
-        shapeRenderer.rect(x, y, width, height);
+        shapeRenderer.rect(hudLeft, xpY, screenW, xpBarHeight);
 
-        // If player has ultimate, show as ready (gold/purple)
-        if (character.hasUltimateSkill()) {
-            shapeRenderer.setColor(new Color(1f, 0.84f, 0f, 1f)); // Gold
-            shapeRenderer.rect(x, y, width, height);
-        } else {
-            // No ultimate yet - show as empty/grayed out
-            shapeRenderer.setColor(new Color(0.2f, 0.2f, 0.2f, 1f)); // Dark gray
-            shapeRenderer.rect(x, y, width, height);
+        // Fill (Cyan)
+        if (playerMaxXp > 0) {
+            float xpPercent = Math.max(0, playerXp / playerMaxXp);
+            shapeRenderer.setColor(Color.CYAN);
+            shapeRenderer.rect(hudLeft, xpY, screenW * xpPercent, xpBarHeight);
         }
-    }
 
-    // Extracted from GameScreen lines 1704-1734
-    private void drawBossHealthBar(Boss boss) {
-        if (boss == null || boss.isDead())
-            return;
+        // 1. Portrait (Top Left, below XP Bar)
+        batch.setProjectionMatrix(uiCamera.combined);
+        batch.begin();
+        Texture portrait = player.getTexture();
+        float portraitSize = 90;
+        float portraitX = hudLeft + 20;
+        float portraitY = xpY - 15 - portraitSize;
 
-        // Position health bar above the boss
-        float x = boss.getPosition().x;
-        float y = boss.getPosition().y + boss.getVisualHeight() + 10f; // Above boss
-        float barWidth = boss.getVisualWidth() * 2f; // Wider than boss for visibility
-        float barHeight = 8f; // Thicker than regular enemy bars
-
-        // Background (dark red)
-        shapeRenderer.setColor(new Color(0.3f, 0, 0, 1f));
-        shapeRenderer.rect(x, y, barWidth, barHeight);
-
-        // Health fill
-        float healthPercent = boss.getHp() / boss.getMaxHp();
-        Color healthColor;
-        if (healthPercent > 0.5f) {
-            healthColor = Color.GOLD; // Gold for bosses
-        } else if (healthPercent > 0.25f) {
-            healthColor = Color.ORANGE;
-        } else {
-            healthColor = Color.RED;
+        if (portrait != null) {
+            batch.draw(portrait, portraitX, portraitY, portraitSize, portraitSize);
         }
-        shapeRenderer.setColor(healthColor);
-        shapeRenderer.rect(x, y, barWidth * healthPercent, barHeight);
-    }
+        batch.end();
 
-    // Extracted from GameScreen (boss title rendering)
-    private void drawBossTitle(Boss boss) {
-        if (boss == null || boss.isDead())
-            return;
+        // 2. Bars (Right of Portrait)
+        shapeRenderer.setProjectionMatrix(uiCamera.combined);
+        shapeRenderer.end();
 
+        // Now Bars and Skills (Shapes)
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        float barsX = portraitX + portraitSize + 15;
+        float barWidth = 400;
+        float hpBarHeight = 30;
+
+        float hpY = portraitY + portraitSize - hpBarHeight;
+
+        // --- HP Bar ---
+        // Background
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(barsX, hpY, barWidth, hpBarHeight);
+
+        // Fill (Green)
+        if (playerMaxHp > 0) {
+            float hpPercent = Math.max(0, playerHp / playerMaxHp);
+            shapeRenderer.setColor(Color.GREEN);
+            shapeRenderer.rect(barsX, hpY, barWidth * hpPercent, hpBarHeight);
+        }
+
+        // --- Skills (Under Portrait) ---
+        float skillY = portraitY - 50;
+        float skillSize = 50;
+        float skillGap = 10;
+        float skillX = portraitX;
+
+        // Innate
+        shapeRenderer.setColor(Color.ORANGE);
+        shapeRenderer.rect(skillX, skillY, skillSize, skillSize);
+        if (innateSkillCooldown > 0 && innateSkillTimer > 0) {
+            shapeRenderer.setColor(0, 0, 0, 0.5f);
+            float alpha = innateSkillTimer / innateSkillCooldown;
+            shapeRenderer.rect(skillX, skillY, skillSize, skillSize * alpha);
+        }
+
+        // Secondary
+        if (secondarySkillCooldown > 0) {
+            skillX += skillSize + skillGap;
+            shapeRenderer.setColor(new Color(0.2f, 0.6f, 1f, 1f));
+            shapeRenderer.rect(skillX, skillY, skillSize, skillSize);
+            if (secondarySkillCooldown > 0 && secondarySkillTimer > 0) {
+                shapeRenderer.setColor(0, 0, 0, 0.5f);
+                float alpha = secondarySkillTimer / secondarySkillCooldown;
+                shapeRenderer.rect(skillX, skillY, skillSize, skillSize * alpha);
+            }
+        }
+
+        // Ultimate Indicator (Gold Box)
+        if (ultimateReady) {
+            skillX += skillSize + skillGap;
+            shapeRenderer.setColor(Color.GOLD);
+            shapeRenderer.rect(skillX, skillY, skillSize, skillSize);
+        }
+
+        // --- Boss Health Bar (Top Center, Lowered) ---
+        float bossBarWidth = 600;
+        float bossBarHeight = 30;
+        float bossX = hudCenterX - (bossBarWidth / 2);
+        float bossY = hudTop - 60 - xpBarHeight;
+
+        if (currentBoss != null && !currentBoss.isDead() && bossMaxHp > 0) {
+            shapeRenderer.setColor(new Color(0.3f, 0, 0, 1f));
+            shapeRenderer.rect(bossX, bossY, bossBarWidth, bossBarHeight);
+
+            float bossHpPercent = Math.max(0, bossHp / bossMaxHp);
+            shapeRenderer.setColor(Color.RED);
+            shapeRenderer.rect(bossX, bossY, bossBarWidth * bossHpPercent, bossBarHeight);
+        }
+
+        shapeRenderer.end();
+
+        // 3. Text Overlay
         batch.begin();
 
-        // Position above boss
-        float bossX = boss.getPosition().x;
-        float bossY = boss.getPosition().y + boss.getVisualHeight();
-        float bossWidth = boss.getVisualWidth() * 2f;
+        // HP Text
+        String hpText = (int) playerHp + " / " + (int) playerMaxHp;
+        font.setColor(Color.WHITE);
+        font.getData().setScale(1.2f);
+        font.draw(batch, hpText, barsX + 15, hpY + 22);
+        font.getData().setScale(1.0f);
 
-        // Get boss name and title
-        String bossName = boss.getBossName();
-        String bossTitle = boss.getBossTitle();
-        String fullTitle = bossName + " - " + bossTitle; // e.g., "Insania - The Chaos Kaiser"
+        // Lv Text
+        String lvText = "Lv." + playerLevel;
+        font.setColor(Color.WHITE);
+        font.draw(batch, lvText, hudLeft + 10, xpY + xpBarHeight + 15);
 
-        // Calculate text position (centered above boss)
-        GlyphLayout titleLayout = new GlyphLayout(bossFont, fullTitle);
-        float titleX = bossX + (bossWidth - titleLayout.width) / 2;
-        float titleY = bossY + 50f; // Above health bar
+        // Boss Title & HP Text
+        if (currentBoss != null && !currentBoss.isDead() && bossMaxHp > 0) {
+            String bossName = (bossNameCached != null) ? bossNameCached : currentBoss.getBossName();
+            String bossTitle = currentBoss.getBossTitle();
+            String fullTitle = bossName + " - " + bossTitle;
 
-        // Draw title with shadow for visibility
-        bossFont.setColor(0f, 0f, 0f, 0.7f); // Shadow
-        bossFont.draw(batch, fullTitle, titleX + 2, titleY - 2);
-        bossFont.setColor(1f, 0.84f, 0f, 1f); // Gold
-        bossFont.draw(batch, fullTitle, titleX, titleY);
-        bossFont.setColor(Color.WHITE); // Reset
+            float bossBarY = hudTop - 60 - xpBarHeight;
 
+            // Title
+            GlyphLayout layout = new GlyphLayout(bossFont, fullTitle);
+            float titleX = hudCenterX - (layout.width / 2);
+            float titleY = bossBarY + 50;
+
+            bossFont.setColor(0, 0, 0, 0.7f);
+            bossFont.draw(batch, fullTitle, titleX + 2, titleY - 2);
+            bossFont.setColor(Color.GOLD);
+            bossFont.draw(batch, fullTitle, titleX, titleY);
+            bossFont.setColor(Color.WHITE);
+
+            // Boss HP Text
+            String bossHpString = (int) bossHp + " / " + (int) bossMaxHp;
+            GlyphLayout hpLayout = new GlyphLayout(font, bossHpString);
+            float hpX = hudCenterX - (hpLayout.width / 2);
+            float hpYText = bossBarY + 20;
+
+            font.setColor(Color.WHITE);
+            font.draw(batch, bossHpString, hpX, hpYText);
+        }
         batch.end();
     }
 
@@ -366,8 +385,23 @@ public class UISystem {
         int seconds = (int) (gameTimer % 60);
         String timerText = String.format("%02d:%02d", minutes, seconds);
         GlyphLayout timerLayout = new GlyphLayout(bossFont, timerText);
+
         float timerX = camera.position.x - (timerLayout.width / 2);
-        float timerY = camera.position.y + (camera.viewportHeight / 2) - 30;
+
+        // Base Timer Y (Top Screen)
+        float hudTop = camera.position.y + (camera.viewportHeight / 2);
+
+        // Default (without boss): slightly below top
+        float timerY = hudTop - 40;
+
+        // If Boss is Active:
+        // Boss Bar Y is approx hudTop - 50 - 12 (XP) ~= hudTop - 62
+        // Boss Bar Height is 25. Bottom is hudTop - 87.
+        // So Timer should be at hudTop - 100 or so.
+        if (bossMaxHp > 0 && bossHp > 0) {
+            timerY = hudTop - 105;
+        }
+
         bossFont.setColor(0f, 0f, 0f, 0.8f);
         bossFont.draw(batch, timerText, timerX + 2, timerY - 2);
         bossFont.setColor(Color.WHITE);
