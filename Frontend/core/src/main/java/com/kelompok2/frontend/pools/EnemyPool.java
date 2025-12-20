@@ -2,107 +2,137 @@ package com.kelompok2.frontend.pools;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.entities.BaseEnemy;
 import com.kelompok2.frontend.entities.DummyEnemy;
+import com.kelompok2.frontend.entities.FastEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
+import com.kelompok2.frontend.entities.RangedEnemy;
+import com.kelompok2.frontend.entities.TankEnemy;
+import com.kelompok2.frontend.factories.EnemyType;
+import com.kelompok2.frontend.managers.GameManager;
 
 public class EnemyPool {
-    // Pool untuk enemy yang tersedia (tidak sedang digunakan)
-    private Array<DummyEnemy> availableEnemies;
+    // ACTIVE enemies list (Heterogeneous: Dummy, Fast, Tank, etc.)
+    private Array<BaseEnemy> activeEnemies;
 
-    // Pool untuk enemy yang sedang aktif (hidup di game)
-    private Array<DummyEnemy> activeEnemies;
+    private Array<DummyEnemy> dummyPool;
+    private Array<FastEnemy> fastPool;
+    private Array<TankEnemy> tankPool;
+    private Array<RangedEnemy> rangedPool;
 
-    // Reference ke player (target untuk semua musuh)
     private GameCharacter target;
-
-    // Ukuran awal pool
-    private int initialPoolSize;
 
     public EnemyPool(GameCharacter target, int initialSize) {
         this.target = target;
-        this.initialPoolSize = initialSize;
-        this.availableEnemies = new Array<>();
         this.activeEnemies = new Array<>();
 
-        // Pra-alokasi enemies untuk performa
+        this.dummyPool = new Array<>();
+        this.fastPool = new Array<>();
+        this.tankPool = new Array<>();
+        this.rangedPool = new Array<>();
+
+        // Pre-allocate some Dummies (most common)
         for (int i = 0; i < initialSize; i++) {
-            availableEnemies.add(new DummyEnemy(0, 0, target));
+            dummyPool.add(new DummyEnemy(0, 0, target));
         }
 
-        System.out.println("[EnemyPool] Pool created with " + initialSize + " enemies");
+        System.out.println("[EnemyPool] Pool initialized");
     }
 
-    public DummyEnemy obtain(float x, float y) {
-        DummyEnemy enemy;
+    public BaseEnemy obtain(EnemyType type, float x, float y) {
+        BaseEnemy enemy = null;
 
-        if (availableEnemies.size > 0) {
-            // Ambil dari pool yang tersedia (reuse)
-            enemy = availableEnemies.pop();
-            System.out.println("[EnemyPool] Reusing enemy from pool (available: " +
-                    availableEnemies.size + ")");
-        } else {
-            // Pool kosong, buat enemy baru
-            enemy = new DummyEnemy(x, y, target);
-            System.out.println("[EnemyPool] Pool empty, creating new enemy");
+        switch (type) {
+            case FAST:
+                if (fastPool.size > 0)
+                    enemy = fastPool.pop();
+                else
+                    enemy = new FastEnemy(x, y, target);
+                break;
+            case TANK:
+                if (tankPool.size > 0)
+                    enemy = tankPool.pop();
+                else
+                    enemy = new TankEnemy(x, y, target);
+                break;
+            case RANGED:
+                if (rangedPool.size > 0)
+                    enemy = rangedPool.pop();
+                else
+                    enemy = new RangedEnemy(x, y, target);
+                break;
+            case DUMMY:
+            default:
+                if (dummyPool.size > 0)
+                    enemy = dummyPool.pop();
+                else
+                    enemy = new DummyEnemy(x, y, target);
+                break;
         }
 
-        // Reset state enemy dengan posisi baru
+        // Reset and Scale
         enemy.reset(x, y, target);
 
-        // Pindahkan ke active pool
-        activeEnemies.add(enemy);
+        // Apply Level Scaling
+        int level = GameManager.getInstance().getCurrentLevel();
+        enemy.scaleStats(level);
 
+        activeEnemies.add(enemy);
         return enemy;
     }
 
-    public void free(DummyEnemy enemy) {
+    public void free(BaseEnemy enemy) {
         if (activeEnemies.removeValue(enemy, true)) {
-            availableEnemies.add(enemy);
+            if (enemy instanceof FastEnemy)
+                fastPool.add((FastEnemy) enemy);
+            else if (enemy instanceof TankEnemy)
+                tankPool.add((TankEnemy) enemy);
+            else if (enemy instanceof RangedEnemy)
+                rangedPool.add((RangedEnemy) enemy);
+            else if (enemy instanceof DummyEnemy)
+                dummyPool.add((DummyEnemy) enemy);
         }
     }
 
     public void update(float delta) {
-        // Gunakan iterator untuk safe removal
         for (int i = activeEnemies.size - 1; i >= 0; i--) {
-            DummyEnemy e = activeEnemies.get(i);
+            BaseEnemy e = activeEnemies.get(i);
             e.update(delta);
 
-            // Jika enemy mati, kembalikan ke pool
             if (e.isDead()) {
                 free(e);
-                System.out.println("[EnemyPool] Enemy died, returned to pool");
             }
         }
     }
 
     public void render(SpriteBatch batch) {
-        for (DummyEnemy e : activeEnemies) {
-            if (!e.isDead()) { // Only render alive enemies
+        for (BaseEnemy e : activeEnemies) {
+            if (!e.isDead()) {
                 e.render(batch);
             }
         }
     }
 
-    public Array<DummyEnemy> getActiveEnemies() {
+    public Array<BaseEnemy> getActiveEnemies() {
         return activeEnemies;
     }
 
     public void dispose() {
-        for (DummyEnemy e : availableEnemies) {
+        for (BaseEnemy e : activeEnemies)
             e.dispose();
-        }
-        for (DummyEnemy e : activeEnemies) {
+        for (BaseEnemy e : dummyPool)
             e.dispose();
-        }
-        availableEnemies.clear();
-        activeEnemies.clear();
-        System.out.println("[EnemyPool] Pool disposed");
-    }
+        for (BaseEnemy e : fastPool)
+            e.dispose();
+        for (BaseEnemy e : tankPool)
+            e.dispose();
+        for (BaseEnemy e : rangedPool)
+            e.dispose();
 
-    public String getPoolStats() {
-        return String.format("EnemyPool - Active: %d, Available: %d, Total: %d",
-                activeEnemies.size,
-                availableEnemies.size,
-                activeEnemies.size + availableEnemies.size);
+        activeEnemies.clear();
+        dummyPool.clear();
+        fastPool.clear();
+        tankPool.clear();
+        rangedPool.clear();
     }
 }

@@ -2,7 +2,6 @@ package com.kelompok2.frontend.skills;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
@@ -51,7 +50,7 @@ public class ReturniousPullSkill extends BaseSkill {
         float minDst = Float.MAX_VALUE;
 
         // Check Dummy Enemies
-        for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+        for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemyPool.getActiveEnemies()) {
             if (enemy.isDead() || !enemy.isMarked())
                 continue;
 

@@ -153,10 +153,9 @@ public class GameFacade {
         // Update spawning (enemies and bosses)
         spawningSystem.update(delta);
 
-        // ✅ FIX: Only update entities if cinematic is NOT active
         if (!bossCinematicSystem.isCinematicActive()) {
             // Update enemies AI
-            for (com.kelompok2.frontend.entities.DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+            for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                 if (!enemy.isDead()) {
                     enemy.update(delta);
                 }
