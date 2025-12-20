@@ -226,6 +226,17 @@ public abstract class GameCharacter {
                 setPosition(pullTarget.x, pullTarget.y); // Snap to target
                 takeDamage(pullDamageOnArrival);
                 stun(pullStunOnArrival);
+
+                // Award XP if enemy died from pull damage (same pattern as
+                // FrozenApocalypseSkill)
+                if (isDead() && pullAttacker != null && this instanceof DummyEnemy) {
+                    pullAttacker.gainXp(((DummyEnemy) this).getXpReward());
+                    System.out.println(
+                            "[Returnious Pull] Killed enemy, granted " + ((DummyEnemy) this).getXpReward() + " XP!");
+                }
+
+                // Clear pull attacker reference
+                pullAttacker = null;
             } else {
                 // Move towards target
                 toTarget.nor();
@@ -258,12 +269,13 @@ public abstract class GameCharacter {
         return isMarked;
     }
 
-    public void pull(Vector2 target, float speed, float damage, float stunDuration) {
+    public void pull(Vector2 target, float speed, float damage, float stunDuration, GameCharacter attacker) {
         this.isBeingPulled = true;
         this.pullTarget = target;
         this.pullSpeed = speed;
         this.pullDamageOnArrival = damage;
         this.pullStunOnArrival = stunDuration;
+        this.pullAttacker = attacker;
 
         // Interrupt other states if reasonable
         clearFreeze();
@@ -279,6 +291,7 @@ public abstract class GameCharacter {
     protected float pullSpeed;
     protected float pullDamageOnArrival;
     protected float pullStunOnArrival;
+    protected GameCharacter pullAttacker;
 
     // Check bisa attack jika timer habis
     public boolean canAttack() {
