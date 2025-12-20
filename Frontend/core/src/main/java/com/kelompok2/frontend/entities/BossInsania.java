@@ -90,10 +90,10 @@ public class BossInsania extends Boss {
         setPosition(x, y);
 
         // Set attack strategy - melee with scratch animation (boss is aggressive)
-        this.attackStrategy = new MeleeAttackStrategy(100f, 70f, 1.5f, 0.5f); // Range, width, damage multiplier,
-                                                                              // duration
+        this.attackStrategy = new MeleeAttackStrategy(100f, 70f, 1.0f, 0.5f); // Range, width, damage multiplier
+                                                                              // (reduced from 1.5f), duration
         this.autoAttack = true;
-        this.attackCooldown = 1.0f; // ✅ FIX: Attack every 1 second (reduced from 1.5s)
+        this.attackCooldown = 1.0f; //
 
         System.out.println("[BossInsania] Created with level scaling: Level " + playerLevel +
                 ", HP: " + this.maxHp + ", ATK: " + this.atk);

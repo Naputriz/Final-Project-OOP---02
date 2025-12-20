@@ -36,6 +36,10 @@ public abstract class GameCharacter {
     protected float stunTimer = 0f;
     protected boolean isMarked = false; // Lumi's mark
     protected float markTimer = 0f;
+    // Balance Fix: Per-attacker hit cooldown (prevents same enemy from
+    // multi-hitting)
+    protected java.util.HashMap<GameCharacter, Float> attackerCooldowns = new java.util.HashMap<>();
+    protected static final float PER_ATTACKER_COOLDOWN = 0.2f; // 0.2 seconds per attacker
     protected float boundsOffsetX = 0;
     protected float boundsOffsetY = 0;
     protected int level;
@@ -229,6 +233,19 @@ public abstract class GameCharacter {
                 bounds.setPosition(position.x + boundsOffsetX, position.y + boundsOffsetY);
             }
         }
+
+        // Update per-attacker cooldowns
+        java.util.Iterator<java.util.Map.Entry<GameCharacter, Float>> iterator = attackerCooldowns.entrySet()
+                .iterator();
+        while (iterator.hasNext()) {
+            java.util.Map.Entry<GameCharacter, Float> entry = iterator.next();
+            float newCooldown = entry.getValue() - delta;
+            if (newCooldown <= 0) {
+                iterator.remove(); // Remove expired cooldowns
+            } else {
+                entry.setValue(newCooldown); // Update cooldown
+            }
+        }
     }
 
     // Mark status (for Lumi)
@@ -300,6 +317,12 @@ public abstract class GameCharacter {
     }
 
     public void takeDamage(float amount, GameCharacter attacker) {
+        // Balance Fix: Check per-attacker cooldown
+        if (attacker != null && attackerCooldowns.containsKey(attacker)) {
+            // This attacker hit us recently, ignore this hit
+            return;
+        }
+
         // Check for specific defensive skills
         if (secondarySkill != null) {
             if (secondarySkill instanceof WindDashSkill) {
@@ -322,6 +345,11 @@ public abstract class GameCharacter {
         // ✅ FIX: Break freeze when player hit (same as Boss behavior)
         if (isFrozen) {
             clearFreeze();
+        }
+
+        // Balance Fix: Add cooldown for this attacker
+        if (attacker != null) {
+            attackerCooldowns.put(attacker, PER_ATTACKER_COOLDOWN);
         }
     }
 

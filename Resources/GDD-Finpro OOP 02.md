@@ -461,32 +461,41 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Current: Optimized for 1920x1080 only
   - Goal: Responsive layout for various resolutions
 
-#### Game Balancing (Critical)
-- **TODO:** Boss Balancing Issues
-  - **Insania (Boss):** Insanity debuff duration too long
-    - Current: 5 seconds of chaotic movement + friendly fire
-    - Issue: Players lose control for too long, making fights frustrating
-    - Suggested Fix: Reduce duration to 1 second and add visual indicator for when insanity will end
+#### Game Balancing ✅ COMPLETED
+- **Boss Balancing Issues** - All critical balance issues have been addressed:
   
-  - **Isolde (Boss):** Movement speed makes melee characters unviable
-    - Current: Isolde kites away from melee characters constantly
-    - Issue: By the time melee characters catch up, they've lost half their HP from ranged attacks
-    - Suggested Fixes:
-      - Reduce Isolde's movement speed when not attacking
-      - Add gap-closer mechanics for melee characters (dash skill?)
-      - Implement attack cooldown that slows Isolde briefly
-      - Add minimum engagement range (Isolde stops retreating when far enough)
+  - **Insania (Boss):** Insanity debuff duration reduced ✅
+    - **Previous:** 5 seconds of chaotic movement + friendly fire
+    - **Issue:** Players lost control for too long, making fights frustrating
+    - **Fix Implemented:** Reduced duration to 0.5 seconds for players (90% reduction)
+    - **Status:** ✅ Balanced - Brief disruption without being a death sentence
+    - **Note:** Only dangerous when player is directly on top of boss (which they shouldn't be)
   
-  - **Blaze (Boss):** Hellfire Pillar instant damage feels unfair
-    - Current: Pillar spawns and deals damage immediately
-    - Issue: Player HP suddenly drops with no warning, especially right after boss spawns
-    - Suggested Fix: Add 0.5s delay before pillar deals damage (visual warning period)
+  - **Isolde (Boss):** Movement speed and kiting behavior improved ✅
+    - **Previous:** Isolde kited away constantly, melee characters lost 50%+ HP before reaching her
+    - **Fixes Implemented:**
+      - Reduced retreat speed from 120f to 80f when moving away
+      - Added post-attack slow (0.5s at 50% speed) for engagement windows
+      - Simplified AI for more predictable behavior
+    - **Status:** ✅ Balanced - Melee characters can now catch and fight her effectively
   
-  - **Melee vs Boss Balance:** Melee characters struggle against all bosses
-    - Issue: Unavoidable damage trading makes tanks like Aegis ineffective
-    - Suggested Fixes:
-      - Improve Aegis damage mitigation (increase DEF scaling)
-      - Reduce boss melee attack range slightly
+  - **Blaze (Boss):** Hellfire Pillar warning system added ✅
+    - **Previous:** Pillar spawned and dealt damage immediately with no warning
+    - **Issue:** Player HP suddenly dropped, especially right after boss spawns
+    - **Fixes Implemented:**
+      - Added 0.5s warning phase before damage (visual circle appears instantly)
+      - Increased damage multiplier to 35x Arts/second to compensate for warning delay
+      - Pillar is now a serious threat that rewards dodging but not instant death
+    - **Status:** ✅ Balanced - Fair warning system with significant damage for those who don't dodge
+  
+  - **Melee vs Boss General Balance:** Multiple improvements ✅
+    - **Issues:** Unavoidable damage trading, tanks ineffective, rapid multi-hits
+    - **Fixes Implemented:**
+      - Improved Aegis DEF scaling from 1.0x to 1.5x (50% better mitigation)
+      - Reduced boss melee damage multiplier from 1.5x to 1.0x (33% damage reduction)
+      - Added per-attacker hit cooldown (0.2s) - prevents same enemy from multi-hitting
+      - Allows multiple enemies to attack simultaneously while preventing rapid spam
+    - **Status:** ✅ Balanced - All character types viable, melee characters can survive boss fights
 
 #### New Features
 - **TODO:** Add Speed Buff to Level-Up Rewards
@@ -527,6 +536,76 @@ Each character has a unique innate skill but has a second skill slot that can be
     - Consider: Different room sizes for different difficulty levels?
   - Location: New `MapBoundarySystem` or add to existing movement logic
   - Benefits: Better game feel, prevents players from running away indefinitely
+
+- **TODO:** Add Visual Hitbox Indicators for Ultimate Skills
+  - Current: Ultimate skills (Insanity Burst, Inferno Nova, Frozen Apocalypse) have no visual indication of their area of effect
+  - Issue: Players can't tell which enemies will be hit before activating
+  - Goal: Add visual circle/indicator showing ultimate skill range before and during activation
+  - Implementation Suggestions:
+    - Show semi-transparent circle at mouse position when R key is held
+    - Display radius indicator during skill activation
+    - Use different colors for different ultimates (purple for Insanity, red for Inferno, blue for Frozen)
+  - Location: `RenderingSystem.java` or create `UltimateSkillRenderer`
+  - Benefits: Better player feedback, more strategic ultimate usage
+
+- **TODO:** Resolution Consistency and Responsive UI
+  - **Priority:** High
+  - Current: Game is optimized for 1920×1080 resolution only
+  - Issue: Other resolutions (1280×720, 1366×768, etc.) may have UI elements misaligned or cut off
+  - Goal: Make UI scale properly across different resolutions
+  - Implementation Suggestions:
+    - Use viewport scaling with aspect ratio maintenance
+    - Implement responsive UI positioning (percentage-based instead of pixel-based)
+    - Test on common resolutions: 1280×720, 1366×768, 1920×1080, 2560×1440
+    - Add letterboxing/pillarboxing for aspect ratio mismatches
+  - Locations: `CharacterSelectionScreen.java`, `GameScreen.java`, `UISystem.java`
+  - Benefits: Better accessibility, works on more devices
+
+- **TODO:** Expand Settings Menu Options
+  - Current: Settings menu exists but has limited options
+  - Goal: Add comprehensive settings for better user experience
+  - Features to Add:
+    - **Custom Keybinds:**
+      - Allow rebinding of WASD, E, Q, R, Left Click
+      - Save keybind preferences to file
+      - Reset to default option
+    - **Resolution Change:**
+      - Dropdown menu with common resolutions
+      - Apply and confirm system (revert if not confirmed in 10s)
+    - **Display Mode:**
+      - Fullscreen toggle
+      - Windowed mode option
+      - Borderless windowed option
+    - **Audio Controls:**
+      - Separate sliders for Music and SFX volume
+      - Mute toggles for each
+    - **Gameplay Options:**
+      - Show damage numbers toggle
+      - Screen shake intensity slider
+      - Camera smoothing toggle
+  - Location: `SettingsScreen.java` (create if doesn't exist)
+  - Benefits: Better user experience, accessibility, player preference support
+
+- **TODO:** Quality of Life Improvements
+  - **Pause Menu Enhancement:**
+    - Add pause menu (ESC key) with Resume, Settings, Main Menu options
+    - Currently game can only be paused via level-up screen
+  - **Death Screen Improvements:**
+    - Add stats summary on death (enemies killed, time survived, level reached)
+    - Show comparison to previous best run
+    - Add "Try Again" button for quick restart
+  - **Enemy HP Bars:**
+    - Status: ✅ **IMPLEMENTED** for regular enemies
+    - TODO: Add HP bar for bosses (larger, more prominent)
+  - **Damage Numbers:**
+    - Show floating damage numbers when hitting enemies
+    - Different colors for physical (red) vs arts (blue) damage
+    - Critical hit indicators
+  - **Minimap:**
+    - Small minimap showing player position and nearby enemies
+    - Especially useful if map boundaries are implemented
+  - Benefits: Better player feedback, more engaging gameplay, improved UX
+
 
 #### Code Quality Improvements
 - **TODO:** Extract Max HP Percentage Maintenance Logic

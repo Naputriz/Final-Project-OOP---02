@@ -12,7 +12,6 @@ public abstract class Boss extends GameCharacter {
     // Victory state
     protected boolean defeated = false; // This replaces the original 'isDefeated'
 
-    // ✅ FIX: Track Mind Fracture hits to prevent spam
     private long lastMindFractureHitId = -1;
 
     // Target untuk AI (player)
@@ -26,24 +25,32 @@ public abstract class Boss extends GameCharacter {
     }
 
     public abstract String getUltimateSkillName();
+
     public abstract Skill createUltimateSkill();
+
     public abstract void updateAI(float delta);
+
     public String getBossName() {
         return bossName;
     }
+
     public String getBossTitle() {
         return bossTitle;
     }
+
     public boolean isDefeated() {
         return defeated;
     }
+
     void markDefeated() {
         this.defeated = true;
         System.out.println("[Boss] " + bossName + " has been defeated!");
     }
+
     public GameCharacter getTarget() {
         return target;
     }
+
     @Override
     public void takeDamage(float damage) {
         super.takeDamage(damage);
@@ -96,13 +103,14 @@ public abstract class Boss extends GameCharacter {
 
     public void applyInsanity() {
         // Use GameCharacter's makeInsane method with duration
-        super.makeInsane(5.0f); // 5 seconds insanity
+        super.makeInsane(1.5f); // Reduced from 5.0f for better balance
         System.out.println("[Boss] " + bossName + " is now insane! ATK/Arts increased by 50%!");
     }
 
     public boolean wasHitByMindFracture(long activationId) {
         return lastMindFractureHitId == activationId;
     }
+
     public void markMindFractureHit(long activationId) {
         lastMindFractureHitId = activationId;
     }

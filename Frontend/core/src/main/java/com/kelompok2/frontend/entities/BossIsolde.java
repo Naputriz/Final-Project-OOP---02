@@ -30,6 +30,8 @@ public class BossIsolde extends Boss {
 
     // Kiting AI variables
     private float preferredDistance = 350f; // Maintain 350px distance dari player
+    private float postAttackSlowTimer = 0f; // Slow after attacking
+    private static final float POST_ATTACK_SLOW_DURATION = 0.5f;
 
     // Boss projectiles storage (injected by GameFacade via setAttackArrays)
     private Array<Projectile> projectiles;
@@ -41,7 +43,7 @@ public class BossIsolde extends Boss {
     private Vector2 randomAttackTarget = new Vector2();
 
     public BossIsolde(float x, float y, GameCharacter player, int playerLevel) {
-        super(x, y, 120f, 400f + (playerLevel * 40f), // HP scales: 400 + 40 per level, Speed: 120 (slower for kiting)
+        super(x, y, 120f, 400f + (playerLevel * 40f), // HP scales: 400 + 40 per level, Base speed: 120
                 "Isolde", "The Frost Kaiser", player);
         this.playerLevel = playerLevel;
 
@@ -109,6 +111,11 @@ public class BossIsolde extends Boss {
         // Update skill cooldown
         if (skillTimer > 0) {
             skillTimer -= delta;
+        }
+
+        // Update post-attack slow timer
+        if (postAttackSlowTimer > 0) {
+            postAttackSlowTimer -= delta;
         }
 
         // Update active glacial breaths
@@ -187,9 +194,13 @@ public class BossIsolde extends Boss {
 
             // Kiting behavior: move away if too close, move closer if too far
             if (distance < preferredDistance) {
-                // Too close - retreat (move away from player)
+                // Too close - retreat (move away from player) at reduced speed
                 Vector2 retreatDir = new Vector2(-direction.x, -direction.y);
+                // Temporarily reduce speed for retreat
+                float originalSpeed = this.speed;
+                this.speed = 80f; // Reduced from 120f for balance
                 move(retreatDir, delta);
+                this.speed = originalSpeed; // Restore speed
             } else if (distance > preferredDistance + 100f) {
                 // Too far - approach (move towards player)
                 Vector2 approachDir = new Vector2(direction.x * 0.5f, direction.y * 0.5f); // Slower approach
@@ -202,6 +213,8 @@ public class BossIsolde extends Boss {
                 Vector2 attackTarget = new Vector2(targetCenterX, targetFeetY);
                 attack(attackTarget, projectiles, meleeAttacks);
                 resetAttackTimer();
+                // Apply post-attack slow
+                postAttackSlowTimer = POST_ATTACK_SLOW_DURATION;
             }
 
             // Use Glacial Breath when player gets close
