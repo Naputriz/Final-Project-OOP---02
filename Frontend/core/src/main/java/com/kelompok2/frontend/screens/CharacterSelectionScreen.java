@@ -82,8 +82,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void initializeCharacters() {
         // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        characters = new CharacterInfo[8]; // Updated to 8 characters
+        characters = new CharacterInfo[9]; // Updated to 9 characters
 
         // Ryze - The Ghost of Insania
         Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
@@ -158,16 +157,16 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 1, 1, 1, 0.1f); // Stationary sprite (placeholder)
 
         // Aegis - The Impenetrable Shield
-        Texture aegisSprite = AssetManager.getInstance().loadTexture("AegisPlaceholder.png");
+        Texture aegisSprite = AssetManager.getInstance().loadTexture("Aegis/pcgp-aegis.png");
         characters[6] = new CharacterInfo(
                 "Aegis",
                 "The Impenetrable Shield",
                 150, 15, 10, 40, 170,
                 "Here, I shall stand!",
                 "Immobilized for 2s, blocks frontal damage\\nand reflects 50% damage back.\\nCooldown: 10s",
-                "AegisPlaceholder.png",
+                "Aegis/pcgp-aegis.png",
                 aegisSprite,
-                1, 1, 1, 0.1f);
+                2, 2, 4, 0.15f);
 
         // Lumi - The Pale Renegade
         Texture lumiSprite = AssetManager.getInstance().loadTexture("LumiPlaceholder.png");
@@ -180,6 +179,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 "LumiPlaceholder.png",
                 lumiSprite,
                 1, 1, 1, 0.1f);
+
+        // Alice - The Reckless Princess
+        Texture aliceSprite = AssetManager.getInstance().loadTexture("AlicePlaceholder.png");
+        characters[8] = new CharacterInfo(
+                "Alice",
+                "The Reckless Princess",
+                100, 40, 10, 10, 200,
+                "Feral Rush",
+                "Dashes forward rapidly and unleashes\n5x scratch attacks.\nCooldown: 5s",
+                "AlicePlaceholder.png",
+                aliceSprite,
+                1, 1, 1, 0.1f); // 1x1 grid (no animation)
     }
 
     @Override
@@ -199,12 +210,12 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         // PHASE 1: Render all shapes (backgrounds and borders)
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        // Portrait backgrounds - 3 column layout (2 per column)
+        // Portrait backgrounds - 3 column layout (3 per column now)
         for (int i = 0; i < characters.length; i++) {
             float x, y;
-            // Calculate column (0, 1, or 2) and row (0 or 1) for 3x2 grid
-            int col = i / 2; // 0,1->0 2,3->1 4,5->2
-            int row = i % 2; // 0,2,4->0 1,3,5->1
+            // Calculate column (0, 1, 2) and row (0, 1, 2) for 3x3 grid
+            int col = i / 3;
+            int row = i % 3;
 
             x = GRID_X + col * PORTRAIT_SPACING * 2;
             y = GRID_Y + (1 - row) * PORTRAIT_SPACING; // 1-row to invert (top first)
@@ -237,8 +248,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         // Portrait borders - 3 column layout
         for (int i = 0; i < characters.length; i++) {
             float x, y;
-            int col = i / 2;
-            int row = i % 2;
+            int col = i / 3;
+            int row = i % 3;
             x = GRID_X + col * PORTRAIT_SPACING * 2;
             y = GRID_Y + (1 - row) * PORTRAIT_SPACING;
             shapeRenderer.rect(x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
@@ -285,9 +296,9 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         CharacterInfo character = characters[index];
         float x, y;
 
-        // Calculate position based on 3x2 grid layout
-        int col = index / 2;
-        int row = index % 2;
+        // Calculate position based on 3x3 grid layout
+        int col = index / 3;
+        int row = index % 3;
         x = GRID_X + col * PORTRAIT_SPACING * 2;
         y = GRID_Y + (1 - row) * PORTRAIT_SPACING;
 
@@ -381,11 +392,11 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         float worldX = worldCoords.x;
         float worldY = worldCoords.y;
 
-        // Check hover over portraits - 3x2 grid layout
+        // Check hover over portraits - 3x3 grid layout
         for (int i = 0; i < characters.length; i++) {
             float x, y;
-            int col = i / 2;
-            int row = i % 2;
+            int col = i / 3;
+            int row = i % 3;
             x = GRID_X + col * PORTRAIT_SPACING * 2;
             y = GRID_Y + (1 - row) * PORTRAIT_SPACING;
 
