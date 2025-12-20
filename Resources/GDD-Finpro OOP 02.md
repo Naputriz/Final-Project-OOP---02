@@ -801,7 +801,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ---
 
-#### 4. Bug Fix: Lumi Pulling Unmarked Enemies
+#### 4. Bug Fix: Lumi Pulling Unmarked Enemies ✅ **COMPLETED**
 **Priority:** High
 **Description:** Lumi's Returnious Pull skill sometimes pulls enemies that are not currently marked.
 **Suspected Cause:** Object Pooling issue. Enemies returned to pool might retain their "marked" status. When respawned, they are treated as marked immediately.

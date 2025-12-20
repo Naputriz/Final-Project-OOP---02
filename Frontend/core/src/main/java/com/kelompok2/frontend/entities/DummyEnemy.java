@@ -101,6 +101,8 @@ public class DummyEnemy extends GameCharacter {
 
         // Reset insanity status (use parent's system)
         super.clearInsanity();
+
+        this.isMarked = false;
     }
 
     public void freeze() {
