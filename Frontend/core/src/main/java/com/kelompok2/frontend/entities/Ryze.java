@@ -134,11 +134,16 @@ public class Ryze extends GameCharacter {
 
     @Override
     public void takeDamage(float damage) {
+        takeDamage(damage, null);
+    }
+
+    @Override
+    public void takeDamage(float damage, GameCharacter attacker) {
         if (innateSkill.isSpectralActive()) {
             System.out.println("[Ryze] Attack passed through! (Spectral Body)");
             return; // Ignore damage completely
         }
-        super.takeDamage(damage);
+        super.takeDamage(damage, attacker);
     }
 
     public boolean isInvulnerable() {

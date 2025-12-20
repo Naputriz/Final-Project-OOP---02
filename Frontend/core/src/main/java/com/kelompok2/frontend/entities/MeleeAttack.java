@@ -58,6 +58,7 @@ public class MeleeAttack {
         this.appliesMark = appliesMark;
         this.isArts = isArts;
 
+
         loadAnimation();
     }
 

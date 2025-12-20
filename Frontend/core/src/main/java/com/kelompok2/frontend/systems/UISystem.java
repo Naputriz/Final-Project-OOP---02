@@ -179,8 +179,8 @@ public class UISystem {
         // Draw HUD (Fixed Screen Coordinates)
         drawHUD(camera, currentBoss);
 
-        drawUltimateMessage(camera);
-        drawGameTimer(camera);
+        drawUltimateMessage();
+        drawGameTimer();
     }
 
     private OrthographicCamera uiCamera;
@@ -203,13 +203,15 @@ public class UISystem {
         float screenW = uiCamera.viewportWidth;
         float screenH = uiCamera.viewportHeight;
 
+        float uiScale = screenH / 1080f;
+
         // HUD Anchors
         float hudLeft = 0; // Left edge
         float hudTop = screenH; // Top edge
         float hudCenterX = screenW / 2;
 
         // --- 0. XP Bar (Top Screen Edge, Full Width) ---
-        float xpBarHeight = 15;
+        float xpBarHeight = 15 * uiScale;
         float xpY = hudTop - xpBarHeight;
 
         // Use UI Camera for rendering
@@ -231,9 +233,9 @@ public class UISystem {
         batch.setProjectionMatrix(uiCamera.combined);
         batch.begin();
         Texture portrait = player.getTexture();
-        float portraitSize = 90;
-        float portraitX = hudLeft + 20;
-        float portraitY = xpY - 15 - portraitSize;
+        float portraitSize = 90 * uiScale;
+        float portraitX = hudLeft + (20 * uiScale);
+        float portraitY = xpY - (15 * uiScale) - portraitSize;
 
         if (portrait != null) {
             batch.draw(portrait, portraitX, portraitY, portraitSize, portraitSize);
@@ -247,9 +249,9 @@ public class UISystem {
         // Now Bars and Skills (Shapes)
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        float barsX = portraitX + portraitSize + 15;
-        float barWidth = 400;
-        float hpBarHeight = 30;
+        float barsX = portraitX + portraitSize + (15 * uiScale);
+        float barWidth = 400 * uiScale;
+        float hpBarHeight = 30 * uiScale;
 
         float hpY = portraitY + portraitSize - hpBarHeight;
 
@@ -266,9 +268,9 @@ public class UISystem {
         }
 
         // --- Skills (Under Portrait) ---
-        float skillY = portraitY - 50;
-        float skillSize = 50;
-        float skillGap = 10;
+        float skillY = portraitY - (50 * uiScale);
+        float skillSize = 50 * uiScale;
+        float skillGap = 10 * uiScale;
         float skillX = portraitX;
 
         // Innate
@@ -300,10 +302,11 @@ public class UISystem {
         }
 
         // --- Boss Health Bar (Top Center, Lowered) ---
-        float bossBarWidth = 600;
-        float bossBarHeight = 30;
+        float bossBarWidth = 600 * uiScale;
+        float bossBarHeight = 30 * uiScale;
+
         float bossX = hudCenterX - (bossBarWidth / 2);
-        float bossY = hudTop - 60 - xpBarHeight;
+        float bossY = hudTop - (60 * uiScale) - xpBarHeight;
 
         if (currentBoss != null && !currentBoss.isDead() && bossMaxHp > 0) {
             shapeRenderer.setColor(new Color(0.3f, 0, 0, 1f));
@@ -322,14 +325,14 @@ public class UISystem {
         // HP Text
         String hpText = (int) playerHp + " / " + (int) playerMaxHp;
         font.setColor(Color.WHITE);
-        font.getData().setScale(1.2f);
-        font.draw(batch, hpText, barsX + 15, hpY + 22);
-        font.getData().setScale(1.0f);
+        font.getData().setScale(1.2f * uiScale);
+        font.draw(batch, hpText, barsX + (15 * uiScale), hpY + (22 * uiScale));
+        font.getData().setScale(1.0f * uiScale);
 
         // Lv Text
         String lvText = "Lv." + playerLevel;
         font.setColor(Color.WHITE);
-        font.draw(batch, lvText, hudLeft + 10, xpY + xpBarHeight + 15);
+        font.draw(batch, lvText, hudLeft + (10 * uiScale), xpY + xpBarHeight + (15 * uiScale));
 
         // Boss Title & HP Text
         if (currentBoss != null && !currentBoss.isDead() && bossMaxHp > 0) {
@@ -337,15 +340,16 @@ public class UISystem {
             String bossTitle = currentBoss.getBossTitle();
             String fullTitle = bossName + " - " + bossTitle;
 
-            float bossBarY = hudTop - 60 - xpBarHeight;
+            float bossBarY = hudTop - (60 * uiScale) - xpBarHeight;
 
             // Title
+            bossFont.getData().setScale(2.0f * uiScale);
             GlyphLayout layout = new GlyphLayout(bossFont, fullTitle);
             float titleX = hudCenterX - (layout.width / 2);
-            float titleY = bossBarY + 50;
+            float titleY = bossBarY + (50 * uiScale);
 
             bossFont.setColor(0, 0, 0, 0.7f);
-            bossFont.draw(batch, fullTitle, titleX + 2, titleY - 2);
+            bossFont.draw(batch, fullTitle, titleX + (2 * uiScale), titleY - (2 * uiScale));
             bossFont.setColor(Color.GOLD);
             bossFont.draw(batch, fullTitle, titleX, titleY);
             bossFont.setColor(Color.WHITE);
@@ -354,7 +358,7 @@ public class UISystem {
             String bossHpString = (int) bossHp + " / " + (int) bossMaxHp;
             GlyphLayout hpLayout = new GlyphLayout(font, bossHpString);
             float hpX = hudCenterX - (hpLayout.width / 2);
-            float hpYText = bossBarY + 20;
+            float hpYText = bossBarY + (20 * uiScale);
 
             font.setColor(Color.WHITE);
             font.draw(batch, bossHpString, hpX, hpYText);
@@ -362,51 +366,68 @@ public class UISystem {
         batch.end();
     }
 
-    private void drawUltimateMessage(OrthographicCamera camera) {
+    private void drawUltimateMessage() {
+        if (uiCamera == null)
+            return;
+
+        float screenH = uiCamera.viewportHeight;
+        float uiScale = screenH / 1080f;
+
         if (ultimateMessageTimer > 0 && !ultimateMessage.isEmpty()) {
-            batch.setProjectionMatrix(camera.combined);
+            batch.setProjectionMatrix(uiCamera.combined);
             batch.begin();
             bossFont.setColor(Color.GOLD);
+            bossFont.getData().setScale(2.0f * uiScale);
 
             GlyphLayout layout = new GlyphLayout(bossFont, ultimateMessage);
-            float messageX = camera.position.x - (layout.width / 2f);
-            float messageY = camera.position.y + (camera.viewportHeight / 3f); // Top third of screen (approx)
+            float messageX = (uiCamera.viewportWidth - layout.width) / 2f;
+            float messageY = uiCamera.viewportHeight / 1.5f; // Middle-ish top
 
             bossFont.draw(batch, ultimateMessage, messageX, messageY);
             batch.end();
             bossFont.setColor(Color.WHITE);
+            bossFont.getData().setScale(1.0f); // Reset
         }
     }
 
-    private void drawGameTimer(OrthographicCamera camera) {
-        batch.setProjectionMatrix(camera.combined);
+    private void drawGameTimer() {
+        if (uiCamera == null)
+            return;
+
+        float screenH = uiCamera.viewportHeight;
+        float uiScale = screenH / 1080f;
+
+        batch.setProjectionMatrix(uiCamera.combined);
         batch.begin();
         int minutes = (int) (gameTimer / 60);
         int seconds = (int) (gameTimer % 60);
         String timerText = String.format("%02d:%02d", minutes, seconds);
+
+        bossFont.getData().setScale(2.0f * uiScale);
         GlyphLayout timerLayout = new GlyphLayout(bossFont, timerText);
 
-        float timerX = camera.position.x - (timerLayout.width / 2);
+        float timerX = (uiCamera.viewportWidth - timerLayout.width) / 2f;
 
         // Base Timer Y (Top Screen)
-        float hudTop = camera.position.y + (camera.viewportHeight / 2);
+        float hudTop = uiCamera.viewportHeight;
 
         // Default (without boss): slightly below top
-        float timerY = hudTop - 40;
+        float timerY = hudTop - (40 * uiScale);
 
         // If Boss is Active:
         // Boss Bar Y is approx hudTop - 50 - 12 (XP) ~= hudTop - 62
         // Boss Bar Height is 25. Bottom is hudTop - 87.
         // So Timer should be at hudTop - 100 or so.
         if (bossMaxHp > 0 && bossHp > 0) {
-            timerY = hudTop - 105;
+            timerY = hudTop - (105 * uiScale);
         }
 
         bossFont.setColor(0f, 0f, 0f, 0.8f);
-        bossFont.draw(batch, timerText, timerX + 2, timerY - 2);
+        bossFont.draw(batch, timerText, timerX + (2 * uiScale), timerY - (2 * uiScale));
         bossFont.setColor(Color.WHITE);
         bossFont.draw(batch, timerText, timerX, timerY);
         batch.end();
+        bossFont.getData().setScale(1.0f); // Reset
     }
 
     public void dispose() {

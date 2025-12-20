@@ -1,19 +1,22 @@
 package com.kelompok2.frontend.entities;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.kelompok2.frontend.skills.MindFractureSkill;
 import com.kelompok2.frontend.strategies.MeleeAttackStrategy;
-import com.kelompok2.frontend.managers.AssetManager;
 
 public class Insania extends GameCharacter {
 
-    // Animation system untuk spritesheet
-    private Animation<TextureRegion> idleAnimation;
+    // Animation state system (State Pattern)
+    private com.kelompok2.frontend.states.AnimationState currentState;
+    private com.kelompok2.frontend.states.AnimationState idleState;
+    private com.kelompok2.frontend.states.AnimationState runningState;
     private float stateTime; // Timer untuk tracking animation frame
+
+    // Velocity tracking untuk state transitions
+    private Vector2 previousPosition;
+    private boolean isMoving;
 
     // Skill
     private MindFractureSkill innateSkill;
@@ -29,35 +32,20 @@ public class Insania extends GameCharacter {
         // Initialize Skill
         this.innateSkill = new MindFractureSkill();
 
-        // Load spritesheet baru (4 frames, 2x2) melalui AssetManager
-        Texture spritesheet = AssetManager.getInstance().loadTexture("Insania/pcgp-insania-idle.png");
+        // Initialize animation states dengan State Pattern
+        // Idle: 4 frames in 2x2 grid
+        idleState = new com.kelompok2.frontend.states.IdleState("Insania/pcgp-insania-idle.png", 2, 2, 4, 0.15f);
+        // Running: 10 frames in 3x4 grid
+        runningState = new com.kelompok2.frontend.states.RunningState("Insania/pcgp-insania-run_1.png", 3, 4, 10, 0.1f);
 
-        // Split spritesheet menjadi individual frames (2 kolom x 2 baris = 4 frames)
-        int FRAME_COLS = 2;
-        int FRAME_ROWS = 2;
-        TextureRegion[][] tmp = TextureRegion.split(
-                spritesheet,
-                spritesheet.getWidth() / FRAME_COLS,
-                spritesheet.getHeight() / FRAME_ROWS);
-
-        // Convert 2D array ke 1D array untuk animation
-        TextureRegion[] idleFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
-        int index = 0;
-        for (int i = 0; i < FRAME_ROWS; i++) {
-            for (int j = 0; j < FRAME_COLS; j++) {
-                idleFrames[index++] = tmp[i][j];
-            }
-        }
-
-        // Buat idle animation (0.1 detik per frame = 10 FPS)
-        idleAnimation = new Animation<>(0.15f, idleFrames); // Slightly slower for 4 frames
-        idleAnimation.setPlayMode(Animation.PlayMode.LOOP);
-
-        // Initialize state time
+        // Start dengan idle state
+        currentState = idleState;
+        currentState.enter(this);
         stateTime = 0f;
 
-        // Set texture ke spritesheet untuk bounds calculation
-        this.texture = spritesheet;
+        // Initialize movement tracking
+        previousPosition = new Vector2(x, y);
+        isMoving = false;
 
         // Ukuran visual dan hitbox
         float visualSize = 128f;
@@ -92,12 +80,41 @@ public class Insania extends GameCharacter {
         super.update(delta);
         stateTime += delta;
         innateSkill.update(delta);
+
+        // Check movement untuk state transition
+        checkMovementState();
+
+        // Update current state
+        currentState.update(this, delta);
+    }
+
+    private void checkMovementState() {
+        // Bandingkan posisi sekarang dengan posisi sebelumnya
+        isMoving = !position.epsilonEquals(previousPosition, 0.1f);
+
+        // Transition states
+        if (isMoving && currentState == idleState) {
+            // Idle -> Running
+            currentState.exit(this);
+            currentState = runningState;
+            currentState.enter(this);
+            stateTime = 0f; // Reset animation time
+        } else if (!isMoving && currentState == runningState) {
+            // Running -> Idle
+            currentState.exit(this);
+            currentState = idleState;
+            currentState.enter(this);
+            stateTime = 0f; // Reset animation time
+        }
+
+        // Update previous position
+        previousPosition.set(position);
     }
 
     @Override
     public void render(SpriteBatch batch) {
         // Get frame saat ini dari animation
-        TextureRegion currentFrame = idleAnimation.getKeyFrame(stateTime);
+        TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
         // Hitung posisi render
         float renderX = position.x;
