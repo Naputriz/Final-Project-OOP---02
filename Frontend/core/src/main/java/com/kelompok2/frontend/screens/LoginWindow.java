@@ -110,14 +110,23 @@ public class LoginWindow extends Window {
 
         // --- Bottom Navigation ---
         Table bottomTable = new Table();
+        // bottomTable.setDebug(true); // Hapus komentar ini jika ingin melihat garis bantu
+
         String switchText = isRegisterMode ? "Sudah punya akun? Login" : "Belum punya akun? Daftar";
         switchModeLink = new TextButton(switchText, linkStyle);
         guestLink = new TextButton("Masuk sebagai Tamu", linkStyle);
 
-        bottomTable.add(switchModeLink).padRight(20);
-        bottomTable.add(guestLink);
+        // Logic Layout:
+        // 1. Tambahkan Link Kiri -> Align Left -> expandX() agar mendorong ke kiri
+        // 2. Tambahkan Link Kanan -> Align Right -> expandX() agar mendorong ke kanan
+        // 3. Beri padLeft dan padRight yang sama agar jarak ke dinding window seimbang
 
-        add(bottomTable).bottom().right().pad(20);
+        bottomTable.add(switchModeLink).left().expandX().padLeft(20);
+        bottomTable.add(guestLink).right().expandX().padRight(20);
+
+        // Masukkan bottomTable ke Window
+        // growX() agar tabel bawah melebar memenuhi lebar window
+        add(bottomTable).growX().bottom().padBottom(20);
 
         // --- Listeners ---
         actionButton.addListener(new ClickListener() {
