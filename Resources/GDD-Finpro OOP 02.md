@@ -424,6 +424,8 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Fireball: Ketika Blaze memilih skill ini, fireball dapat damage tambahan
   - Ice Shield: Ketika Isolde memilih skill ini, musuh yang nyerang kena damage
   - Wind Dash: Ketika Whisperwind memilih skill ini, deal damage + knockback di area teleport
+  - **Healing Wave:** Ketika Aelita memilih skill ini, heals 20% instead of 10%
+  - **Blade Fury:** Ketika Ryze memilih skill ini, attacks 10 times instead of 5
 
 #### Character System Scalability
 - ~~**TODO:** Extract CharacterInfo as separate class~~ **(DONE)** ✅
@@ -449,10 +451,14 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Implementation: HTTP POST request to backend API
 
 #### Enemy System Expansion
-- **TODO:** Support multiple enemy types beyond DummyEnemy
-  - Location: `EnemyFactory.java`
-  - Current: Only DummyEnemy implemented
-  - Planned: FastEnemy, TankEnemy, RangedEnemy
+- ~~**TODO:** Support multiple enemy types beyond DummyEnemy~~ ✅ **COMPLETED**
+  - Location: `EnemyFactory.java`, `EnemyPool.java`, `BaseEnemy.java`
+  - Current: Full polymorphism implemented with `BaseEnemy`
+  - Implemented Types:
+    - **DummyEnemy:** Basic chaser (Red)
+    - **FastEnemy:** High speed, low HP (Yellow)
+    - **TankEnemy:** High HP, slow speed, large size (Green)
+    - **RangedEnemy:** Ranged attacks, kiting behavior (Orange)
   - Bosses: Insania, Blaze, Isolde already added as playable ccharacters, implement as boss next
 
 #### UI Responsiveness
@@ -497,6 +503,11 @@ Each character has a unique innate skill but has a second skill slot that can be
       - Allows multiple enemies to attack simultaneously while preventing rapid spam
     - **Status:** ✅ Balanced - All character types viable, melee characters can survive boss fights
 
+  - **Enemy Level Scaling Tuned** ✅
+    - **Issue:** Enemies became "bullet sponges" too quickly at higher levels.
+    - **Adjustment:** Reduced stat scaling (HP/ATK) from 10% to **3% per level**.
+    - **Result:** Smoother difficulty curve allowing for longer runs without enemies becoming unkillable.
+
 #### New Features
 - ~~**TODO:** Add Speed Buff to Level-Up Rewards~~ ✅ **COMPLETED**
   - Added `IncreaseSpeedEffect` (+10% speed).
@@ -532,6 +543,15 @@ Each character has a unique innate skill but has a second skill slot that can be
     - Use different colors for different ultimates (purple for Insanity, red for Inferno, blue for Frozen)
   - Location: `RenderingSystem.java` or create `UltimateSkillRenderer`
   - Benefits: Better player feedback, more strategic ultimate usage
+
+- **TODO:** Create Dedicated Sprites for New Enemy Types
+  - **Priority:** Medium
+  - Current: `FastEnemy` (Yellow), `TankEnemy` (Green), `RangedEnemy` (Orange) use tinted `DummyEnemy` sprites.
+  - Goal: Create unique sprite assets for each enemy variant.
+    - Fast: Sleek, agile design.
+    - Tank: Bulky, armored design.
+    - Ranged: Archer/Caster design.
+  - location: `assets/Enemies/`
 
 - **TODO:** Background Asset Search
   - **Priority:** High
@@ -616,10 +636,30 @@ Each character has a unique innate skill but has a second skill slot that can be
     - **Ranged:** Add small AoE to basic attacks or increase projectile size?
     - **Bosses:** Add specific mechanics to counter kiting (e.g., gap closers).
 
-- **TODO:** Ultimate Skill QoL - Cancellation
+- **TODO:** Ultimate Skill QoL - Cancellation ✅ **COMPLETED**
   - **Issue:** One-time use ultimates can be wasted if accidentally pressed or if targets move.
   - **Goal:** Allow canceling the "Preview Mode" without firing.
   - **Implementation:** Right-click to cancel while holding 'R'.
+
+#### 🐛 Bug Fixes (High Priority)
+- **TODO:** Fix Ryze's Spectral Body Skill
+  - **Issue:** Skill activates but player still takes damage (Invincibility not working).
+  - **Goal:** Ensure player is truly immune to damage for 3 seconds.
+
+- **TODO:** Fix Pause Screen Transitions
+  - **Issue:** Quickly pausing/unpausing may cause unexpected screen switches (Main Menu, Restart).
+  - **Goal:** Stabilize the state transition logic in `PauseScreen`.
+
+- **TODO:** Fix Camera Shift on Alt-Tab/Pause
+  - **Issue:** Camera moves away when window loses focus or game is paused, requiring manual correction.
+  - **Goal:** Ensure camera position is saved/restored or locked to player during these events.
+
+- **TODO:** Suggestion: Visual Polish
+  - **Goal:** Enhance game feel.
+  - **Ideas:**
+    - **Screen Shake:** Add slight shake on heavy hits or crits.
+    - **Hit Flash:** Flash enemy sprite white when damaged.
+    - **Damage Log:** (Optional) Text log of combat for debugging/clarity.
 
 #### UI System Improvements
 - **TODO:** Implement Observer Pattern for UI Bars ✅ **COMPLETED**
@@ -651,7 +691,16 @@ Each character has a unique innate skill but has a second skill slot that can be
     - `ProjectileCollisionHandler` - Projectile collision detection
     - `SkillCollisionHandler` - Skill-specific collision (AoE, zones, etc.)
     - `CollisionSystem` - Coordinates all collision handlers
+    - `SkillCollisionHandler` - Skill-specific collision (AoE, zones, etc.)
+    - `CollisionSystem` - Coordinates all collision handlers
   - Benefits: Excellent separation of concerns, highly maintainable
+
+- ~~**TODO:** Refactor Enemy System to Polymorphism~~ ✅ **FULLY IMPLEMENTED**
+  - Created `BaseEnemy` abstract class extending `GameCharacter`.
+  - Refactored `DummyEnemy`, `FastEnemy`, `TankEnemy`, `RangedEnemy` to extend `BaseEnemy`.
+  - Updated `EnemyPool` to manage strictly typed pools for each enemy variant.
+  - Updated `EnemyFactory` to spawn enemies based on Probability Distribution at current level.
+  - Benefits: EASILY extensible enemy roster, centralized AI logic.
 
 ### 📋 Pending Features (From Original GDD)
 
@@ -718,8 +767,8 @@ Each character has a unique innate skill but has a second skill slot that can be
     *   **`CharacterFactory`:** Centralizes player character creation. Replaces complex `switch-case` logic in `GameScreen`.
     *   **`EnemyFactory`:** (Planned/Implicit) Spawning logic creates specific enemy types based on level.
 *   **Object Pool:**
-    *   **`ProjectilePool`:** Reuses `Projectile` objects.
-    *   **`EnemyPool`:** Reuses `DummyEnemy` objects.
+      - **`ProjectilePool`:** Reuses `Projectile` objects.
+    - **`EnemyPool`:** Reuses `BaseEnemy` objects (Maintains separate pools for Dummy, Fast, Tank, Ranged).
 *   **Why:**
     *   **Factory:** Decouples object creation from usage. Adding a new character doesn't break the game loop codebase.
     *   **Pool:** Eliminates lag spikes from Garbage Collection by reusing memory instead of constantly creating/destroying thousands of bullets/enemies.

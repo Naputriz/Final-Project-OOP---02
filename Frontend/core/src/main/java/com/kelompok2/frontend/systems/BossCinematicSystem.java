@@ -2,7 +2,6 @@ package com.kelompok2.frontend.systems;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector2;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.managers.AudioManager;
 import com.kelompok2.frontend.pools.EnemyPool;
@@ -56,7 +55,7 @@ public class BossCinematicSystem {
         player.freeze(CAMERA_PAN_DURATION);
 
         // Freeze all enemies during camera pan (for full duration)
-        for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+        for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemyPool.getActiveEnemies()) {
             enemy.freeze(CAMERA_PAN_DURATION);
         }
 
@@ -114,7 +113,7 @@ public class BossCinematicSystem {
 
             // Explicitly unfreeze all entities to prevent lingering freeze effects
             player.clearFreeze();
-            for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+            for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                 enemy.setFrozen(false); // Force unfreeze
             }
 

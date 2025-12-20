@@ -355,6 +355,17 @@ public abstract class GameCharacter {
         bounds.setPosition(position.x + boundsOffsetX, position.y + boundsOffsetY);
     }
 
+    // Flag to distinguish player characters from enemies
+    protected boolean isPlayerCharacter = true;
+
+    public void setIsPlayerCharacter(boolean isPlayer) {
+        this.isPlayerCharacter = isPlayer;
+    }
+
+    public boolean isPlayerCharacter() {
+        return isPlayerCharacter;
+    }
+
     public void takeDamage(float amount) {
         takeDamage(amount, null);
     }
@@ -373,12 +384,17 @@ public abstract class GameCharacter {
 
         // If damage is negated (0 or less), return early
         if (amount <= 0) {
+            // Check if it was negated by a player shield (Aegis), we satisfied visual
+            // feedback in Aegis.java via prints/reflect
             return;
         }
 
+        float oldHp = this.hp;
         hp -= amount;
         if (hp < 0)
             hp = 0;
+
+        float actualDamage = oldHp - this.hp;
 
         if (isFrozen) {
             clearFreeze();
@@ -389,8 +405,15 @@ public abstract class GameCharacter {
             attackerCooldowns.put(attacker, PER_ATTACKER_COOLDOWN);
         }
 
-        // Publish HealthChangedEvent
+        // Publish Events
+        // 1. HealthChangedEvent (UI Update)
         GameEventManager.getInstance().publish(new HealthChangedEvent(this, this.hp, this.maxHp));
+
+        // 2. PlayerDamagedEvent (Damage Number - only for players)
+        if (isPlayerCharacter && actualDamage > 0) {
+            GameEventManager.getInstance()
+                    .publish(new com.kelompok2.frontend.events.PlayerDamagedEvent(this, actualDamage, this.hp));
+        }
     }
 
     public void heal(float amount) {

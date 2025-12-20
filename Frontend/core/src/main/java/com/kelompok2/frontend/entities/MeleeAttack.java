@@ -27,16 +27,24 @@ public class MeleeAttack {
     // Damage tracking -mencegah hit multiple kali
     private HashSet<GameCharacter> hitEnemies;
 
+    // Damage Type
+    private boolean isArts;
+
     // Lumi's Mark
-    private boolean appliesMark = false;
+    private boolean appliesMark;
 
     public MeleeAttack(float x, float y, float width, float height, float damage, float duration, String animationType,
             float rotationAngle) {
-        this(x, y, width, height, damage, duration, animationType, rotationAngle, false);
+        this(x, y, width, height, damage, duration, animationType, rotationAngle, false, false);
     }
 
     public MeleeAttack(float x, float y, float width, float height, float damage, float duration, String animationType,
             float rotationAngle, boolean appliesMark) {
+        this(x, y, width, height, damage, duration, animationType, rotationAngle, appliesMark, false);
+    }
+
+    public MeleeAttack(float x, float y, float width, float height, float damage, float duration, String animationType,
+            float rotationAngle, boolean appliesMark, boolean isArts) {
         this.position = new Vector2(x, y);
         this.bounds = new Rectangle(x, y, width, height);
         this.damage = damage;
@@ -48,6 +56,7 @@ public class MeleeAttack {
         this.animationTime = 0;
         this.hitEnemies = new HashSet<>();
         this.appliesMark = appliesMark;
+        this.isArts = isArts;
 
         loadAnimation();
     }
@@ -181,5 +190,13 @@ public class MeleeAttack {
 
     public void setAppliesMark(boolean appliesMark) {
         this.appliesMark = appliesMark;
+    }
+
+    public boolean isArts() {
+        return isArts;
+    }
+
+    public void setArts(boolean arts) {
+        isArts = arts;
     }
 }

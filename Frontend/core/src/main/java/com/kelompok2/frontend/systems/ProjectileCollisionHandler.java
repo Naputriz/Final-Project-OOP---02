@@ -2,8 +2,8 @@ package com.kelompok2.frontend.systems;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.entities.BaseEnemy;
 import com.kelompok2.frontend.entities.Boss;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.events.EnemyKilledEvent;
@@ -35,7 +35,7 @@ public class ProjectileCollisionHandler {
 
             Rectangle projBounds = projectile.getBounds();
 
-            for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+            for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                 if (enemy.isDead())
                     continue;
 
@@ -47,6 +47,8 @@ public class ProjectileCollisionHandler {
                     }
                     enemy.takeDamage(damage);
                     projectile.active = false;
+                    eventManager.publish(
+                            new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, projectile.isArts()));
 
                     if (enemy.isDead()) {
                         handleEnemyKilled(enemy);
@@ -63,8 +65,11 @@ public class ProjectileCollisionHandler {
                 continue;
 
             if (projectile.getBounds().overlaps(boss.getBounds())) {
-                boss.takeDamage(projectile.getDamage());
+                float damage = projectile.getDamage();
+                boss.takeDamage(damage);
                 projectile.active = false;
+                eventManager.publish(
+                        new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, damage, projectile.isArts()));
                 System.out.println("[Collision] Boss hit! HP: " + boss.getHp() + "/" + boss.getMaxHp());
                 break;
             }
@@ -87,7 +92,7 @@ public class ProjectileCollisionHandler {
         }
     }
 
-    private void handleEnemyKilled(DummyEnemy enemy) {
+    private void handleEnemyKilled(BaseEnemy enemy) {
         float xpGain = enemy.getXpReward();
         player.gainXp(xpGain);
         eventManager.publish(new EnemyKilledEvent(enemy, player, xpGain));

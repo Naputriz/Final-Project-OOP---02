@@ -2,7 +2,6 @@ package com.kelompok2.frontend.skills;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
@@ -51,7 +50,7 @@ public class ReturniousPullSkill extends BaseSkill {
         float minDst = Float.MAX_VALUE;
 
         // Check Dummy Enemies
-        for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+        for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemyPool.getActiveEnemies()) {
             if (enemy.isDead() || !enemy.isMarked())
                 continue;
 
@@ -94,6 +93,16 @@ public class ReturniousPullSkill extends BaseSkill {
             // Use the new Pull Mechanic
             // Speed 1200f -> Fast pull (almost instant but travels)
             nearestMarkedEnemy.pull(pullPos, 1200f, damage, 1.0f, user);
+
+            // Publish Damage Event
+            if (gameFacade != null) {
+                gameFacade.getEventManager().publish(
+                        new com.kelompok2.frontend.events.EnemyDamagedEvent(nearestMarkedEnemy, damage, false) // False
+                                                                                                               // for
+                                                                                                               // Physical
+                                                                                                               // (White)
+                );
+            }
 
             // Visual effect or log
             System.out.println("[Lumi] Pulling marked enemy: " + nearestMarkedEnemy.getClass().getSimpleName());

@@ -1,12 +1,12 @@
 package com.kelompok2.frontend.systems;
 
+import com.kelompok2.frontend.entities.BaseEnemy;
 import com.kelompok2.frontend.entities.Boss;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.events.EnemyKilledEvent;
-import com.kelompok2.frontend.events.PlayerDamagedEvent;
 import com.kelompok2.frontend.managers.GameEventManager;
+// import com.kelompok2.frontend.events.PlayerDamagedEvent; // Handled in GameCharacter
 import com.kelompok2.frontend.pools.EnemyPool;
 
 public class SkillCollisionHandler {
@@ -34,7 +34,7 @@ public class SkillCollisionHandler {
                 if (!gb.isActive())
                     continue;
 
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                     if (enemy.isDead())
                         continue;
 
@@ -42,6 +42,8 @@ public class SkillCollisionHandler {
                         enemy.takeDamage(gb.getDamage());
                         enemy.freeze();
                         gb.markAsHit(enemy);
+                        eventManager.publish(
+                                new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, gb.getDamage(), true));
 
                         if (enemy.isDead())
                             handleEnemyKilled(enemy);
@@ -60,7 +62,7 @@ public class SkillCollisionHandler {
                         blaze.getPillarRadius() * 2,
                         blaze.getPillarRadius() * 2);
 
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                     if (enemy.isDead())
                         continue;
 
@@ -68,6 +70,12 @@ public class SkillCollisionHandler {
                         float damagePerSecond = blaze.getArts() * 1.25f;
                         float damage = damagePerSecond * currentDelta;
                         enemy.takeDamage(damage);
+                        // Publish event effectively for DoT, relying on small numbers accumulating
+                        // visually or just showing small numbers
+                        if (damage > 0.1f) { // Lower threshold to 0.1 to catch smaller ticks
+                            eventManager
+                                    .publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, true));
+                        }
 
                         if (enemy.isDead())
                             handleEnemyKilled(enemy);
@@ -83,7 +91,7 @@ public class SkillCollisionHandler {
                 if (!hurricane.active)
                     continue;
 
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                     if (enemy.isDead())
                         continue;
 
@@ -91,6 +99,8 @@ public class SkillCollisionHandler {
                         enemy.takeDamage(hurricane.getDamage());
                         enemy.stun(3.0f);
                         hurricane.active = false;
+                        eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy,
+                                hurricane.getDamage(), true));
 
                         if (enemy.isDead())
                             handleEnemyKilled(enemy);
@@ -109,7 +119,7 @@ public class SkillCollisionHandler {
                 float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
                 float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
 
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                     if (enemy.isDead())
                         continue;
                     if (enemy.wasHitByMindFracture(activationId))
@@ -126,6 +136,7 @@ public class SkillCollisionHandler {
                         enemy.makeInsane(1.5f);
                         enemy.takeDamage(damage);
                         enemy.markMindFractureHit(activationId);
+                        eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, true));
 
                         if (enemy.isDead())
                             handleEnemyKilled(enemy);
@@ -146,6 +157,8 @@ public class SkillCollisionHandler {
                     boss.takeDamage(gb.getDamage());
                     boss.freeze();
                     gb.markAsHit(boss);
+                    eventManager
+                            .publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, gb.getDamage(), true));
                 }
             }
         }
@@ -164,6 +177,9 @@ public class SkillCollisionHandler {
                     float damagePerSecond = blaze.getArts() * 1.25f;
                     float damage = damagePerSecond * currentDelta;
                     boss.takeDamage(damage);
+                    if (damage > 1) {
+                        eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, damage, true));
+                    }
                 }
             }
         }
@@ -178,6 +194,8 @@ public class SkillCollisionHandler {
                     boss.takeDamage(hurricane.getDamage());
                     boss.stun(3.0f);
                     hurricane.active = false;
+                    eventManager.publish(
+                            new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, hurricane.getDamage(), true));
                     break;
                 }
             }
@@ -204,6 +222,7 @@ public class SkillCollisionHandler {
                         boss.applyInsanity();
                         boss.takeDamage(damage);
                         boss.markMindFractureHit(activationId);
+                        eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, damage, true));
                     }
                 }
             }
@@ -222,10 +241,12 @@ public class SkillCollisionHandler {
                         bossBlaze.getPillarRadius() * 2);
 
                 if (pillarBounds.overlaps(player.getBounds())) {
-                    float damagePerSecond = bossBlaze.getArts() * 35.0f; // Increased to compensate for 0.5s warning delay
+                    float damagePerSecond = bossBlaze.getArts() * 35.0f; // Increased to compensate for 0.5s warning
+                                                                         // delay
                     float damage = damagePerSecond * currentDelta;
                     player.takeDamage(damage, boss);
-                    eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                    // eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                    // // HANDLED IN GameCharacter
                 }
             }
         }
@@ -242,7 +263,8 @@ public class SkillCollisionHandler {
                     player.takeDamage(damage, boss);
                     player.freeze(3.0f);
                     gb.markAsHit(player);
-                    eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                    // eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                    // // HANDLED IN GameCharacter
                 }
             }
         }
@@ -268,7 +290,8 @@ public class SkillCollisionHandler {
                         float damage = boss.getArts() * 0.75f;
                         player.takeDamage(damage, boss);
                         player.makeInsane(0.5f);
-                        eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                        // eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                        // // HANDLED IN GameCharacter
                         lastMindFractureHitOnPlayer = activationId;
                     }
                 }
@@ -276,7 +299,7 @@ public class SkillCollisionHandler {
         }
     }
 
-    private void handleEnemyKilled(DummyEnemy enemy) {
+    private void handleEnemyKilled(BaseEnemy enemy) {
         float xpGain = enemy.getXpReward();
         player.gainXp(xpGain);
         eventManager.publish(new EnemyKilledEvent(enemy, player, xpGain));

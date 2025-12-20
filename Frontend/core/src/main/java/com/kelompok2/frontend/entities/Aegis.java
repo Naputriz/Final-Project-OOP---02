@@ -126,6 +126,17 @@ public class Aegis extends GameCharacter {
                 if (attacker != null) {
                     float reflectDamage = damage * 0.5f; // 50% reflection
                     attacker.takeDamage(reflectDamage);
+
+                    // Publish damage event (assuming attacker is BaseEnemy or Boss)
+                    if (attacker instanceof com.kelompok2.frontend.entities.BaseEnemy
+                            || attacker instanceof com.kelompok2.frontend.entities.Boss) {
+                        com.kelompok2.frontend.managers.GameEventManager.getInstance().publish(
+                                new com.kelompok2.frontend.events.EnemyDamagedEvent(
+                                        (com.kelompok2.frontend.entities.GameCharacter) attacker, reflectDamage, false) // Physical
+                                                                                                                        // reflection?
+                        );
+                    }
+
                     System.out.println(
                             "[Aegis] REFLECTED " + reflectDamage + " damage to " + attacker.getClass().getSimpleName());
                 }

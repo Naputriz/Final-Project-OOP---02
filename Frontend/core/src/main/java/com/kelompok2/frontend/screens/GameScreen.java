@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.factories.CharacterFactory;
@@ -56,7 +55,6 @@ public class GameScreen extends ScreenAdapter {
 
         // Initialize pools
         projectilePool = new ProjectilePool(50);
-
 
         float mapW = com.kelompok2.frontend.systems.MapBoundarySystem.getMapWidth();
         float mapH = com.kelompok2.frontend.systems.MapBoundarySystem.getMapHeight();
@@ -141,7 +139,7 @@ public class GameScreen extends ScreenAdapter {
         // NOTE: Enemy updates moved to GameFacade to prevent double-updating
 
         for (int i = enemyPool.getActiveEnemies().size - 1; i >= 0; i--) {
-            com.kelompok2.frontend.entities.DummyEnemy enemy = enemyPool.getActiveEnemies().get(i);
+            com.kelompok2.frontend.entities.BaseEnemy enemy = enemyPool.getActiveEnemies().get(i);
             if (enemy.isDead()) {
                 enemyPool.free(enemy);
                 System.out.println("[GameScreen] Removed dead enemy from pool");

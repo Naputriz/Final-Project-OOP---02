@@ -149,6 +149,17 @@ public class Projectile {
         return isFireball;
     }
 
+    // Damage Type
+    private boolean isArts = true; // Default to true for projectiles as most are Arts
+
+    public boolean isArts() {
+        return isArts;
+    }
+
+    public void setArts(boolean arts) {
+        isArts = arts;
+    }
+
     public void dispose() {
         texture.dispose();
     }

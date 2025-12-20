@@ -22,6 +22,7 @@ public abstract class Boss extends GameCharacter {
         this.bossName = bossName;
         this.bossTitle = bossTitle;
         this.target = target;
+        this.isPlayerCharacter = false; // Mark as boss (enemy)
     }
 
     public abstract String getUltimateSkillName();
