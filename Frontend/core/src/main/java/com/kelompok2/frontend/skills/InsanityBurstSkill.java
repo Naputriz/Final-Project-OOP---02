@@ -38,13 +38,13 @@ public class InsanityBurstSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
         if (enemies == null) {
             System.out.println("[Insanity Burst] No enemies array set!");
-            return;
+            return false;
         }
 
         // Calculate center position (around user)
@@ -99,6 +99,7 @@ public class InsanityBurstSkill extends BaseSkill {
 
         System.out.println("[ULTIMATE] Insanity Burst! Affected " + affectedCount +
                 " enemies with " + damage + " damage each!");
+        return true;
     }
 
     @Override

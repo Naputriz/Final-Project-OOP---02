@@ -22,6 +22,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.managers.AudioManager;
+import com.kelompok2.frontend.ui.SettingsWindow;
 
 public class MainMenuScreen extends ScreenAdapter {
     private final Main game;
@@ -42,6 +43,7 @@ public class MainMenuScreen extends ScreenAdapter {
     private SelectBox<String> sortFilterBox;
     private Table leaderboardContentTable;
     private Table filterTable;
+
     public MainMenuScreen(Main game) {
         this.game = game;
     }
@@ -60,8 +62,8 @@ public class MainMenuScreen extends ScreenAdapter {
         Texture accountIconTex = AssetManager.getInstance().loadTexture("settings_akun.png");
 
         AudioManager.getInstance().playMusic(
-            "Audio/helmet_-_tales_of_the_helmets_knight_-_01_start_screen_theme_-_prelude (Start or main menu).wav",
-            true);
+                "Audio/helmet_-_tales_of_the_helmets_knight_-_01_start_screen_theme_-_prelude (Start or main menu).wav",
+                true);
 
         // --- TABLE TENGAH ---
         Table centerTable = new Table();
@@ -111,7 +113,12 @@ public class MainMenuScreen extends ScreenAdapter {
                 }
             }
         });
-        exitButton.addListener(new ClickListener() { @Override public void clicked(InputEvent event, float x, float y) { Gdx.app.exit(); }});
+        exitButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.exit();
+            }
+        });
         leaderboardBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -138,7 +145,9 @@ public class MainMenuScreen extends ScreenAdapter {
             }
         });
 
-        createSettingsWindow();
+        settingsWindow = new SettingsWindow(skin);
+        stage.addActor(settingsWindow);
+
         createLeaderboardWindow();
         createAccountWindow();
 
@@ -159,7 +168,8 @@ public class MainMenuScreen extends ScreenAdapter {
             @Override
             public void run() {
                 System.out.println("User Logged In: " + game.getPlayerName());
-                if(accountWindow != null) accountWindow.setVisible(false);
+                if (accountWindow != null)
+                    accountWindow.setVisible(false);
                 activeLoginWindow = null; // Clear referensi saat login sukses/window tutup
             }
         });
@@ -226,57 +236,8 @@ public class MainMenuScreen extends ScreenAdapter {
 
     private void updateAccountInfo() {
         Label l = accountWindow.findActor("lblUsername");
-        if (l != null) l.setText("User: " + game.getPlayerName());
-    }
-
-    // --- METHOD DIPERBAIKI: SETTINGS WINDOW (Menggunakan Align.center) ---
-    private void createSettingsWindow() {
-        settingsWindow = new Window("Pengaturan", skin);
-        settingsWindow.setModal(true);
-        settingsWindow.setMovable(true);
-        settingsWindow.setVisible(false);
-        settingsWindow.setSize(450, 250);
-        // Posisi awal (nanti dihandle resize juga)
-        settingsWindow.setPosition(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, Align.center);
-
-        // music
-        final Label musicLabel = new Label("Musik: " + (int)(AudioManager.getInstance().getMusicVolume() * 100) + "%", skin);
-        final Slider musicSlider = new Slider(0f, 1f, 0.01f, false, skin);
-        musicSlider.setValue(AudioManager.getInstance().getMusicVolume());
-
-        final Label soundLabel = new Label("SFX: " + (int)(AudioManager.getInstance().getSoundVolume() * 100) + "%", skin);
-        final Slider soundSlider = new Slider(0f, 1f, 0.01f, false, skin);
-        soundSlider.setValue(AudioManager.getInstance().getSoundVolume());
-
-        TextButton closeButton = new TextButton("Tutup", skin);
-
-        musicSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                float vol = musicSlider.getValue();
-                AudioManager.getInstance().setMusicVolume(vol);
-                musicLabel.setText("Musik: " + (int)(vol * 100) + "%");
-            }
-        });
-        soundSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                float vol = soundSlider.getValue();
-                AudioManager.getInstance().setSoundVolume(vol);
-                soundLabel.setText("SFX: " + (int)(vol * 100) + "%");
-            }
-        });
-        closeButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) { settingsWindow.setVisible(false); }
-        });
-
-        settingsWindow.add(musicLabel).width(120).pad(10);
-        settingsWindow.add(musicSlider).width(250).pad(10).row();
-        settingsWindow.add(soundLabel).width(120).pad(10);
-        settingsWindow.add(soundSlider).width(250).pad(10).row();
-        settingsWindow.add(closeButton).colspan(2).width(100).padTop(20);
-        stage.addActor(settingsWindow);
+        if (l != null)
+            l.setText("User: " + game.getPlayerName());
     }
 
     private void createLeaderboardWindow() {
@@ -304,7 +265,7 @@ public class MainMenuScreen extends ScreenAdapter {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 // Hanya fetch data global jika window sedang dalam mode global (filter visible)
-                if(filterTable.isVisible()) {
+                if (filterTable.isVisible()) {
                     fetchLeaderboardData();
                 }
             }
@@ -316,7 +277,11 @@ public class MainMenuScreen extends ScreenAdapter {
         Table headerTable = new Table();
         headerTable.setBackground(skin.newDrawable("white", 0.2f, 0.2f, 0.2f, 1f));
 
-        float colRank = 40; float colName = 140; float colChar = 130; float colLvl = 60; float colTime = 120;
+        float colRank = 40;
+        float colName = 140;
+        float colChar = 130;
+        float colLvl = 60;
+        float colTime = 120;
 
         headerTable.add(new Label("#", skin)).width(colRank).center();
         headerTable.add(new Label("Nama", skin)).width(colName).left().padLeft(10);
@@ -349,8 +314,6 @@ public class MainMenuScreen extends ScreenAdapter {
         stage.addActor(leaderboardWindow);
     }
 
-    // ... (fetchLeaderboardData, formatTime, updateLeaderboardUI SAMA SAJA, TIDAK PERLU DIUBAH) ...
-    // Copy paste bagian fetch, formatTime, updateUI dari kode Anda sebelumnya di sini
     private void fetchLeaderboardData() {
         leaderboardContentTable.clear();
         leaderboardContentTable.add(new Label("Memuat data...", skin)).pad(20);
@@ -385,7 +348,8 @@ public class MainMenuScreen extends ScreenAdapter {
             }
 
             @Override
-            public void cancelled() { }
+            public void cancelled() {
+            }
         });
     }
 
@@ -404,6 +368,7 @@ public class MainMenuScreen extends ScreenAdapter {
                 String result = httpResponse.getResultAsString();
                 Gdx.app.postRunnable(() -> updateLeaderboardUI(result)); // Reuse UI logic yang sama!
             }
+
             @Override
             public void failed(Throwable t) {
                 Gdx.app.postRunnable(() -> {
@@ -411,20 +376,30 @@ public class MainMenuScreen extends ScreenAdapter {
                     leaderboardContentTable.add(new Label("Gagal koneksi!", skin));
                 });
             }
+
             @Override
-            public void cancelled() {}
+            public void cancelled() {
+            }
         });
     }
 
     private String formatTime(int totalSeconds) {
-        if (totalSeconds < 0) return "0 detik";
+        if (totalSeconds < 0)
+            return "0 detik";
         int hours = totalSeconds / 3600;
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
         StringBuilder sb = new StringBuilder();
-        if (hours > 0) { sb.append(hours).append(" h "); sb.append(minutes).append(" m "); sb.append(seconds).append(" s"); }
-        else if (minutes > 0) { sb.append(minutes).append(" m "); sb.append(seconds).append(" s"); }
-        else { sb.append(seconds).append(" s"); }
+        if (hours > 0) {
+            sb.append(hours).append(" h ");
+            sb.append(minutes).append(" m ");
+            sb.append(seconds).append(" s");
+        } else if (minutes > 0) {
+            sb.append(minutes).append(" m ");
+            sb.append(seconds).append(" s");
+        } else {
+            sb.append(seconds).append(" s");
+        }
         return sb.toString();
     }
 
@@ -450,7 +425,6 @@ public class MainMenuScreen extends ScreenAdapter {
                 int value = score.getInt("value");
                 String timeString = formatTime(value);
 
-                // Warna text: Jika itu nama player sendiri, warnanya Kuning (Gold), lainnya Putih
                 Color textColor = name.equals(myName) ? Color.GOLD : Color.WHITE;
 
                 // --- BARIS DATA ---

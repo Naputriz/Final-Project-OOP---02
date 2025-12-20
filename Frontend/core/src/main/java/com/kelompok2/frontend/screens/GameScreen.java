@@ -94,15 +94,12 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void render(float delta) {
+        // Cap delta time to prevent physics explosion on resume/lag
+        delta = Math.min(delta, 0.1f);
+
         // Handle pause toggle
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             togglePause();
-            return;
-        }
-
-        // Skip updates if paused
-        if (isPaused) {
-            return;
         }
 
         // Game over check
@@ -113,43 +110,46 @@ public class GameScreen extends ScreenAdapter {
 
         if (player.canLevelUp()) {
             isPaused = true;
+            player.stop(); // Stop any active charging/aiming
             game.setScreen(new LevelUpScreen(game, this, player));
             return;
         }
 
-        // Clear screen
+        // Clear screen (ALWAYS DO THIS to prevent afterimages)
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Update camera to follow player
-        updateCamera(delta);
+        // Update logic (ONLY IF NOT PAUSED)
+        if (!isPaused) {
+            // Update camera to follow player
+            updateCamera(delta);
 
-        com.kelompok2.frontend.managers.GameManager.getInstance().updateGameTime(delta);
+            com.kelompok2.frontend.managers.GameManager.getInstance().updateGameTime(delta);
 
-        // Handle input (movement, attacks, skills)
-        inputHandler.update(delta);
+            // Handle input (movement, attacks, skills)
+            inputHandler.update(delta);
 
-        // Update player
-        player.update(delta);
+            // Update player
+            player.update(delta);
 
-        if (!gameFacade.getBossCinematicSystem().isCinematicActive()) {
-            projectilePool.update(delta);
-        }
-
-        // NOTE: Enemy updates moved to GameFacade to prevent double-updating
-
-        for (int i = enemyPool.getActiveEnemies().size - 1; i >= 0; i--) {
-            com.kelompok2.frontend.entities.BaseEnemy enemy = enemyPool.getActiveEnemies().get(i);
-            if (enemy.isDead()) {
-                enemyPool.free(enemy);
-                System.out.println("[GameScreen] Removed dead enemy from pool");
+            if (!gameFacade.getBossCinematicSystem().isCinematicActive()) {
+                projectilePool.update(delta);
             }
+
+            // NOTE: Enemy updates moved to GameFacade to prevent double-updating
+
+            for (int i = enemyPool.getActiveEnemies().size - 1; i >= 0; i--) {
+                com.kelompok2.frontend.entities.BaseEnemy enemy = enemyPool.getActiveEnemies().get(i);
+                if (enemy.isDead()) {
+                    enemyPool.free(enemy);
+                    System.out.println("[GameScreen] Removed dead enemy from pool");
+                }
+            }
+
+            gameFacade.update(delta, camera);
         }
 
-        // ✨ Update all game systems via Facade
-        gameFacade.update(delta, camera);
-
-        // ✨ Render all game systems via Facade
+        // ✨ Render all game systems via Facade (ALWAYS RENDER to show frozen state)
         gameFacade.render(camera);
     }
 
@@ -179,6 +179,7 @@ public class GameScreen extends ScreenAdapter {
 
     private void togglePause() {
         isPaused = true;
+        player.stop(); // Prevent input bleeding
         game.setScreen(new PauseScreen(game, this));
     }
 
@@ -188,6 +189,8 @@ public class GameScreen extends ScreenAdapter {
 
     public void resumeFromPause() {
         isPaused = false;
+        // Snap camera to player to prevent wrong interpolation
+        firstFrame = true;
         System.out.println("[GameScreen] Resumed from pause");
     }
 
@@ -208,6 +211,22 @@ public class GameScreen extends ScreenAdapter {
     @Override
     public void resize(int width, int height) {
         camera.setToOrtho(false, width, height);
+        // Fix: Recenter camera on player to prevent it resetting to 0,0
+        if (player != null) {
+            float targetX = Math.round(player.getPosition().x + player.getVisualWidth() / 2);
+            float targetY = Math.round(player.getPosition().y + player.getVisualHeight() / 2);
+            camera.position.set(targetX, targetY, 0);
+            camera.update();
+        }
+    }
+
+    @Override
+    public void pause() {
+        // Auto-pause when window loses focus or is minimized
+        if (!isPaused && !player.isDead()) {
+            togglePause();
+            System.out.println("[GameScreen] Auto-paused due to focus loss/minimize");
+        }
     }
 
     @Override

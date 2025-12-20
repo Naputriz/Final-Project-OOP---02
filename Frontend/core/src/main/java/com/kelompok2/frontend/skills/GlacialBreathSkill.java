@@ -17,7 +17,7 @@ public class GlacialBreathSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
         float userCenterX = user.getPosition().x + user.getVisualWidth() / 2;
@@ -34,6 +34,7 @@ public class GlacialBreathSkill extends BaseSkill {
         activeBreaths.add(breath);
 
         System.out.println("[GlacialBreathSkill] Activated!");
+        return true;
     }
 
     @Override

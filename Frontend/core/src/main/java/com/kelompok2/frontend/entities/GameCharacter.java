@@ -436,12 +436,13 @@ public abstract class GameCharacter {
                 .publish(new XpChangedEvent(this, this.currentXp, this.xpToNextLevel, this.level));
     }
 
-    public boolean canLevelUp(){
+    public boolean canLevelUp() {
         return this.currentXp >= this.xpToNextLevel;
     }
 
-    public void levelUp(){
-        if (!canLevelUp()) return;
+    public void levelUp() {
+        if (!canLevelUp())
+            return;
 
         this.currentXp -= this.xpToNextLevel;
         this.level++;
@@ -468,7 +469,7 @@ public abstract class GameCharacter {
         GameManager.getInstance().incrementLevel();
 
         GameEventManager.getInstance()
-            .publish(new XpChangedEvent(this, this.currentXp, this.xpToNextLevel, this.level));
+                .publish(new XpChangedEvent(this, this.currentXp, this.xpToNextLevel, this.level));
 
         System.out.println(this.getClass().getSimpleName() + " Level Up! lv: " + level + " (Stats grown passively)");
 
@@ -638,6 +639,11 @@ public abstract class GameCharacter {
 
     public AttackStrategy getAttackStrategy() {
         return attackStrategy;
+    }
+
+    // Reset movement/attack state (used when pausing/leveling up)
+    public void stop() {
+        this.isAimingUltimate = false;
     }
 
     // Secondary Skill System methods

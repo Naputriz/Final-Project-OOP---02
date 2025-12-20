@@ -257,6 +257,21 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Music state management (play, stop, pause, resume)
   - Asset caching for audio files
 
+- **Settings System** ✨ NEW
+  - **Reusable Settings Window:**
+    - Accessible from Main Menu and Pause Menu
+    - Music Volume Slider (0-100%)
+    - SFX Volume Slider (0-100%)
+    - Changes applied immediately via AudioManager
+  
+- **Pause System** ✨ NEW
+  - **Enhanced Pause Menu:**
+    - Triggered by ESC key or Alt-Tab/Focus Loss
+    - **Visuals:** Game world freezes in background with gray overlay (no black screen)
+    - **Options:** Resume, Restart, Settings, Character Select, Main Menu
+    - **Consistency:** Uniform appearance regardless of trigger method
+
+
 - **Animation System** ✨ NEW
   - State Pattern implementation
     - IdleState for stationary characters
@@ -593,33 +608,21 @@ Each character has a unique innate skill but has a second skill slot that can be
     - `CharacterSelectionScreen`: Uses `FitViewport` (1920x1080 virtual resolution) to ensure correct aspect ratio with letterboxing on all screens.
   - **Status:** ✅ Validated for 720p, 1080p, and arbitrary resolutions.
 
-- **TODO:** Expand Settings Menu Options
-  - Current: Settings menu exists but has limited options
-  - Goal: Add comprehensive settings for better user experience
-  - Features to Add:
-    - **Custom Keybinds:**
-      - Allow rebinding of WASD, E, Q, R, Left Click
-      - Save keybind preferences to file
-      - Reset to default option
-    - **Resolution Change:**
-      - Dropdown menu with common resolutions
-      - Apply and confirm system (revert if not confirmed in 10s)
-    - **Display Mode:**
-      - Fullscreen toggle
-      - Windowed mode option
-      - Borderless windowed option
+- ~~**TODO:** Expand Settings Menu Options~~ ✅ **PARTIALLY COMPLETED**
+  - **Status:** Audio controls and access structure fully implemented. Keybinds/Resolution pending.
+  - **Implemented Features:**
     - **Audio Controls:**
       - Separate sliders for Music and SFX volume
-      - Mute toggles for each
-    - **Gameplay Options:**
-      - Show damage numbers toggle
-      - Screen shake intensity slider
-      - Camera smoothing toggle
-  - Location: `SettingsScreen.java` (create if doesn't exist)
-  - Benefits: Better user experience, accessibility, player preference support
+      - Accessible via "Settings" in Main Menu and Pause Menu
+    - **Pause Menu Enhancement:**
+      - Added pause menu (ESC key) with Resume, Settings, Restart, Character Select, Main Menu options
+  - **Pending:**
+    - Custom Keybinds
+    - Resolution Change
+    - Display Mode
 
 - **TODO:** Quality of Life Improvements
-  - **Pause Menu Enhancement:**
+  - ~~**Pause Menu Enhancement:**~~ ✅ **Done**
     - Add pause menu (ESC key) with Resume, Settings, Main Menu options
     - Currently game can only be paused via level-up screen
   - **Death Screen Improvements:**
@@ -666,13 +669,20 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Fix:** Added `clearStun()` call in `BaseEnemy.reset()`.
   - **Status:** ✅ Verified fix in code.
 
-- **TODO:** Fix Pause Screen Transitions
+- ~~**TODO:** Fix Pause Screen Transitions~~ ✅ **FIXED**
   - **Issue:** Quickly pausing/unpausing may cause unexpected screen switches (Main Menu, Restart).
   - **Goal:** Stabilize the state transition logic in `PauseScreen`.
+  - **Status:** ✅ Fixed. Added `hasTransitioned` guard to prevent double-clicks/logic races.
 
-- **TODO:** Fix Camera Shift on Alt-Tab/Pause
+- ~~**TODO:** Fix Camera Shift on Alt-Tab/Pause~~ ✅ **FIXED**
   - **Issue:** Camera moves away when window loses focus or game is paused, requiring manual correction.
   - **Goal:** Ensure camera position is saved/restored or locked to player during these events.
+  - **Status:** ✅ Fixed. Added re-centering logic in `resize()` and `resumeFromPause()`.
+
+- ~~**TODO:** Fix Visual Glitches on Pause~~ ✅ **FIXED**
+  - **Issue:** Afterimages and "Hall of Mirrors" effect when dragging paused window.
+  - **Fix:** Refactored `GameScreen.render` to always clear screen and render game world (frozen) even when paused.
+  - **Status:** ✅ Verified fix.
 
 - **TODO:** Suggestion: Visual Polish
   - **Goal:** Enhance game feel.

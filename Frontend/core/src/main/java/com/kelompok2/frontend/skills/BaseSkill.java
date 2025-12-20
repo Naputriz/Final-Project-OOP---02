@@ -30,15 +30,18 @@ public abstract class BaseSkill implements Skill {
         }
 
         // Execute skill-specific behavior
-        executeSkill(user, targetPos, projectiles, meleeAttacks);
+        boolean success = executeSkill(user, targetPos, projectiles, meleeAttacks);
 
-        // Start cooldown
-        cooldownTimer = cooldown;
-
-        System.out.println("[" + name + "] Activated!");
+        if (success) {
+            // Start cooldown only if skill was successfully executed
+            cooldownTimer = cooldown;
+            System.out.println("[" + name + "] Activated!");
+        } else {
+            System.out.println("[" + name + "] Activation failed/cancelled (No Cooldown)");
+        }
     }
 
-    protected abstract void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected abstract boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks);
 

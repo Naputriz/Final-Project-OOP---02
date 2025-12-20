@@ -23,7 +23,7 @@ public class FeralRushSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
         this.user = user;
         this.meleeAttacksRef = meleeAttacks;
@@ -45,6 +45,7 @@ public class FeralRushSkill extends BaseSkill {
         }
 
         System.out.println("[Alice] Feral Rush activated!");
+        return true;
     }
 
     @Override

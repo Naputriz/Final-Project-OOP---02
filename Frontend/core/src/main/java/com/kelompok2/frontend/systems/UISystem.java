@@ -176,6 +176,11 @@ public class UISystem {
     }
 
     public void render(OrthographicCamera camera, Boss currentBoss) {
+        // Prevent crash when window is minimized
+        if (camera.viewportWidth <= 1 || camera.viewportHeight <= 1) {
+            return;
+        }
+
         // Draw HUD (Fixed Screen Coordinates)
         drawHUD(camera, currentBoss);
 
@@ -202,6 +207,11 @@ public class UISystem {
         // Screen Coordinates (0,0 is bottom-left)
         float screenW = uiCamera.viewportWidth;
         float screenH = uiCamera.viewportHeight;
+
+        // CRITICAL FIX: Prevent crash when window is minimized (size = 0)
+        if (screenW <= 1 || screenH <= 1) {
+            return;
+        }
 
         float uiScale = screenH / 1080f;
 
