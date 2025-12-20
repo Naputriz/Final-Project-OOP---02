@@ -636,10 +636,30 @@ Each character has a unique innate skill but has a second skill slot that can be
     - **Ranged:** Add small AoE to basic attacks or increase projectile size?
     - **Bosses:** Add specific mechanics to counter kiting (e.g., gap closers).
 
-- **TODO:** Ultimate Skill QoL - Cancellation
+- **TODO:** Ultimate Skill QoL - Cancellation ✅ **COMPLETED**
   - **Issue:** One-time use ultimates can be wasted if accidentally pressed or if targets move.
   - **Goal:** Allow canceling the "Preview Mode" without firing.
   - **Implementation:** Right-click to cancel while holding 'R'.
+
+#### 🐛 Bug Fixes (High Priority)
+- **TODO:** Fix Ryze's Spectral Body Skill
+  - **Issue:** Skill activates but player still takes damage (Invincibility not working).
+  - **Goal:** Ensure player is truly immune to damage for 3 seconds.
+
+- **TODO:** Fix Pause Screen Transitions
+  - **Issue:** Quickly pausing/unpausing may cause unexpected screen switches (Main Menu, Restart).
+  - **Goal:** Stabilize the state transition logic in `PauseScreen`.
+
+- **TODO:** Fix Camera Shift on Alt-Tab/Pause
+  - **Issue:** Camera moves away when window loses focus or game is paused, requiring manual correction.
+  - **Goal:** Ensure camera position is saved/restored or locked to player during these events.
+
+- **TODO:** Suggestion: Visual Polish
+  - **Goal:** Enhance game feel.
+  - **Ideas:**
+    - **Screen Shake:** Add slight shake on heavy hits or crits.
+    - **Hit Flash:** Flash enemy sprite white when damaged.
+    - **Damage Log:** (Optional) Text log of combat for debugging/clarity.
 
 #### UI System Improvements
 - **TODO:** Implement Observer Pattern for UI Bars ✅ **COMPLETED**

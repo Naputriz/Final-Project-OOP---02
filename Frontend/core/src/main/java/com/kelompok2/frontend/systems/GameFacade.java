@@ -72,7 +72,7 @@ public class GameFacade {
 
         // Initialize each subsystem
         renderingSystem.initialize(player, enemyPool, projectilePool, playerMeleeAttacks, bossMeleeAttacks,
-                bossProjectiles);
+                bossProjectiles, eventManager);
         collisionSystem.initialize(player, enemyPool, projectilePool, playerMeleeAttacks, bossMeleeAttacks,
                 bossProjectiles, eventManager);
         spawningSystem.initialize(player, enemyPool, eventManager, bossMeleeAttacks, bossProjectiles);

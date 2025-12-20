@@ -27,21 +27,59 @@ public class RenderingSystem {
     private Array<MeleeAttack> bossMeleeAttacks;
     private Array<Projectile> bossProjectiles;
 
+    // Damage Indicators
+    private Array<com.kelompok2.frontend.entities.DamageIndicator> damageIndicators;
+    private com.badlogic.gdx.graphics.g2d.BitmapFont damageFont;
+    private com.kelompok2.frontend.managers.GameEventManager eventManager;
+
     public RenderingSystem(SpriteBatch batch, ShapeRenderer shapeRenderer, Texture background) {
         this.batch = batch;
         this.shapeRenderer = shapeRenderer;
         this.background = background;
+        this.damageIndicators = new Array<>();
+        this.damageFont = new com.badlogic.gdx.graphics.g2d.BitmapFont();
+        this.damageFont.getData().setScale(1.5f); // Make damage numbers visible
     }
 
     public void initialize(GameCharacter player, EnemyPool enemyPool, ProjectilePool projectilePool,
             Array<MeleeAttack> playerMeleeAttacks, Array<MeleeAttack> bossMeleeAttacks,
-            Array<Projectile> bossProjectiles) {
+            Array<Projectile> bossProjectiles, com.kelompok2.frontend.managers.GameEventManager eventManager) {
         this.player = player;
         this.enemyPool = enemyPool;
         this.projectilePool = projectilePool;
         this.playerMeleeAttacks = playerMeleeAttacks;
         this.bossMeleeAttacks = bossMeleeAttacks;
         this.bossProjectiles = bossProjectiles;
+        this.eventManager = eventManager;
+
+        subscribeToEvents();
+    }
+
+    private void subscribeToEvents() {
+        eventManager.subscribe(com.kelompok2.frontend.events.EnemyDamagedEvent.class, this::onEnemyDamaged);
+        eventManager.subscribe(com.kelompok2.frontend.events.PlayerDamagedEvent.class, this::onPlayerDamaged);
+    }
+
+    private void onEnemyDamaged(com.kelompok2.frontend.events.EnemyDamagedEvent event) {
+        float x = event.getEnemy().getPosition().x + event.getEnemy().getVisualWidth() / 2;
+        float y = event.getEnemy().getPosition().y + event.getEnemy().getVisualHeight();
+        com.badlogic.gdx.graphics.Color color;
+
+        if (event.isArts()) {
+            color = new com.badlogic.gdx.graphics.Color(0.2f, 0.6f, 1f, 1f); // Blue for Arts
+        } else {
+            color = com.badlogic.gdx.graphics.Color.WHITE; // White for Physical
+        }
+
+        damageIndicators.add(new com.kelompok2.frontend.entities.DamageIndicator(x, y, event.getDamage(), color));
+    }
+
+    private void onPlayerDamaged(com.kelompok2.frontend.events.PlayerDamagedEvent event) {
+        float x = event.getPlayer().getPosition().x + event.getPlayer().getVisualWidth() / 2;
+        float y = event.getPlayer().getPosition().y + event.getPlayer().getVisualHeight();
+        // Red for Player Damage
+        damageIndicators.add(new com.kelompok2.frontend.entities.DamageIndicator(x, y, event.getDamage(),
+                com.badlogic.gdx.graphics.Color.RED));
     }
 
     public void render(OrthographicCamera camera, Boss currentBoss) {
@@ -67,7 +105,7 @@ public class RenderingSystem {
         }
         batch.end();
 
-        // \u2705 FIX: Render enemy HP bars
+        // ✅ FIX: Render enemy HP bars
         renderEnemyHPBars();
 
         // Render effects & attacks
@@ -83,7 +121,25 @@ public class RenderingSystem {
         renderShieldStance();
         renderBossSkills(currentBoss);
 
+        // Render Damage Indicators (Last, on top)
+        renderDamageIndicators();
+
         renderUltimateAiming(camera);
+    }
+
+    private void renderDamageIndicators() {
+        float delta = com.badlogic.gdx.Gdx.graphics.getDeltaTime();
+        batch.begin();
+        for (int i = damageIndicators.size - 1; i >= 0; i--) {
+            com.kelompok2.frontend.entities.DamageIndicator indicator = damageIndicators.get(i);
+            indicator.update(delta);
+            indicator.render(batch, damageFont);
+
+            if (!indicator.isActive()) {
+                damageIndicators.removeIndex(i);
+            }
+        }
+        batch.end();
     }
 
     private void renderShieldStance() {
