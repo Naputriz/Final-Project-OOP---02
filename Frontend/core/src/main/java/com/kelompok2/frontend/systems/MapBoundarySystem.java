@@ -18,7 +18,7 @@ public class MapBoundarySystem {
     public void update(GameCharacter player, OrthographicCamera camera) {
         // 1. Clamp Player Position
         clampPlayerPosition(player);
-
+a
         // 2. Clamp Camera Position
         clampCameraPosition(camera);
     }

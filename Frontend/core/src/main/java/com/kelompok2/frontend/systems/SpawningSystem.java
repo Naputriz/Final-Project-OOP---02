@@ -67,8 +67,18 @@ public class SpawningSystem {
         if (spawnTimer > 1.5f) {
             float angle = MathUtils.random(360);
             float distance = MathUtils.random(600, 800);
+            // Calculate potential position
+            // ✨ Fix: Constrain X and Y to map boundaries
+            float mapW = MapBoundarySystem.getMapWidth();
+            float mapH = MapBoundarySystem.getMapHeight();
+            float padding = 64f;
+
             float x = player.getPosition().x + MathUtils.cosDeg(angle) * distance;
             float y = player.getPosition().y + MathUtils.sinDeg(angle) * distance;
+
+            // Clamp coordinate
+            x = MathUtils.clamp(x, padding, mapW - padding);
+            y = MathUtils.clamp(y, padding, mapH - padding);
 
             int currentLevel = GameManager.getInstance().getCurrentLevel();
             EnemyType type = EnemyFactory.getRandomEnemyType(currentLevel);
@@ -109,8 +119,18 @@ public class SpawningSystem {
         // Spawn position - far from player
         float angle = MathUtils.random(360);
         float distance = 1000f; // Farther than normal enemies
+
+        // ✨ Fix: Constrain X and Y to map boundaries
+        float mapW = MapBoundarySystem.getMapWidth();
+        float mapH = MapBoundarySystem.getMapHeight();
+        float padding = 200f; // Larger padding for boss
+
         float x = player.getPosition().x + MathUtils.cosDeg(angle) * distance;
         float y = player.getPosition().y + MathUtils.sinDeg(angle) * distance;
+
+        // Clamp coordinate
+        x = MathUtils.clamp(x, padding, mapW - padding);
+        y = MathUtils.clamp(y, padding, mapH - padding);
 
         // Get player level for scaling
         int playerLevel = player.getLevel();
@@ -148,9 +168,11 @@ public class SpawningSystem {
     public Boss getCurrentBoss() {
         return currentBoss;
     }
+
     public void clearCurrentBoss() {
         currentBoss = null;
     }
+
     public void setBossSpawnInterval(float interval) {
         this.bossSpawnInterval = interval;
     }
