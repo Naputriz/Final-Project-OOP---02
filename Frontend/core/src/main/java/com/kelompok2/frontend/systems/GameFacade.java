@@ -222,8 +222,10 @@ public class GameFacade {
         // Render game world
         renderingSystem.render(camera, currentBoss);
 
-        // Render UI overlay
-        uiSystem.render(camera, currentBoss);
+        // Render UI overlay (Hide during cinematic)
+        if (!bossCinematicSystem.isCinematicActive()) {
+            uiSystem.render(camera, currentBoss);
+        }
     }
 
     private void updateMeleeAttacks(float delta) {

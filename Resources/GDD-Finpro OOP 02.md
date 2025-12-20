@@ -602,7 +602,7 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Benefits: Better player feedback, more engaging gameplay, improved UX
 
 #### UI System Improvements
-- **TODO:** Implement Observer Pattern for UI Bars
+- **TODO:** Implement Observer Pattern for UI Bars ✅ **COMPLETED**
   - Current: `UISystem` manually checks player stats and renders bars at world coordinates above character.
   - Goal: Decouple UI from game logic and move UI to a HUD (Head-Up Display) layout.
   - Implementation:
@@ -798,6 +798,39 @@ Each character has a unique innate skill but has a second skill slot that can be
 #### 3. Collision System Refactoring ✅ **COMPLETED**
 **Priority:** Done
 **Description:** `CollisionSystem.java` was handling too much logic.
+
+---
+
+#### 4. Bug Fix: Lumi Pulling Unmarked Enemies
+**Priority:** High
+**Description:** Lumi's Returnious Pull skill sometimes pulls enemies that are not currently marked.
+**Suspected Cause:** Object Pooling issue. Enemies returned to pool might retain their "marked" status. When respawned, they are treated as marked immediately.
+**Action:** Ensure `isMarked` status is reset when enemy is returned to pool or spawned.
+
+---
+
+#### 5. Feature: Main Menu Revamp
+**Priority:** Medium
+**Description:** Current Main Menu is basic. Needs a visual overhaul to match the game's aesthetic.
+**Action:** Redesign UI layout, add better background, improve buttons.
+
+---
+
+#### 6. Feature: Handle Multiple Level Ups
+**Priority:** Medium
+**Description:** Bosses provide massive XP, potentially causing multiple level-ups at once. Currently, the game only grants one buff selection even if XP overflows for multiple levels.
+**Desired Behavior:**
+- Sequential level-ups: If player gains enough XP for 2 levels, they should select a buff, then immediately level up again and select another buff.
+- Or simply ensure XP overflow is handled correctly so the next level-up triggers immediately after the first interaction.
+
+---
+
+#### 7. Bug Fix: Boss Isolde Issues
+**Priority:** High
+**Description:** 
+- **Basic Attacks:** Only the first basic attack deals damage; subsequent hits might be failing.
+- **Freeze Mechanic:** Isolde's freeze on player doesn't break when the player is hit (or vice-versa, verify behavior). "Freeze doesn't break when hit".
+**Action:** Debug `Isolde.java` attack logic and Freeze status effect handling in `GameCharacter`.
 **Status:** Split into `PlayerCollisionHandler`, `ProjectileCollisionHandler`, and `SkillCollisionHandler` managed by `CollisionSystem`.
 **Note:** `BladeFury` refactor also cleaned up `RenderingSystem`.
 #### 3. GameScreen Refactoring ✅ COMPLETED

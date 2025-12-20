@@ -1,17 +1,11 @@
 package com.kelompok2.frontend.events;
 
-public class UltimateActivatedEvent implements GameEvent {
-    private final long timestamp;
+public class UltimateActivatedEvent extends GameEvent {
     private final String ultimateName;
 
     public UltimateActivatedEvent(String ultimateName) {
-        this.timestamp = System.currentTimeMillis();
+        super();
         this.ultimateName = ultimateName;
-    }
-
-    @Override
-    public long getTimestamp() {
-        return timestamp;
     }
 
     public String getUltimateName() {

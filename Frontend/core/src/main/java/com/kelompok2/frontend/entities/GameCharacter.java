@@ -11,6 +11,11 @@ import com.kelompok2.frontend.skills.Skill;
 import com.kelompok2.frontend.skills.IceShieldSkill;
 import com.kelompok2.frontend.skills.WindDashSkill;
 
+import com.kelompok2.frontend.managers.GameEventManager;
+import com.kelompok2.frontend.events.HealthChangedEvent;
+import com.kelompok2.frontend.events.XpChangedEvent;
+import com.kelompok2.frontend.events.CooldownChangedEvent;
+
 public abstract class GameCharacter {
     protected Vector2 position;
     protected float speed;
@@ -215,6 +220,18 @@ public abstract class GameCharacter {
             }
         }
 
+        // Update per-attacker cooldowns (Fix for bosses only hitting once)
+        if (!attackerCooldowns.isEmpty()) {
+            java.util.Iterator<java.util.Map.Entry<GameCharacter, Float>> it = attackerCooldowns.entrySet().iterator();
+            while (it.hasNext()) {
+                java.util.Map.Entry<GameCharacter, Float> entry = it.next();
+                entry.setValue(entry.getValue() - delta);
+                if (entry.getValue() <= 0) {
+                    it.remove();
+                }
+            }
+        }
+
         // Update Pull Movement
         if (isBeingPulled && pullTarget != null) {
             Vector2 toTarget = pullTarget.cpy().sub(position);
@@ -245,17 +262,27 @@ public abstract class GameCharacter {
             }
         }
 
-        // Update per-attacker cooldowns
-        java.util.Iterator<java.util.Map.Entry<GameCharacter, Float>> iterator = attackerCooldowns.entrySet()
-                .iterator();
-        while (iterator.hasNext()) {
-            java.util.Map.Entry<GameCharacter, Float> entry = iterator.next();
-            float newCooldown = entry.getValue() - delta;
-            if (newCooldown <= 0) {
-                iterator.remove(); // Remove expired cooldowns
-            } else {
-                entry.setValue(newCooldown); // Update cooldown
-            }
+        // Publish Cooldown Events
+        // 1. Innate Skill
+        if (getInnateSkillCooldown() > 0) {
+            GameEventManager.getInstance().publish(new CooldownChangedEvent(this, CooldownChangedEvent.SkillType.INNATE,
+                    getInnateSkillTimer(), getInnateSkillCooldown()));
+        }
+
+        // 2. Secondary Skill
+        if (hasSecondarySkill()) {
+            GameEventManager.getInstance()
+                    .publish(new CooldownChangedEvent(this, CooldownChangedEvent.SkillType.SECONDARY,
+                            secondarySkill.getRemainingCooldown(), secondarySkill.getCooldown()));
+        }
+
+        // 3. Ultimate Skill
+        if (hasUltimateSkill()) {
+            GameEventManager.getInstance()
+                    .publish(new CooldownChangedEvent(this, CooldownChangedEvent.SkillType.ULTIMATE, 0, 0)); // 0
+                                                                                                             // remaining
+                                                                                                             // means
+                                                                                                             // ready
         }
     }
 
@@ -355,7 +382,6 @@ public abstract class GameCharacter {
         if (hp < 0)
             hp = 0;
 
-        // ✅ FIX: Break freeze when player hit (same as Boss behavior)
         if (isFrozen) {
             clearFreeze();
         }
@@ -364,12 +390,18 @@ public abstract class GameCharacter {
         if (attacker != null) {
             attackerCooldowns.put(attacker, PER_ATTACKER_COOLDOWN);
         }
+
+        // Publish HealthChangedEvent
+        GameEventManager.getInstance().publish(new HealthChangedEvent(this, this.hp, this.maxHp));
     }
 
     public void heal(float amount) {
         hp += amount;
         if (hp > maxHp)
             hp = maxHp;
+
+        // Publish HealthChangedEvent
+        GameEventManager.getInstance().publish(new HealthChangedEvent(this, this.hp, this.maxHp));
     }
 
     public void gainXp(float xpAmount) {
@@ -377,14 +409,17 @@ public abstract class GameCharacter {
         if (this.currentXp >= this.xpToNextLevel) {
             levelUp();
         }
+
+        // Publish XpChangedEvent
+        GameEventManager.getInstance()
+                .publish(new XpChangedEvent(this, this.currentXp, this.xpToNextLevel, this.level));
     }
 
     protected void levelUp() {
         this.currentXp -= this.xpToNextLevel;
         this.level++;
         this.xpToNextLevel = (float) Math.ceil(this.xpToNextLevel * 1.2f);
-        // TIDAK lagi auto-increase maxHp, akan ditangani oleh LevelUpEffect yang
-        // dipilih
+        // TIDAK lagi auto-increase maxHp, akan ditangani oleh LevelUpEffect yang dipilih
 
         // Set flag bahwa level-up belum dipilih effectnya
         this.levelUpPending = true;
@@ -401,6 +436,10 @@ public abstract class GameCharacter {
 
     public void setFacingRight(boolean isFacingRight) {
         this.isFacingRight = isFacingRight;
+    }
+
+    public Texture getTexture() {
+        return texture;
     }
 
     public void render(SpriteBatch batch) {
@@ -526,6 +565,9 @@ public abstract class GameCharacter {
             this.maxHp = maxHp;
             this.hp = maxHp;
         }
+
+        // Publish HealthChangedEvent
+        GameEventManager.getInstance().publish(new HealthChangedEvent(this, this.hp, this.maxHp));
     }
 
     // Getter dan setter untuk level-up pending flag
@@ -580,11 +622,6 @@ public abstract class GameCharacter {
     protected Skill ultimateSkill = null;
     protected boolean ultimateUsed = false;
 
-    /**
-     * Set ultimate skill (obtained from defeating boss)
-     * 
-     * @param skill Ultimate skill instance
-     */
     public void setUltimateSkill(Skill skill) {
         this.ultimateSkill = skill;
         this.ultimateUsed = false;
@@ -598,31 +635,14 @@ public abstract class GameCharacter {
         return ultimateSkill;
     }
 
-    /**
-     * Check if player has ultimate skill and hasn't used it yet
-     * 
-     * @return true if ultimate is available to use
-     */
     public boolean hasUltimateSkill() {
         return ultimateSkill != null && !ultimateUsed;
     }
 
-    /**
-     * Check if ultimate was used (for UI display)
-     * 
-     * @return true if ultimate was consumed
-     */
     public boolean isUltimateUsed() {
         return ultimateUsed;
     }
 
-    /**
-     * Perform ultimate skill (R key) - one-time use
-     * 
-     * @param targetPos    Target position for skill
-     * @param projectiles  Projectile array
-     * @param meleeAttacks Melee attack array
-     */
     public void performUltimateSkill(Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
@@ -640,6 +660,12 @@ public abstract class GameCharacter {
 
         // Mark as used
         ultimateUsed = true;
+
+        // Publish event to update UI immediately (Cooldown > 0 means not ready)
+        // Using arbitrary value 999 to signify "used/unavailable" since it's one-time use
+        GameEventManager.getInstance()
+                .publish(new CooldownChangedEvent(this, CooldownChangedEvent.SkillType.ULTIMATE, 999, 999));
+
         System.out.println(
                 "[" + this.getClass().getSimpleName() + "] Acquired ULTIMATE: " + ultimateSkill.getName() + "!");
     }
