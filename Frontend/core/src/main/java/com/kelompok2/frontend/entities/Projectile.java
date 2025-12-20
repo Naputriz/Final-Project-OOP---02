@@ -92,6 +92,7 @@ public class Projectile {
         this.damage = newDamage;
         this.active = true;
         this.distanceTraveled = 0f;
+        this.isEnemyProjectile = false;
     }
 
     public void update(float delta) {
@@ -158,6 +159,16 @@ public class Projectile {
 
     public void setArts(boolean arts) {
         isArts = arts;
+    }
+
+    private boolean isEnemyProjectile = false;
+
+    public boolean isEnemyProjectile() {
+        return isEnemyProjectile;
+    }
+
+    public void setEnemyProjectile(boolean isEnemyProjectile) {
+        this.isEnemyProjectile = isEnemyProjectile;
     }
 
     public void dispose() {

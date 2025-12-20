@@ -53,9 +53,16 @@ public class RangedEnemy extends BaseEnemy {
                 move(direction, delta);
             } else {
                 // In "Sweet Spot" (Between 200 and 300)
-                // Stop to shoot (idle state implicitly handles animations if we had them)
-                // Just face the target?
-                // The auto-attack logic in GameCharacter will trigger if cooldown is ready
+                // Stop to shoot
+                if (canAttack()) {
+                    if (projectileList != null) {
+                        attack(target.getPosition(), projectileList, null);
+                        resetAttackTimer();
+                    } else {
+                        // Fallback if list not set (shouldn't happen with fix)
+                        System.err.println("[RangedEnemy] No projectile list set!");
+                    }
+                }
             }
         }
     }

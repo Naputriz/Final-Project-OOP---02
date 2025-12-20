@@ -22,8 +22,12 @@ public class EnemyPool {
 
     private GameCharacter target;
 
-    public EnemyPool(GameCharacter target, int initialSize) {
+    private com.kelompok2.frontend.pools.ProjectilePool projectilePool;
+
+    public EnemyPool(GameCharacter target, int initialSize,
+            com.kelompok2.frontend.pools.ProjectilePool projectilePool) {
         this.target = target;
+        this.projectilePool = projectilePool;
         this.activeEnemies = new Array<>();
 
         this.dummyPool = new Array<>();
@@ -72,6 +76,7 @@ public class EnemyPool {
 
         // Reset and Scale
         enemy.reset(x, y, target);
+        enemy.setProjectileList(projectilePool.getActiveProjectiles());
 
         // Apply Level Scaling
         int level = GameManager.getInstance().getCurrentLevel();

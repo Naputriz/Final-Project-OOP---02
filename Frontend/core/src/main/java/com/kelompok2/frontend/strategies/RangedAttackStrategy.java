@@ -45,6 +45,8 @@ public class RangedAttackStrategy implements AttackStrategy {
         // ✅ FIX: Buat Projectile baru dengan damage, warna, DAN speed custom
         Projectile p = new Projectile(startX, startY, targetPos.x, targetPos.y, finalDamage, projectileColor,
                 projectileSpeed);
+        // Set ownership
+        p.setEnemyProjectile(!attacker.isPlayerCharacter());
         projectiles.add(p);
     }
 }

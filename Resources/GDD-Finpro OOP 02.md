@@ -920,10 +920,39 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ---
 
-#### 7. Bug Fix: Ranged Enemies Don't Fire
+#### 7. Bug Fix: Ranged Enemies Don't Fire ✅ **FIXED**
+**Priority:** Done
+**Description:** Ranged enemies were spawning but not firing projectiles at the player.
+**Fix:** Injected `ProjectilePool` into `EnemyPool` and `RangedEnemy`. Added logic to set projectile ownership (`isEnemyProjectile`) to prevent self-damage.
+**Status:** ✅ Enemies shoot player correctly without hitting themselves.
+
+---
+
+#### 8. Bug Fix: Enemy Pooling Stat Reset
 **Priority:** High
-**Description:** Ranged enemies are spawning but not firing projectiles at the player.
-**Action:** investigate `RangedAttackStrategy` or projectile spawning logic.
+**Description:** Enemies (e.g., FastEnemy) sometimes retain stats from other types (e.g., TankEnemy HP) when reused from pool.
+**Action:** Ensure `reset()` method clears all stats and modifying flags correctly.
+
+---
+
+#### 9. Bug Fix: Ryze Skill vs Boss
+**Priority:** High
+**Description:** Ryze's `SpectralBodySkill` (Invulnerability) does not prevent damage from Boss attacks.
+**Action:** Ensure `takeDamage` override handles Boss damage sources correctly.
+
+---
+
+#### 10. Bug Fix: Damage Numbers vs Boss
+**Priority:** Medium
+**Description:** Damage numbers (floating text) do not appear when attacking Bosses with skills.
+**Action:** Verify event publishing in `SkillCollisionHandler` for Bosses.
+
+---
+
+#### 11. Balance: Melee Attack Hitbox
+**Priority:** High
+**Description:** Melee attacks require "slight range" and miss enemies directly on top of the player (point-blank).
+**Action:** Adjust `MeleeAttackStrategy` or `MeleeAttack` hitbox to include the character's own center/bounds.
 
 ---
 
