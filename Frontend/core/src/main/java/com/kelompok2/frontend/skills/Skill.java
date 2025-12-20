@@ -28,4 +28,13 @@ public interface Skill {
     default float onOwnerTakeDamage(GameCharacter owner, float amount) {
         return amount;
     }
+
+    // New methods for Visual Hitbox Indicators
+    default float getRadius() {
+        return 0; // Default radius (0 means no visual indicator or point target)
+    }
+
+    default float getRange() {
+        return 0; // Default range
+    }
 }

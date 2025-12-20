@@ -13,6 +13,11 @@ public class InsanityBurstSkill extends BaseSkill {
     private static final float RADIUS = 500f; // Massive 500px radius
     private static final float DAMAGE_MULTIPLIER = 3.0f; // Arts × 3.0
 
+    @Override
+    public float getRadius() {
+        return RADIUS;
+    }
+
     // Enemy array untuk damage (akan diset dari GameScreen saat activate)
     private Array<DummyEnemy> enemies;
 

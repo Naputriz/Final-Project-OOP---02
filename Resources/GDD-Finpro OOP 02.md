@@ -518,9 +518,13 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Player spawn randomized with safe padding (700 units) to ensure camera centering.
   - Camera clamps to boundaries to prevent viewing the void.
 
-- **TODO:** Add Visual Hitbox Indicators for Ultimate Skills
-  - Current: Ultimate skills (Insanity Burst, Inferno Nova, Frozen Apocalypse) have no visual indication of their area of effect
-  - Issue: Players can't tell which enemies will be hit before activating
+- ~~**TODO:** Add Visual Hitbox Indicators for Ultimate Skills~~ ✅ **COMPLETED**
+  - **Mechanic:** Hold 'R' to preview range around player, Release to activate.
+  - **Visuals:** 
+    - **Inferno Nova:** Orange semi-transparent circle (400px radius around player).
+    - **Insanity Burst:** Purple semi-transparent circle (500px radius around player).
+    - **Frozen Apocalypse:** Screen-wide Cyan overlay.
+  - Benefits: Clear area-of-effect feedback for self-centered skills.
   - Goal: Add visual circle/indicator showing ultimate skill range before and during activation
   - Implementation Suggestions:
     - Show semi-transparent circle at mouse position when R key is held
@@ -603,6 +607,19 @@ Each character has a unique innate skill but has a second skill slot that can be
     - Small minimap showing player position and nearby enemies
     - Especially useful if map boundaries are implemented
   - Benefits: Better player feedback, more engaging gameplay, improved UX
+
+- **TODO:** Character Balancing
+  - **Issue:** Arts/Ranged characters (Isolde, Whisperwind) easily defeat bosses but struggle with crowds (single-target attacks). Melee characters (Ryze, Lumi) clear crowds easily but struggle against bosses due to damage trading.
+  - **Goal:** Balance effectiveness across different scenarios.
+  - **Proposed Solutions:**
+    - **Melee:** Add slight damage reduction or lifesteal vs bosses?
+    - **Ranged:** Add small AoE to basic attacks or increase projectile size?
+    - **Bosses:** Add specific mechanics to counter kiting (e.g., gap closers).
+
+- **TODO:** Ultimate Skill QoL - Cancellation
+  - **Issue:** One-time use ultimates can be wasted if accidentally pressed or if targets move.
+  - **Goal:** Allow canceling the "Preview Mode" without firing.
+  - **Implementation:** Right-click to cancel while holding 'R'.
 
 #### UI System Improvements
 - **TODO:** Implement Observer Pattern for UI Bars ✅ **COMPLETED**
