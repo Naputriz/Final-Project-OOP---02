@@ -12,7 +12,13 @@ import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
-
+import com.kelompok2.frontend.entities.Ryze;
+import com.kelompok2.frontend.entities.Isolde;
+import com.kelompok2.frontend.entities.Insania;
+import com.kelompok2.frontend.entities.Blaze;
+import com.kelompok2.frontend.entities.Whisperwind;
+import com.kelompok2.frontend.entities.Aelita;
+import com.kelompok2.frontend.factories.CharacterFactory;
 import com.kelompok2.frontend.utils.InputHandler;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.managers.GameManager;
@@ -60,17 +66,8 @@ public class GameScreen extends ScreenAdapter {
         // Initialize pools
         projectilePool = new ProjectilePool(50);
 
-        // Spawn Player based on character selection
-        // Spawn Player using Factory Pattern
-        player = com.kelompok2.frontend.factories.CharacterFactory.createCharacter(selectedCharacter, 0, 0);
-
-        // If default fallback was triggered, update selectedCharacter
-        // (Optional check, but good for consistency)
-        if (!player.getClass().getSimpleName().equals(selectedCharacter) && !"Lumi".equals(selectedCharacter)) {
-            // Note: SimpleName might not match selectedCharacter exactly if we used
-            // "Default" case
-            // But for now, let's just keep the logic simple.
-        }
+        // Call factory to create player char
+        player = CharacterFactory.createCharacter(selectedCharacter, 0, 0);
 
         // Initialize EnemyPool
         enemyPool = new EnemyPool(player, 30);
