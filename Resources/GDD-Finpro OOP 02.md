@@ -298,7 +298,8 @@ Each character has a unique innate skill but has a second skill slot that can be
    - Melee Mad Claw attacks with scratch animation (auto-attack enabled)
    - Mind Fracture skill (AoE insanity debuff, damage: Arts × 0.5, 10s cooldown)
    - State-based animations:
-     - Idle: 4 frames (2×2 grid)
+     - Idle: 4 frames (2×2 grid, 0.15s/frame)
+     - Running: 10 frames (3x4 grid, 0.1s/frame)
    - Visual size: 128px
    - Bonus damage to insane enemies
 
@@ -327,6 +328,9 @@ Each character has a unique innate skill but has a second skill slot that can be
      - Reflects 50% damage back to attacker
      - Immobilizes player for 2 seconds
      - Visual: Red shield arc
+   - State-based animations:
+     - Idle: 4 frames (2x2 grid, 0.15s/frame)
+     - Running: 10 frames (3x4 grid, 0.1s/frame)
    - Implementation Status: ✅ Fully implemented
 
 6. **Whisperwind - The Silent Caster** ✅
@@ -440,10 +444,10 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Goal: Use interface or base class method for skill cooldown access
 
 #### HUD Bar Position Scalability
-- **TODO:** Make isPlayer check more maintainable
-  - Location: `GameScreen.java:253`
-  - Current: `instanceof Ryze || instanceof Isolde || instanceof Insania || instanceof Blaze`
-  - Goal: Use marker interface or base class property
+- ~~**TODO:** Make isPlayer check more maintainable~~ ✅ **COMPLETED**
+  - **Solution:** Implemented `UISystem` with **Observer Pattern**.
+  - **Details:** UI no longer polls `instanceof` checks. Instead, it listens for `HealthChangedEvent`, `XpChangedEvent`, etc.
+  - **Benefit:** Adding new characters requires ZERO changes to UI code.
 
 #### Backend Integration
 - **TODO:** Send game data to backend on Game Over
@@ -570,18 +574,12 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Save/Load System:**
     - Persist unlocked characters and high scores between sessions.
 
-- **TODO:** Resolution Consistency and Responsive UI
-  - **Priority:** High
-  - Current: Game is optimized for 1920×1080 resolution only
-  - Issue: Other resolutions (1280×720, 1366×768, etc.) may have UI elements misaligned or cut off
-  - Goal: Make UI scale properly across different resolutions
-  - Implementation Suggestions:
-    - Use viewport scaling with aspect ratio maintenance
-    - Implement responsive UI positioning (percentage-based instead of pixel-based)
-    - Test on common resolutions: 1280×720, 1366×768, 1920×1080, 2560×1440
-    - Add letterboxing/pillarboxing for aspect ratio mismatches
-  - Locations: `CharacterSelectionScreen.java`, `GameScreen.java`, `UISystem.java`
-  - Benefits: Better accessibility, works on more devices
+- ~~**TODO:** Resolution Consistency and Responsive UI~~ ✅ **COMPLETED**
+  - **Problem Summary:** UI was hardcoded for 1920x1080, causing issues on other screens.
+  - **Solution:**
+    - `UISystem`: Refactored to use **Adaptive Scaling** (`uiScale = screenHeight / 720f`). HUD elements, fonts, and overlays now resize dynamically based on window height.
+    - `CharacterSelectionScreen`: Uses `FitViewport` (1920x1080 virtual resolution) to ensure correct aspect ratio with letterboxing on all screens.
+  - **Status:** ✅ Validated for 720p, 1080p, and arbitrary resolutions.
 
 - **TODO:** Expand Settings Menu Options
   - Current: Settings menu exists but has limited options
@@ -642,9 +640,18 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Implementation:** Right-click to cancel while holding 'R'.
 
 #### 🐛 Bug Fixes (High Priority)
-- **TODO:** Fix Ryze's Spectral Body Skill
+- ~~**TODO:** Fix Ryze's Spectral Body Skill~~ ✅ **FIXED**
   - **Issue:** Skill activates but player still takes damage (Invincibility not working).
-  - **Goal:** Ensure player is truly immune to damage for 3 seconds.
+  - **Fix:** Overridden `takeDamage(float, GameCharacter)` in `Ryze.java` to properly intercept damage calls from the collision system.
+  - **Status:** ✅ Verified fix in code.
+
+- **TODO:** Fix Lumi's Skill Damage Counter
+  - **Issue:** Damage counter triggers on skill usage, should trigger only when enemy is pulled and damaged.
+  - **Goal:** Provide accurate feedback to player.
+
+- **TODO:** Fix Stun Status Reset
+  - **Issue:** Enemies killed while stunned retain status when returned to pool.
+  - **Goal:** Ensure `isStunned` flag is cleared on `reset()`/`revive()`.
 
 - **TODO:** Fix Pause Screen Transitions
   - **Issue:** Quickly pausing/unpausing may cause unexpected screen switches (Main Menu, Restart).
@@ -660,6 +667,12 @@ Each character has a unique innate skill but has a second skill slot that can be
     - **Screen Shake:** Add slight shake on heavy hits or crits.
     - **Hit Flash:** Flash enemy sprite white when damaged.
     - **Damage Log:** (Optional) Text log of combat for debugging/clarity.
+
+#### Game Balancing (New)
+- **TODO:** Aegis Balance Improvements
+  - **Skill Range:** Shield Stance currently only blocks frontal. Change to 360-degree protection or Omni-directional block/reflect.
+  - **Basic Attack Hitbox:** Fix issue where enemies "on top" of Aegis (point-blank) are missed.
+    - *Technical Note:* `MeleeAttackStrategy` starts hitbox at `edgeOffset + 5px`. Needs to start closer to center or include character bounds.
 
 #### UI System Improvements
 - **TODO:** Implement Observer Pattern for UI Bars ✅ **COMPLETED**
