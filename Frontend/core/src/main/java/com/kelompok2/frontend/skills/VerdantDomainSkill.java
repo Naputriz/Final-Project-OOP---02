@@ -26,7 +26,7 @@ public class VerdantDomainSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles, Array<MeleeAttack> meleeAttacks) {
         // Calculate and apply HP cost
         float hpCost = user.getMaxHp() * HP_COST_PERCENT;
@@ -42,6 +42,7 @@ public class VerdantDomainSkill extends BaseSkill {
 
         System.out.println("[Aelita] Verdant Domain activated! HP cost: " + hpCost +
                 ", Position: (" + zonePosition.x + ", " + zonePosition.y + ")");
+        return true;
     }
 
     @Override

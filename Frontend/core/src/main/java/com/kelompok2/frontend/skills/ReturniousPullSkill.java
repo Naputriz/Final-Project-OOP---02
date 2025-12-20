@@ -37,12 +37,12 @@ public class ReturniousPullSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
         if (enemyPool == null) {
             System.err.println("[ReturniousPullSkill] EnemyPool not set!");
-            return;
+            return false;
         }
 
         // Logic: Find nearest marked enemy (DummyEnemy OR Boss)
@@ -106,10 +106,10 @@ public class ReturniousPullSkill extends BaseSkill {
 
             // Visual effect or log
             System.out.println("[Lumi] Pulling marked enemy: " + nearestMarkedEnemy.getClass().getSimpleName());
-
-            // Cooldown is set handled by BaseSkill logic after this returns
+            return true;
         } else {
             System.out.println("[Lumi] No marked enemies found to pull.");
+            return false;
         }
     }
 }

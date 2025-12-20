@@ -13,7 +13,7 @@ public class HealingWaveSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
         // Calculate healing amount - 10% to keep Aelita valuable (30%)
@@ -25,7 +25,9 @@ public class HealingWaveSkill extends BaseSkill {
         float hpAfter = user.getHp();
         float actualHealing = hpAfter - hpBefore;
 
-        System.out.println("[Healing Wave] Healed for " + actualHealing + " HP (" + hpAfter + "/" + user.getMaxHp() + ")");
+        System.out.println(
+                "[Healing Wave] Healed for " + actualHealing + " HP (" + hpAfter + "/" + user.getMaxHp() + ")");
+        return true;
     }
 
     @Override

@@ -20,7 +20,7 @@ public class IceShieldSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
         // Activate shield
@@ -29,6 +29,7 @@ public class IceShieldSkill extends BaseSkill {
         shieldedUser = user;
 
         System.out.println("[Ice Shield] Shield activated for 5 seconds! 50% damage reduction");
+        return true;
     }
 
     @Override

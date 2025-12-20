@@ -20,7 +20,7 @@ public class WindDashSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
         // Calculate dash direction and distance
@@ -48,6 +48,7 @@ public class WindDashSkill extends BaseSkill {
         dashedUser = user;
 
         System.out.println("[Wind Dash] Dashed " + distance + " pixels! Invulnerable for 0.3s");
+        return true;
     }
 
     @Override

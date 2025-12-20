@@ -38,13 +38,13 @@ public class InfernoNovaSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
         if (enemies == null) {
             System.out.println("[ERROR] InfernoNovaSkill: No enemy array set!");
-            return;
+            return false;
         }
 
         System.out.println("[ULTIMATE] INFERNO NOVA ACTIVATED!");
@@ -97,6 +97,7 @@ public class InfernoNovaSkill extends BaseSkill {
 
         System.out.println("[ULTIMATE] Inferno Nova! Incinerated " + affectedCount +
                 " enemies with " + damage + " damage each!");
+        return true;
     }
 
     @Override

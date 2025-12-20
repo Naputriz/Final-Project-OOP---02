@@ -20,7 +20,7 @@ public class ShieldStanceSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
@@ -41,6 +41,7 @@ public class ShieldStanceSkill extends BaseSkill {
         }
 
         System.out.println("[Aegis] Shield Stance activated! Immobilized for 2 seconds, frontal blocking active!");
+        return true;
     }
 
     @Override

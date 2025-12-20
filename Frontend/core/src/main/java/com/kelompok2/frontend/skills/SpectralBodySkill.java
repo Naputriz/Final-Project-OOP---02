@@ -18,16 +18,19 @@ public class SpectralBodySkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
         isActive = true;
         activeTimer = DURATION;
 
-        // Logic to apply "Invulnerable" state to user would go here or be checked via isActive
-        // Currently Ryze uses checks on the timer/flag. Ryze entity will need to check this skill's state.
+        // Logic to apply "Invulnerable" state to user would go here or be checked via
+        // isActive
+        // Currently Ryze uses checks on the timer/flag. Ryze entity will need to check
+        // this skill's state.
 
         System.out.println("[SpectralBodySkill] Activated!");
+        return true;
     }
 
     @Override

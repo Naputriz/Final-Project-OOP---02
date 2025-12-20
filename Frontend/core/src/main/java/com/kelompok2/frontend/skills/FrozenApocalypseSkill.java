@@ -37,13 +37,13 @@ public class FrozenApocalypseSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
         if (enemies == null) {
             System.out.println("[Frozen Apocalypse] No enemies array set!");
-            return;
+            return false;
         }
 
         // Screen-wide effect - affect ALL enemies regardless of position
@@ -74,6 +74,7 @@ public class FrozenApocalypseSkill extends BaseSkill {
 
         System.out.println("[ULTIMATE] Frozen Apocalypse! Froze and damaged " + affectedCount +
                 " enemies with " + damage + " damage each!");
+        return true;
     }
 
     @Override

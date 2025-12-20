@@ -19,7 +19,7 @@ public class MindFractureSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
         // Reset display timer
@@ -27,6 +27,7 @@ public class MindFractureSkill extends BaseSkill {
         activationId++;
 
         System.out.println("[MindFractureSkill] Activated! ID: " + activationId);
+        return true;
     }
 
     @Override

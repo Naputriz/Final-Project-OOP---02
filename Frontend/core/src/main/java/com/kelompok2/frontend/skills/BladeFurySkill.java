@@ -27,7 +27,7 @@ public class BladeFurySkill extends BaseSkill {
     private Array<MeleeAttack> activeMeleeAttacks; // Reference to add attacks later
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
         // Start fury
         isActive = true;
@@ -38,6 +38,7 @@ public class BladeFurySkill extends BaseSkill {
         this.activeMeleeAttacks = meleeAttacks; // Store reference
 
         System.out.println("[Blade Fury] Started! Will deal 5 hits of ATK × 0.8");
+        return true;
     }
 
     @Override

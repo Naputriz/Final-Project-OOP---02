@@ -66,7 +66,8 @@ public class PauseScreen extends ScreenAdapter {
         resumeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                if (hasTransitioned) return;
+                if (hasTransitioned)
+                    return;
                 hasTransitioned = true;
                 gameScreen.resumeFromPause();
                 game.setScreen(gameScreen);
@@ -132,11 +133,13 @@ public class PauseScreen extends ScreenAdapter {
         settingsWindow.setSize(450, 250);
         settingsWindow.setPosition(Gdx.graphics.getWidth() / 2f - 225, Gdx.graphics.getHeight() / 2f - 125);
 
-        final Label musicLabel = new Label("Music: " + (int)(AudioManager.getInstance().getMusicVolume() * 100) + "%", skin);
+        final Label musicLabel = new Label("Music: " + (int) (AudioManager.getInstance().getMusicVolume() * 100) + "%",
+                skin);
         final Slider musicSlider = new Slider(0f, 1f, 0.01f, false, skin);
         musicSlider.setValue(AudioManager.getInstance().getMusicVolume());
 
-        final Label soundLabel = new Label("SFX: " + (int)(AudioManager.getInstance().getSoundVolume() * 100) + "%", skin);
+        final Label soundLabel = new Label("SFX: " + (int) (AudioManager.getInstance().getSoundVolume() * 100) + "%",
+                skin);
         final Slider soundSlider = new Slider(0f, 1f, 0.01f, false, skin);
         soundSlider.setValue(AudioManager.getInstance().getSoundVolume());
 
@@ -147,7 +150,7 @@ public class PauseScreen extends ScreenAdapter {
             public void changed(ChangeEvent event, Actor actor) {
                 float vol = musicSlider.getValue();
                 AudioManager.getInstance().setMusicVolume(vol);
-                musicLabel.setText("Music: " + (int)(vol * 100) + "%");
+                musicLabel.setText("Music: " + (int) (vol * 100) + "%");
             }
         });
 
@@ -156,7 +159,7 @@ public class PauseScreen extends ScreenAdapter {
             public void changed(ChangeEvent event, Actor actor) {
                 float vol = soundSlider.getValue();
                 AudioManager.getInstance().setSoundVolume(vol);
-                soundLabel.setText("SFX: " + (int)(vol * 100) + "%");
+                soundLabel.setText("SFX: " + (int) (vol * 100) + "%");
             }
         });
 
@@ -185,9 +188,11 @@ public class PauseScreen extends ScreenAdapter {
         // 2. Gambar Overlay Hitam Transparan
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        shapeRenderer.setProjectionMatrix(stage.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0, 0, 0, 0.7f);
-        shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        shapeRenderer.rect(0, 0, stage.getWidth(), stage.getHeight());
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 

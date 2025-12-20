@@ -21,7 +21,7 @@ public class GroundSlamSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
         // Create shockwave at character position
@@ -50,6 +50,7 @@ public class GroundSlamSkill extends BaseSkill {
         meleeAttacks.add(attack);
 
         System.out.println("[Ground Slam] Shockwave at " + shockwavePosition + " - Damage: " + damage + ", Stun: 1.5s");
+        return true;
     }
 
     @Override

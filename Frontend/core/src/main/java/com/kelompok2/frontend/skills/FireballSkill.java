@@ -13,7 +13,7 @@ public class FireballSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
         // Calculate direction to target
@@ -50,6 +50,7 @@ public class FireballSkill extends BaseSkill {
 
             System.out.println("[Fireball] Launched! Damage: " + damage + ", Direction: " + direction);
         }
+        return true;
     }
 
     @Override

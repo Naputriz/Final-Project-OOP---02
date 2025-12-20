@@ -24,7 +24,7 @@ public class HellfirePillarSkill extends BaseSkill {
     }
 
     @Override
-    protected void executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
+    protected boolean executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {
 
         pillarPosition.set(targetPos);
@@ -34,6 +34,7 @@ public class HellfirePillarSkill extends BaseSkill {
         // Don't set activeTimer here - it will be set when warning ends
 
         System.out.println("[HellfirePillarSkill] Warning phase started at " + targetPos);
+        return true;
     }
 
     @Override
