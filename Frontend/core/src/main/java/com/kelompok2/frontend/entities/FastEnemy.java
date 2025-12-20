@@ -5,20 +5,20 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 
-public class DummyEnemy extends BaseEnemy {
+public class FastEnemy extends BaseEnemy {
 
-    public DummyEnemy(float x, float y, GameCharacter target) {
-        super(x, y, 125f, 50f, target); // Speed 125, HP 50
+    public FastEnemy(float x, float y, GameCharacter target) {
+        super(x, y, 250f, 30f, target); // High Speed, Low HP
 
-        this.atk = 15f;
+        this.atk = 10f; // Lower damage per hit
+        this.bounds.setSize(24, 24); // Smaller size
 
         createTexture();
-        this.bounds.setSize(32, 32);
     }
 
     private void createTexture() {
-        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.RED);
+        Pixmap pixmap = new Pixmap(24, 24, Pixmap.Format.RGBA8888);
+        pixmap.setColor(Color.YELLOW);
         pixmap.fill();
         this.texture = new Texture(pixmap);
         pixmap.dispose();
@@ -27,7 +27,7 @@ public class DummyEnemy extends BaseEnemy {
     @Override
     public void updateBehavior(float delta) {
         if (target != null) {
-            // Simple chase behavior
+            // Aggressive chase
             float targetCenterX = target.getPosition().x + target.getVisualWidth() / 2;
             float targetFeetY = target.getPosition().y;
             float myCenterX = this.position.x + getVisualWidth() / 2;
@@ -40,6 +40,6 @@ public class DummyEnemy extends BaseEnemy {
 
     @Override
     public float getXpReward() {
-        return 25f;
+        return 35f; // Higher reward for hitting small fast target
     }
 }

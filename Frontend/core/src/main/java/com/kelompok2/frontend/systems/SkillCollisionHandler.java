@@ -1,7 +1,7 @@
 package com.kelompok2.frontend.systems;
 
+import com.kelompok2.frontend.entities.BaseEnemy;
 import com.kelompok2.frontend.entities.Boss;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.Projectile;
 import com.kelompok2.frontend.events.EnemyKilledEvent;
@@ -34,7 +34,7 @@ public class SkillCollisionHandler {
                 if (!gb.isActive())
                     continue;
 
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                     if (enemy.isDead())
                         continue;
 
@@ -60,7 +60,7 @@ public class SkillCollisionHandler {
                         blaze.getPillarRadius() * 2,
                         blaze.getPillarRadius() * 2);
 
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                     if (enemy.isDead())
                         continue;
 
@@ -83,7 +83,7 @@ public class SkillCollisionHandler {
                 if (!hurricane.active)
                     continue;
 
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                     if (enemy.isDead())
                         continue;
 
@@ -109,7 +109,7 @@ public class SkillCollisionHandler {
                 float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
                 float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
 
-                for (DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
                     if (enemy.isDead())
                         continue;
                     if (enemy.wasHitByMindFracture(activationId))
@@ -222,7 +222,8 @@ public class SkillCollisionHandler {
                         bossBlaze.getPillarRadius() * 2);
 
                 if (pillarBounds.overlaps(player.getBounds())) {
-                    float damagePerSecond = bossBlaze.getArts() * 35.0f; // Increased to compensate for 0.5s warning delay
+                    float damagePerSecond = bossBlaze.getArts() * 35.0f; // Increased to compensate for 0.5s warning
+                                                                         // delay
                     float damage = damagePerSecond * currentDelta;
                     player.takeDamage(damage, boss);
                     eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
@@ -276,7 +277,7 @@ public class SkillCollisionHandler {
         }
     }
 
-    private void handleEnemyKilled(DummyEnemy enemy) {
+    private void handleEnemyKilled(BaseEnemy enemy) {
         float xpGain = enemy.getXpReward();
         player.gainXp(xpGain);
         eventManager.publish(new EnemyKilledEvent(enemy, player, xpGain));

@@ -2,7 +2,6 @@ package com.kelompok2.frontend.systems;
 
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.entities.Boss;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
@@ -60,32 +59,30 @@ public class CollisionSystem {
         }
         projectileCollisionHandler.checkBossProjectilesVsPlayer(currentBoss);
 
-        // 2. Melee Collisions
+        // 2. Melee Attack Collisions
         playerCollisionHandler.checkPlayerMeleeVsEnemies();
         if (currentBoss != null && !currentBoss.isDead()) {
             playerCollisionHandler.checkPlayerMeleeVsBoss(currentBoss);
         }
         playerCollisionHandler.checkBossMeleeVsPlayer(currentBoss);
-
-        // 3. Contact Collisions
         playerCollisionHandler.checkPlayerVsEnemyContact();
         if (currentBoss != null && !currentBoss.isDead()) {
             playerCollisionHandler.checkPlayerVsBossContact(currentBoss);
         }
 
-        // 4. Skill Collisions
+        // 3. Skill Collisions
         skillCollisionHandler.checkPlayerSkillsVsEnemies();
         if (currentBoss != null && !currentBoss.isDead()) {
-            skillCollisionHandler.checkPlayerSkillsVsBoss(currentBoss); // Fixed: Added missing skill check vs boss
+            skillCollisionHandler.checkPlayerSkillsVsBoss(currentBoss);
             skillCollisionHandler.checkBossSkillsVsPlayer(currentBoss);
         }
 
-        // 5. Friendly Fire (Insane Enemies)
+        // 4. Insane Enemy Friendly Fire
         checkInsaneEnemyCollisions();
     }
 
     private void checkInsaneEnemyCollisions() {
-        Array<DummyEnemy> activeEnemies = enemyPool.getActiveEnemies();
+        Array<com.kelompok2.frontend.entities.BaseEnemy> activeEnemies = enemyPool.getActiveEnemies();
 
         // Update friendly fire cooldowns
         java.util.Iterator<java.util.Map.Entry<String, Float>> it = friendlyFireCooldowns.entrySet().iterator();
@@ -99,7 +96,7 @@ public class CollisionSystem {
 
         // Check each insane enemy against all other enemies
         for (int i = 0; i < activeEnemies.size; i++) {
-            DummyEnemy insaneEnemy = activeEnemies.get(i);
+            com.kelompok2.frontend.entities.BaseEnemy insaneEnemy = activeEnemies.get(i);
 
             if (!insaneEnemy.isInsane() || insaneEnemy.isDead()) {
                 continue;
@@ -109,7 +106,7 @@ public class CollisionSystem {
                 if (i == j)
                     continue; // Skip self
 
-                DummyEnemy otherEnemy = activeEnemies.get(j);
+                com.kelompok2.frontend.entities.BaseEnemy otherEnemy = activeEnemies.get(j);
                 if (otherEnemy.isDead())
                     continue;
 
@@ -132,7 +129,7 @@ public class CollisionSystem {
         }
     }
 
-    private void handleEnemyKilled(DummyEnemy enemy) {
+    private void handleEnemyKilled(com.kelompok2.frontend.entities.BaseEnemy enemy) {
         float xpGain = enemy.getXpReward();
         player.gainXp(xpGain);
         eventManager.publish(new EnemyKilledEvent(enemy, player, xpGain));

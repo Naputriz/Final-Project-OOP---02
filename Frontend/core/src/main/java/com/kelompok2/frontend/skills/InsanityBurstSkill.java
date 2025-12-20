@@ -2,7 +2,6 @@ package com.kelompok2.frontend.skills;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
@@ -19,7 +18,7 @@ public class InsanityBurstSkill extends BaseSkill {
     }
 
     // Enemy array untuk damage (akan diset dari GameScreen saat activate)
-    private Array<DummyEnemy> enemies;
+    private Array<com.kelompok2.frontend.entities.BaseEnemy> enemies;
 
     // Boss untuk damage (optional)
     private com.kelompok2.frontend.entities.Boss currentBoss;
@@ -29,7 +28,7 @@ public class InsanityBurstSkill extends BaseSkill {
     }
 
     // Set enemy array before activate (called from GameScreen)
-    public void setEnemies(Array<DummyEnemy> enemies) {
+    public void setEnemies(Array<com.kelompok2.frontend.entities.BaseEnemy> enemies) {
         this.enemies = enemies;
     }
 
@@ -56,7 +55,7 @@ public class InsanityBurstSkill extends BaseSkill {
         float damage = user.getArts() * DAMAGE_MULTIPLIER;
         int affectedCount = 0;
 
-        for (DummyEnemy enemy : enemies) {
+        for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemies) {
             if (enemy.isDead())
                 continue; // Skip already dead enemies
 

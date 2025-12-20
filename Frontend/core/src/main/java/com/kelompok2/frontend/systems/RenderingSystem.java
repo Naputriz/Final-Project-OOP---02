@@ -83,7 +83,6 @@ public class RenderingSystem {
         renderShieldStance();
         renderBossSkills(currentBoss);
 
-        // ✅ FIX: Render Ultimate Aiming Visualization
         renderUltimateAiming(camera);
     }
 
@@ -308,7 +307,7 @@ public class RenderingSystem {
     private void renderEnemyHPBars() {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        for (com.kelompok2.frontend.entities.DummyEnemy enemy : enemyPool.getActiveEnemies()) {
+        for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemyPool.getActiveEnemies()) {
             if (enemy.isDead())
                 continue;
 

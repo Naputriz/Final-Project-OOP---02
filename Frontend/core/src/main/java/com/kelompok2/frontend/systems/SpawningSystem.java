@@ -6,7 +6,6 @@ import com.kelompok2.frontend.entities.Boss;
 import com.kelompok2.frontend.entities.BossBlaze;
 import com.kelompok2.frontend.entities.BossInsania;
 import com.kelompok2.frontend.entities.BossIsolde;
-import com.kelompok2.frontend.entities.DummyEnemy;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.events.BossSpawnedEvent;
 import com.kelompok2.frontend.managers.GameEventManager;
@@ -84,7 +83,7 @@ public class SpawningSystem {
             EnemyType type = EnemyFactory.getRandomEnemyType(currentLevel);
 
             // Spawn dari pool
-            DummyEnemy enemy = enemyPool.obtain(x, y);
+            enemyPool.obtain(type, x, y);
             spawnTimer = 0;
         }
     }
