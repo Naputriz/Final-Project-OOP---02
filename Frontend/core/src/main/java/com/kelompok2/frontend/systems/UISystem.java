@@ -345,12 +345,17 @@ public class UISystem {
 
     private void drawUltimateMessage(OrthographicCamera camera) {
         if (ultimateMessageTimer > 0 && !ultimateMessage.isEmpty()) {
+            batch.setProjectionMatrix(camera.combined);
             batch.begin();
             bossFont.setColor(Color.GOLD);
-            float messageX = (camera.viewportWidth - ultimateMessage.length() * 15f) / 2f;
-            float messageY = camera.viewportHeight - 150f;
+
+            GlyphLayout layout = new GlyphLayout(bossFont, ultimateMessage);
+            float messageX = camera.position.x - (layout.width / 2f);
+            float messageY = camera.position.y + (camera.viewportHeight / 3f); // Top third of screen (approx)
+
             bossFont.draw(batch, ultimateMessage, messageX, messageY);
             batch.end();
+            bossFont.setColor(Color.WHITE);
         }
     }
 

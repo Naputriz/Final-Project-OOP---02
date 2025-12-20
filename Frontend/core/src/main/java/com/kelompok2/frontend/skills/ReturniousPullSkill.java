@@ -81,7 +81,8 @@ public class ReturniousPullSkill extends BaseSkill {
             Vector2 direction = nearestMarkedEnemy.getPosition().cpy().sub(userPos).nor();
 
             // Set position distance 40 units from player in direction of enemy
-            float pullDistance = 40f;
+            // Set position distance based on combined radius + small buffer
+            float pullDistance = (user.getVisualWidth() / 2f) + (nearestMarkedEnemy.getVisualWidth() / 2f) + 15f;
             Vector2 pullPos = userPos.cpy().add(direction.scl(pullDistance));
 
             // REMOVED: nearestMarkedEnemy.setPosition(pullPos.x, pullPos.y); (Instant

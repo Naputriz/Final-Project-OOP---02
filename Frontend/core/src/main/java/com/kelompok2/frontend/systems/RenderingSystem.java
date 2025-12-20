@@ -76,7 +76,7 @@ public class RenderingSystem {
         renderHurricaneBinds();
         renderMindFracture();
         renderHellfirePillar();
-        renderBladeFury();
+
         renderGroundSlam();
         renderIceShield();
         renderShieldStance();
@@ -249,58 +249,6 @@ public class RenderingSystem {
             shapeRenderer.setColor(1f, 0.5f, 0f, 0.4f);
             shapeRenderer.circle(blaze.getPillarPosition().x, blaze.getPillarPosition().y, blaze.getPillarRadius(), 50);
             shapeRenderer.end();
-        }
-    }
-
-    // Extracted from GameScreen lines 758-808
-    private void renderBladeFury() {
-        if (!player.hasSecondarySkill())
-            return;
-
-        if (player.getSecondarySkill() instanceof com.kelompok2.frontend.skills.BladeFurySkill) {
-            com.kelompok2.frontend.skills.BladeFurySkill bladeFury = (com.kelompok2.frontend.skills.BladeFurySkill) player
-                    .getSecondarySkill();
-
-            if (bladeFury.isSkillActive()) {
-                // Determine which animation to use based on character type
-                String animationType = player.getAttackAnimationType();
-
-                // Load animation textures from AssetManager
-                String spritePath = animationType.equals("scratch") ? "AttackAnimations/Scratch Animation.png"
-                        : "AttackAnimations/Slash Animation.png";
-
-                Texture attackTexture = com.kelompok2.frontend.managers.AssetManager.getInstance()
-                        .loadTexture(spritePath);
-                com.badlogic.gdx.graphics.g2d.TextureRegion attackSprite = new com.badlogic.gdx.graphics.g2d.TextureRegion(
-                        attackTexture);
-
-                float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
-                float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
-
-                // Render multiple attack sprites in a circular pattern
-                batch.begin();
-                int numberOfSprites = 8; // 8 attack sprites around character
-                float spriteSize = 48f; // Size of each sprite
-                float orbitRadius = bladeFury.getRadius() * 0.7f; // Slightly inside the damage radius
-
-                for (int i = 0; i < numberOfSprites; i++) {
-                    float angle = (360f / numberOfSprites) * i;
-                    float angleRad = (float) Math.toRadians(angle);
-
-                    // Position each sprite around the circle
-                    float spriteX = playerCenterX + (float) Math.cos(angleRad) * orbitRadius - spriteSize / 2;
-                    float spriteY = playerCenterY + (float) Math.sin(angleRad) * orbitRadius - spriteSize / 2;
-
-                    // Draw with rotation pointing outward from center
-                    batch.draw(attackSprite,
-                            spriteX, spriteY, // Position
-                            spriteSize / 2, spriteSize / 2, // Origin (center)
-                            spriteSize, spriteSize, // Size
-                            1f, 1f, // Scale
-                            angle); // Rotation to point outward
-                }
-                batch.end();
-            }
         }
     }
 

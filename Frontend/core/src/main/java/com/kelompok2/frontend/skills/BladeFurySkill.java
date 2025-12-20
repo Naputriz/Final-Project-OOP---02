@@ -18,6 +18,7 @@ public class BladeFurySkill extends BaseSkill {
     private float nextHitTimer = 0f;
 
     private GameCharacter activeUser; // Track user during active state
+    // private float radius = 75f; // Unused, getRadius() returns 100f
 
     public BladeFurySkill() {
         super("Blade Fury", "Spin rapidly, 5 hits (ATK × 0.8 each)", 10f);
@@ -44,6 +45,7 @@ public class BladeFurySkill extends BaseSkill {
         super.update(delta); // Update cooldown
 
         // Update active fury state
+        // Update active fury state
         if (isActive) {
             activeTimer -= delta;
             nextHitTimer -= delta;
@@ -69,28 +71,37 @@ public class BladeFurySkill extends BaseSkill {
             return;
 
         float damage = activeUser.getAtk() * 0.8f;
-        float radius = 100f; // Diameter 200
+        float radius = 75f; // Distance from center
 
-        // Create Area of Effect attack centered on user
         float centerX = activeUser.getPosition().x + activeUser.getVisualWidth() / 2;
         float centerY = activeUser.getPosition().y + activeUser.getVisualHeight() / 2;
 
-        // Spawn melee attack
-        MeleeAttack attack = new MeleeAttack(
-                centerX - radius,
-                centerY - radius,
-                radius * 2,
-                radius * 2,
-                damage,
-                0.1f, // Short duration
-                "slash", // Animation
-                0 // Rotation
-        );
+        int attackCount = 4; // Spawn 4 random slashes per "hit" interval
 
-        activeMeleeAttacks.add(attack);
+        for (int i = 0; i < attackCount; i++) {
+            // Random angle
+            float angle = (float) (Math.random() * 360f);
+            float angleRad = (float) Math.toRadians(angle);
 
-        System.out.println("[Blade Fury] Hit #" + (hitCount + 1) +
-                " - Damage: " + damage + ", Radius: " + radius);
+            // Position at random distance within range
+            float dist = (float) (Math.random() * radius);
+            float x = centerX + (float) Math.cos(angleRad) * dist - 32f; // -32 centering (approx)
+            float y = centerY + (float) Math.sin(angleRad) * dist - 32f;
+
+            // Spawn melee attack
+            MeleeAttack attack = new MeleeAttack(
+                    x, y,
+                    64f, 64f, // 64x64 size
+                    damage,
+                    0.2f, // Very short duration per slash
+                    activeUser.getAttackAnimationType(), // Use character's own animation style
+                    angle // Random rotation
+            );
+
+            activeMeleeAttacks.add(attack);
+        }
+
+        System.out.println("[Blade Fury] Flurry hit #" + (hitCount + 1));
     }
 
     public boolean isSkillActive() {
