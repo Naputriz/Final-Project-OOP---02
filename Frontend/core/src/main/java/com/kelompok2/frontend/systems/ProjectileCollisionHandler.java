@@ -47,6 +47,8 @@ public class ProjectileCollisionHandler {
                     }
                     enemy.takeDamage(damage);
                     projectile.active = false;
+                    eventManager.publish(
+                            new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, projectile.isArts()));
 
                     if (enemy.isDead()) {
                         handleEnemyKilled(enemy);
@@ -63,8 +65,11 @@ public class ProjectileCollisionHandler {
                 continue;
 
             if (projectile.getBounds().overlaps(boss.getBounds())) {
-                boss.takeDamage(projectile.getDamage());
+                float damage = projectile.getDamage();
+                boss.takeDamage(damage);
                 projectile.active = false;
+                eventManager.publish(
+                        new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, damage, projectile.isArts()));
                 System.out.println("[Collision] Boss hit! HP: " + boss.getHp() + "/" + boss.getMaxHp());
                 break;
             }

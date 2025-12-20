@@ -146,19 +146,30 @@ public class InputHandler {
 
         // ✅ FIX: R key - Ultimate Skill (Aiming Mechanic)
         if (character.hasUltimateSkill()) {
-            if (Gdx.input.isKeyPressed(Input.Keys.R)) {
-                // Key held down -> Aiming mode
+            if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+                // Start aiming only on fresh press
                 character.setAimingUltimate(true);
             } else if (character.isAimingUltimate()) {
-                // Key released (was aiming, now not pressed) -> Fire!
-                character.setAimingUltimate(false);
+                // While aiming...
 
-                // Get mouse position in world coordinates
-                Vector3 mousePos3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
-                Vector2 mousePos = new Vector2(mousePos3.x, mousePos3.y);
+                // 1. Check for CANCELLATION (Right Click)
+                if (Gdx.input.isButtonJustPressed(Input.Buttons.RIGHT)) {
+                    character.setAimingUltimate(false);
+                    System.out.println("[InputHandler] Ultimate skill cancelled!");
+                    return;
+                }
 
-                // Activate ultimate skill (one-time use)
-                character.performUltimateSkill(mousePos, projectilePool.getActiveProjectiles(), meleeAttacks);
+                // 2. Check for FIRE (Key Released)
+                if (!Gdx.input.isKeyPressed(Input.Keys.R)) {
+                    character.setAimingUltimate(false);
+
+                    // Get mouse position in world coordinates
+                    Vector3 mousePos3 = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+                    Vector2 mousePos = new Vector2(mousePos3.x, mousePos3.y);
+
+                    // Activate ultimate skill (one-time use)
+                    character.performUltimateSkill(mousePos, projectilePool.getActiveProjectiles(), meleeAttacks);
+                }
             }
         }
     }

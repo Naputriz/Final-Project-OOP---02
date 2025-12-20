@@ -7,7 +7,7 @@ import com.kelompok2.frontend.entities.Boss;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.events.EnemyKilledEvent;
-import com.kelompok2.frontend.events.PlayerDamagedEvent;
+// import com.kelompok2.frontend.events.PlayerDamagedEvent; // Handled in GameCharacter
 import com.kelompok2.frontend.managers.GameEventManager;
 import com.kelompok2.frontend.pools.EnemyPool;
 
@@ -63,6 +63,8 @@ public class PlayerCollisionHandler {
 
                     enemy.takeDamage(damage);
                     attack.markAsHit(enemy);
+                    eventManager.publish(
+                            new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, attack.isArts()));
 
                     if (enemy.isDead()) {
                         handleEnemyKilled(enemy);
@@ -84,8 +86,11 @@ public class PlayerCollisionHandler {
                     System.out.println("[Lumi] Boss marked!");
                 }
 
-                boss.takeDamage(attack.getDamage());
+                float damage = attack.getDamage();
+                boss.takeDamage(damage);
                 attack.markAsHit(boss);
+                eventManager
+                        .publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, damage, attack.isArts()));
                 System.out.println("[Collision] Boss hit by melee! HP: " + boss.getHp() + "/" + boss.getMaxHp());
             }
         }
@@ -100,7 +105,8 @@ public class PlayerCollisionHandler {
                 float damage = attack.getDamage();
                 player.takeDamage(damage, boss);
                 attack.markAsHit(player);
-                eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                // eventManager.publish(new PlayerDamagedEvent(player, damage, player.getHp()));
+                // // HANDLED IN GameCharacter
                 System.out.println("[Collision] Player hit by boss melee! HP: " + player.getHp());
             }
         }
@@ -126,6 +132,8 @@ public class PlayerCollisionHandler {
                 float contactDamage = 5f;
                 player.takeDamage(contactDamage, enemy);
                 contactDamageCooldown = CONTACT_DAMAGE_INTERVAL;
+                // eventManager.publish(new PlayerDamagedEvent(player, contactDamage,
+                // player.getHp())); // HANDLED IN GameCharacter
                 System.out.println("[Collision] Player touched enemy! HP: " + player.getHp());
                 break;
             }
@@ -147,6 +155,8 @@ public class PlayerCollisionHandler {
             float contactDamage = 10f;
             player.takeDamage(contactDamage, boss);
             contactDamageCooldown = CONTACT_DAMAGE_INTERVAL;
+            // eventManager.publish(new PlayerDamagedEvent(player, contactDamage,
+            // player.getHp())); // HANDLED IN GameCharacter
             System.out.println("[Collision] Player touched boss! HP: " + player.getHp());
         }
     }

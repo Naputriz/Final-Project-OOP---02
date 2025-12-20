@@ -94,6 +94,16 @@ public class ReturniousPullSkill extends BaseSkill {
             // Speed 1200f -> Fast pull (almost instant but travels)
             nearestMarkedEnemy.pull(pullPos, 1200f, damage, 1.0f, user);
 
+            // Publish Damage Event
+            if (gameFacade != null) {
+                gameFacade.getEventManager().publish(
+                        new com.kelompok2.frontend.events.EnemyDamagedEvent(nearestMarkedEnemy, damage, false) // False
+                                                                                                               // for
+                                                                                                               // Physical
+                                                                                                               // (White)
+                );
+            }
+
             // Visual effect or log
             System.out.println("[Lumi] Pulling marked enemy: " + nearestMarkedEnemy.getClass().getSimpleName());
 

@@ -22,6 +22,7 @@ public abstract class BaseEnemy extends GameCharacter {
         super(x, y, speed, maxHp);
         this.target = target;
         this.attackCooldown = 1.0f; // Default cooldown
+        this.isPlayerCharacter = false; // Mark as enemy
     }
 
     public abstract void updateBehavior(float delta);
