@@ -358,6 +358,18 @@ Each character has a unique innate skill but has a second skill slot that can be
    - Visual size: 128px
    - Implementation Status: ✅ Fully implemented
 
+8. **Alice - The Reckless Princess** ✅ **NEW**
+   - Role: Physical Attacker
+   - Stats: Moderate HP (100), High ATK (40), Low Arts (10), Low Defence (10), High Speed (200)
+   - Melee scratch attacks (Physical)
+   - **Innate Skill (Feral Rush):**
+     - Dashes forward rapidly (High speed)
+     - Unleashes 5x scratch attacks in quick succession
+     - Damage: 50% ATK per hit (Total 250%)
+     - Cooldown: 5 seconds
+   - Visual size: 128px
+   - Implementation Status: ✅ Fully implemented
+
 #### UI/UX Features
 - **HUD System:**
   - HP bar (green) - Top position, furthest from character
@@ -722,7 +734,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 - ~~Aelita - The Evergreen Healer~~ ✅ **IMPLEMENTED**
 - ~~Aegis - The Impenetrable Shield~~ ✅ **IMPLEMENTED**
 - ~~Lumi - The Pale Renegade~~ ✅ **IMPLEMENTED**
-- Alice - The Reckless Princess
+- ~~Alice - The Reckless Princess~~ ✅ **IMPLEMENTED**
 - Alex - The Calculating Prince
 - Raiden - The Speed Demon
 - Artorias - King of Lumina
@@ -898,12 +910,27 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ---
 
-#### 6. Feature: Handle Multiple Level Ups
-**Priority:** Medium
+#### 6. Feature: Handle Multiple Level Ups ✅ COMPLETED
+**Priority:** Done
 **Description:** Bosses provide massive XP, potentially causing multiple level-ups at once. Currently, the game only grants one buff selection even if XP overflows for multiple levels.
 **Desired Behavior:**
 - Sequential level-ups: If player gains enough XP for 2 levels, they should select a buff, then immediately level up again and select another buff.
 - Or simply ensure XP overflow is handled correctly so the next level-up triggers immediately after the first interaction.
+**Status:** Fixed. XP overflow is now handled correctly. If a player gains enough XP for multiple levels (e.g., from a boss kill), the level-up screen will appear sequentially for each level gained until the XP is exhausted.
+
+---
+
+#### 7. Bug Fix: Ranged Enemies Don't Fire
+**Priority:** High
+**Description:** Ranged enemies are spawning but not firing projectiles at the player.
+**Action:** investigate `RangedAttackStrategy` or projectile spawning logic.
+
+---
+
+#### 8. Refactor: Character Selection Screen Scalability
+**Priority:** Medium
+**Description:** The validation and initialization logic in `CharacterSelectionScreen.java` (including `InitializeCharacters`) is becoming bloated and hard to maintain as more characters are added.
+**Action:** Refactor `InitializeCharacters` to be more scalable, potentially moving character data definitions to a separate configuration file (JSON/XML) or a `CharacterDefinition` class/factory pattern.
 
 ---
 

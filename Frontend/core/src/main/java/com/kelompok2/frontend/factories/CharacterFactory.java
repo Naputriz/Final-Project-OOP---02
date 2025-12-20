@@ -21,18 +21,19 @@ public class CharacterFactory {
         characterRegistry.put("Aelita", Aelita::new);
         characterRegistry.put("Aegis", Aegis::new);
         characterRegistry.put("Lumi", Lumi::new);
+        characterRegistry.put("Alice", Alice::new);
     }
 
-    public static GameCharacter createCharacter(String characterId, float x, float y){
-        if (characterId == null){
+    public static GameCharacter createCharacter(String characterId, float x, float y) {
+        if (characterId == null) {
             System.err.println("[CharacterFactory] Character ID is null, defaulting to Isolde.");
             return new Isolde(x, y);
         }
 
         CharacterCreator creator = characterRegistry.get(characterId);
 
-        if (creator != null){
-            return creator.create(x,y);
+        if (creator != null) {
+            return creator.create(x, y);
         } else {
             System.err.println("[CharacterFactory] Character ID undefined: " + characterId + ", defaulting to Isolde.");
             return new Isolde(x, y);
