@@ -1,19 +1,22 @@
 package com.kelompok2.frontend.entities;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.skills.ShieldStanceSkill;
 import com.kelompok2.frontend.strategies.ShieldBashAttackStrategy;
 
 public class Aegis extends GameCharacter {
 
     // Animation system
-    private Animation<TextureRegion> idleAnimation;
+    private com.kelompok2.frontend.states.AnimationState currentState;
+    private com.kelompok2.frontend.states.AnimationState idleState;
+    private com.kelompok2.frontend.states.AnimationState runningState;
     private float stateTime;
+
+    // Velocity tracking for animation
+    private Vector2 previousPosition;
+    private boolean isMoving;
 
     // Shield Stance skill
     private ShieldStanceSkill shieldStanceSkill;
@@ -28,19 +31,19 @@ public class Aegis extends GameCharacter {
         this.arts = 10f; // Low Arts
         this.def = 40f; // High Defence (main stat untuk Shield Bash)
 
-        // Load placeholder sprite
-        Texture spritesheet = AssetManager.getInstance().loadTexture("AegisPlaceholder.png");
+        // Initialize Animation States
+        // Idle: 2x2, 4 frames
+        idleState = new com.kelompok2.frontend.states.IdleState("Aegis/pcgp-aegis.png", 2, 2, 4, 0.15f);
+        // Run: 3x4, 10 frames
+        runningState = new com.kelompok2.frontend.states.RunningState("Aegis/pcgp-aegis-run.png", 3, 4, 10, 0.1f);
 
-        // Setup animation (assuming single frame for now - placeholder)
-        // Jika spritesheet adalah animated, adjust accordingly
-        TextureRegion[] frames = new TextureRegion[1];
-        frames[0] = new TextureRegion(spritesheet);
-
-        idleAnimation = new Animation<>(0.1f, frames);
-        idleAnimation.setPlayMode(Animation.PlayMode.LOOP);
-
+        currentState = idleState;
+        currentState.enter(this);
         stateTime = 0f;
-        this.texture = spritesheet;
+
+        // Initialize movement tracking
+        previousPosition = new Vector2(x, y);
+        isMoving = false;
 
         // Setup visual dan hitbox (tank slightly bigger)
         float visualSize = 128f;
@@ -74,6 +77,12 @@ public class Aegis extends GameCharacter {
         super.update(delta);
         stateTime += delta;
 
+        // Check movement
+        checkMovementState();
+
+        // Update animation state
+        currentState.update(this, delta);
+
         // Update skill cooldown
         if (skillTimer > 0) {
             skillTimer -= delta;
@@ -85,15 +94,32 @@ public class Aegis extends GameCharacter {
         }
     }
 
+    private void checkMovementState() {
+        isMoving = !position.epsilonEquals(previousPosition, 0.1f);
+
+        if (isMoving && currentState == idleState) {
+            currentState.exit(this);
+            currentState = runningState;
+            currentState.enter(this);
+            stateTime = 0f;
+        } else if (!isMoving && currentState == runningState) {
+            currentState.exit(this);
+            currentState = idleState;
+            currentState.enter(this);
+            stateTime = 0f;
+        }
+
+        previousPosition.set(position);
+    }
+
     @Override
     public void render(SpriteBatch batch) {
         // Get current animation frame
-        TextureRegion currentFrame = idleAnimation.getKeyFrame(stateTime);
+        TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
         // Flip sprite based on facing direction
-        if (!isFacingRight && !currentFrame.isFlipX()) {
-            currentFrame.flip(true, false);
-        } else if (isFacingRight && currentFrame.isFlipX()) {
+        boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
+        if (needsFlip) {
             currentFrame.flip(true, false);
         }
 
