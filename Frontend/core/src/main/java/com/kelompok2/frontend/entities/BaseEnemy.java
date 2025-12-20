@@ -23,11 +23,21 @@ public abstract class BaseEnemy extends GameCharacter {
 
     protected long lastMindFractureHitId = -1;
 
+    // Base stats for scaling
+    protected float baseMaxHp;
+    protected float baseAtk;
+    protected float baseArts;
+
     public BaseEnemy(float x, float y, float speed, float maxHp, GameCharacter target) {
         super(x, y, speed, maxHp);
         this.target = target;
         this.attackCooldown = 1.0f; // Default cooldown
         this.isPlayerCharacter = false; // Mark as enemy
+
+        // Initialize base stats
+        this.baseMaxHp = maxHp;
+        this.baseAtk = this.atk; // Initial atk from super (GameCharacter default is 10f)
+        this.baseArts = this.arts; // Initial arts from super
     }
 
     public abstract void updateBehavior(float delta);
@@ -41,9 +51,11 @@ public abstract class BaseEnemy extends GameCharacter {
         // Basic linear scaling: 5% per level (Reduced from 10%)
         float scaleFactor = 1.0f + 0.05f * (level - 1);
 
-        this.maxHp = this.maxHp * scaleFactor;
-        this.hp = this.maxHp;
-        this.atk = this.atk * scaleFactor;
+        // Always scale from BASE values to prevent infinite compounding
+        this.maxHp = this.baseMaxHp * scaleFactor;
+        this.hp = this.maxHp; // Heal to full new max HP
+        this.atk = this.baseAtk * scaleFactor;
+        this.arts = this.baseArts * scaleFactor;
 
         // Cap scaling to prevent absurdity at high levels if needed
     }
@@ -105,10 +117,19 @@ public abstract class BaseEnemy extends GameCharacter {
         this.position.set(x, y);
         this.bounds.setPosition(x, y);
         this.target = newTarget;
+
+        // Restore stats to BASE before scaling is re-applied
+        this.maxHp = this.baseMaxHp;
         this.hp = this.maxHp;
+        this.atk = this.baseAtk;
+        this.arts = this.baseArts;
+
         this.frozen = false;
         this.freezeTimer = 0;
         super.clearInsanity();
+        super.clearStun();
+        super.clearSlow();
+        super.clearFreeze();
         this.isMarked = false;
     }
 

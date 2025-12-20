@@ -1,11 +1,9 @@
 package com.kelompok2.frontend.entities;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.strategies.RangedAttackStrategy;
 
 public class Whisperwind extends GameCharacter {
@@ -17,6 +15,11 @@ public class Whisperwind extends GameCharacter {
     // Active projectiles from Hurricane Bind
     private Array<Projectile> hurricaneProjectiles;
 
+    // Animation state system
+    private com.kelompok2.frontend.states.AnimationState currentState;
+    private com.kelompok2.frontend.states.AnimationState idleState;
+    private float stateTime;
+
     public Whisperwind(float x, float y) {
         super(x, y, 190f, 110f); // Moderate speed, Moderate HP
 
@@ -25,9 +28,20 @@ public class Whisperwind extends GameCharacter {
         this.arts = 38f; // High Arts
         this.def = 12f; // Moderate Defence
 
-        // Load stationary sprite
-        Texture sprite = AssetManager.getInstance().loadTexture("WhisperwindPlaceholder.png");
-        this.texture = sprite;
+        // Initialize Animation States
+        // Idle: 2x2 grid, 4 frames
+        idleState = new com.kelompok2.frontend.states.IdleState("Whisperwind/pcgp-whisperwind_1.png", 2, 2, 4, 0.15f);
+
+        // Start with idle state
+        currentState = idleState;
+        currentState.enter(this);
+        stateTime = 0f;
+
+        // Note: this.texture is no longer used for rendering, but kept for
+        // compatibility if needed elsewhere
+        // We can just use the first frame for the texture property if necessary,
+        // otherwise leave as null/placeholder
+        // For now, removing the AssetManager.loadTexture call for the placeholder.
 
         // Ukuran visual dan hitbox
         float visualSize = 128f;
@@ -61,6 +75,10 @@ public class Whisperwind extends GameCharacter {
     @Override
     public void update(float delta) {
         super.update(delta);
+        stateTime += delta;
+
+        // Update current state (animation)
+        currentState.update(this, delta);
 
         // Update skill cooldown
         if (skillTimer > 0) {
@@ -79,15 +97,24 @@ public class Whisperwind extends GameCharacter {
 
     @Override
     public void render(SpriteBatch batch) {
-        // Hitung posisi render
-        float renderX = position.x;
-        float renderY = position.y;
+        // Get current animation frame from state
+        com.badlogic.gdx.graphics.g2d.TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
-        // Flip sprite based on facing direction (if needed)
-        // Current sprite is stationary, so no flip needed for now
+        // Flip logic (standard for all characters)
+        // Asset faces LEFT by default? Or RIGHT?
+        // Ryze/Insania assets face LEFT.
+        // If this asset faces LEFT:
+        // isFacingRight=true -> FLIP
+        // isFacingRight=false -> NO FLIP
 
-        // Draw sprite
-        batch.draw(texture, renderX, renderY, renderWidth, renderHeight);
+        // Assuming standard format like Ryze:
+        boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
+        if (needsFlip) {
+            currentFrame.flip(true, false);
+        }
+
+        // Draw current frame
+        batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
     }
 
     @Override

@@ -661,9 +661,10 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Issue:** Damage counter triggers on skill usage, should trigger only when enemy is pulled and damaged.
   - **Goal:** Provide accurate feedback to player.
 
-- **TODO:** Fix Stun Status Reset
+- ~~**TODO:** Fix Stun Status Reset~~ ✅ **FIXED**
   - **Issue:** Enemies killed while stunned retain status when returned to pool.
-  - **Goal:** Ensure `isStunned` flag is cleared on `reset()`/`revive()`.
+  - **Fix:** Added `clearStun()` call in `BaseEnemy.reset()`.
+  - **Status:** ✅ Verified fix in code.
 
 - **TODO:** Fix Pause Screen Transitions
   - **Issue:** Quickly pausing/unpausing may cause unexpected screen switches (Main Menu, Restart).
@@ -928,10 +929,11 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ---
 
-#### 8. Bug Fix: Enemy Pooling Stat Reset
-**Priority:** High
+#### 8. Bug Fix: Enemy Pooling Stat Reset ✅ **FIXED**
+**Priority:** Done
 **Description:** Enemies (e.g., FastEnemy) sometimes retain stats from other types (e.g., TankEnemy HP) when reused from pool.
-**Action:** Ensure `reset()` method clears all stats and modifying flags correctly.
+**Fix:** Implemented `baseMaxHp`, `baseAtk`, `baseArts` in `BaseEnemy`. `reset()` now restores these base values before scaling logic is applied.
+**Status:** ✅ Verified fix in code.
 
 ---
 
@@ -953,6 +955,23 @@ Each character has a unique innate skill but has a second skill slot that can be
 **Priority:** High
 **Description:** Melee attacks require "slight range" and miss enemies directly on top of the player (point-blank).
 **Action:** Adjust `MeleeAttackStrategy` or `MeleeAttack` hitbox to include the character's own center/bounds.
+
+---
+
+#### 12. Bug Fix: Ground Slam No Stun
+**Priority:** High
+**Description:** Ground slam attacks currently deal damage but fail to apply the intended stun effect.
+**Action:** Investigate `SkillCollisionHandler` or `GroundSlamSkill` to ensure stun status is applied to affected enemies.
+
+#### 13. UI: Level Up Stats Display
+**Priority:** Medium
+**Description:** Player cannot see their current stats (HP, ATK, etc.) while selecting a level-up upgrade, making it hard to choose relevant buffs.
+**Action:** Display current character stats on the Level Up screen/overlay.
+
+#### 14. UI: Level Indicator on HUD
+**Priority:** Medium
+**Description:** Current level is not clearly visible on the main HUD or Level Up bar.
+**Action:** Add a clear Level indicator (e.g., "Lv. 5") to the XP bar or HUD.
 
 ---
 
