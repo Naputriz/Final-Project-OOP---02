@@ -284,7 +284,7 @@ public class MainMenuScreen extends ScreenAdapter {
         leaderboardWindow.setModal(true);
         leaderboardWindow.setMovable(true);
         leaderboardWindow.setVisible(false);
-        leaderboardWindow.setSize(500, 600);
+        leaderboardWindow.setSize(600, 600);
         leaderboardWindow.setPosition(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, Align.center);
 
         // --- 1. BAGIAN FILTER (Disimpan ke variabel filterTable) ---
@@ -316,7 +316,7 @@ public class MainMenuScreen extends ScreenAdapter {
         Table headerTable = new Table();
         headerTable.setBackground(skin.newDrawable("white", 0.2f, 0.2f, 0.2f, 1f));
 
-        float colRank = 40; float colName = 140; float colChar = 80; float colLvl = 60; float colTime = 120;
+        float colRank = 40; float colName = 140; float colChar = 130; float colLvl = 60; float colTime = 120;
 
         headerTable.add(new Label("#", skin)).width(colRank).center();
         headerTable.add(new Label("Nama", skin)).width(colName).left().padLeft(10);
@@ -436,7 +436,7 @@ public class MainMenuScreen extends ScreenAdapter {
             // Ukuran Kolom (HARUS SAMA dengan Header di createLeaderboardWindow)
             float colRank = 40;
             float colName = 140;
-            float colChar = 80;
+            float colChar = 130;
             float colLvl = 60;
             float colTime = 120;
 
@@ -466,7 +466,6 @@ public class MainMenuScreen extends ScreenAdapter {
                 leaderboardContentTable.add(lblName).width(colName).left().padLeft(10);
 
                 // Karakter (Align Tengah)
-                if(charName.length() > 10) charName = charName.substring(0, 10);
                 Label lblChar = new Label(charName, skin);
                 lblChar.setColor(textColor);
                 leaderboardContentTable.add(lblChar).width(colChar).center();
