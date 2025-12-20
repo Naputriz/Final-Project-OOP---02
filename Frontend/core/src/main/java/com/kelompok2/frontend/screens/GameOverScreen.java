@@ -111,10 +111,10 @@ public class GameOverScreen extends ScreenAdapter {
         // --- BACKEND INTEGRATION ---
         // Kirim skor otomatis saat layar dibuka
         // Kita cast finalTime (float) ke (int) karena backend biasanya menyimpan integer
-        sendScoreToBackend(game.getPlayerName(), finalLevel, (int) finalTime);
+        sendScoreToBackend(game.getPlayerName(),lastCharacter, finalLevel, (int) finalTime);
     }
 
-    private void sendScoreToBackend(String name, int level, int time) {
+    private void sendScoreToBackend(String name, String charName, int level, int time) {
         Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.POST);
         request.setUrl("http://localhost:8080/api/leaderboard");
         request.setHeader("Content-Type", "application/json");
@@ -123,6 +123,7 @@ public class GameOverScreen extends ScreenAdapter {
         // Format: {"playerName": "Nama", "level": 5, "value": 120}
         String jsonPayload = "{ " +
             "\"playerName\": \"" + name + "\", " +
+            "\"character\": \"" + charName + "\", " +
             "\"level\": " + level + ", " +   // <--- INI TAMBAHAN PENTING
             "\"value\": " + time +
             " }";
