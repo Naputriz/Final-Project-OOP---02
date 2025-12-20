@@ -14,8 +14,6 @@ public class LeaderboardController {
 
     public LeaderboardController() {
         // Data dummy awal agar leaderboard tidak kosong saat dites
-        scores.add(new Score("Player1", 100));
-        scores.add(new Score("Player2", 250));
     }
 
     @GetMapping
