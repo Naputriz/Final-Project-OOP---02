@@ -22,7 +22,15 @@ public class GameManager {
 
     private GameManager() {
         unlockedCharacters = new HashSet<>();
-        unlockedCharacters.add("Ryze"); // Default
+        // Default unlocked characters
+        unlockedCharacters.add("Ryze");
+        unlockedCharacters.add("Whisperwind");
+        unlockedCharacters.add("Aelita");
+        unlockedCharacters.add("Aegis");
+        unlockedCharacters.add("Lumi");
+        unlockedCharacters.add("Alice");
+        unlockedCharacters.add("Kei");
+
         reset();
         System.out.println("[GameManager] Instance created (Singleton)");
     }
@@ -55,6 +63,12 @@ public class GameManager {
             this.unlockedCharacters = serverUnlockedChars;
         } else {
             this.unlockedCharacters.add("Ryze");
+            this.unlockedCharacters.add("Whisperwind");
+            this.unlockedCharacters.add("Aelita");
+            this.unlockedCharacters.add("Aegis");
+            this.unlockedCharacters.add("Lumi");
+            this.unlockedCharacters.add("Alice");
+            this.unlockedCharacters.add("Kei");
         }
         System.out.println("[GameManager] User logged in: " + username);
         System.out.println("[GameManager] Unlocked chars: " + unlockedCharacters);

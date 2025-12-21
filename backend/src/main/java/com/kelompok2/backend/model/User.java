@@ -24,7 +24,16 @@ public class User {
     private Set<String> unlockedCharacters = new HashSet<>();
 
     public User() {
+        // default char
         this.unlockedCharacters.add("Ryze"); // default char
+        this.unlockedCharacters.add("Whisperwind");
+        this.unlockedCharacters.add("Aelita");
+        this.unlockedCharacters.add("Aegis");
+        this.unlockedCharacters.add("Lumi");
+        this.unlockedCharacters.add("Alice");
+        this.unlockedCharacters.add("Kei");
+        // Karakter Boss (Blaze, Insania, Isolde) TIDAK ditambahkan di sini
+        // karena mereka harus di-unlock lewat gameplay.
     }
 
     public User(String username, String password) {
