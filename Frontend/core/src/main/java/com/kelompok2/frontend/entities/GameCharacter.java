@@ -40,6 +40,8 @@ public abstract class GameCharacter {
     protected float stunTimer = 0f;
     protected boolean isMarked = false; // Lumi's mark
     protected float markTimer = 0f;
+    protected boolean isHallucinating = false; // Kei's hallucination effect
+    protected float hallucinationTimer = 0f;
     // Balance Fix: Per-attacker hit cooldown (prevents same enemy from
     // multi-hitting)
     protected java.util.HashMap<GameCharacter, Float> attackerCooldowns = new java.util.HashMap<>();
@@ -108,6 +110,23 @@ public abstract class GameCharacter {
     public void performInnateSkill(Vector2 targetPos) {
         // Default: call basic skill (untuk backward compatibility)
         performInnateSkill();
+    }
+
+    public void hallucinate(float duration) {
+        if (isInvulnerable()) {
+            return;
+        }
+        this.isHallucinating = true;
+        this.hallucinationTimer = duration;
+    }
+
+    public boolean isHallucinating() {
+        return isHallucinating;
+    }
+
+    public void clearHallucination() {
+        this.isHallucinating = false;
+        this.hallucinationTimer = 0f;
     }
 
     public abstract float getInnateSkillTimer();
@@ -240,6 +259,14 @@ public abstract class GameCharacter {
             markTimer -= delta;
             if (markTimer <= 0) {
                 isMarked = false;
+            }
+        }
+
+        // Update hallucination timer
+        if (hallucinationTimer > 0) {
+            hallucinationTimer -= delta;
+            if (hallucinationTimer <= 0) {
+                clearHallucination();
             }
         }
 
