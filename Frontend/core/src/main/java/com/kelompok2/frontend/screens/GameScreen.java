@@ -108,19 +108,19 @@ public class GameScreen extends ScreenAdapter {
             return;
         }
 
-        if (player.canLevelUp()) {
-            isPaused = true;
-            player.stop(); // Stop any active charging/aiming
-            game.setScreen(new LevelUpScreen(game, this, player));
-            return;
-        }
-
         // Clear screen (ALWAYS DO THIS to prevent afterimages)
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // Update logic (ONLY IF NOT PAUSED)
         if (!isPaused) {
+            if (player.canLevelUp()) {
+                isPaused = true;
+                player.stop(); // Stop any active charging/aiming
+                game.setScreen(new LevelUpScreen(game, this, player));
+                return;
+            }
+
             // Update camera to follow player
             updateCamera(delta);
 

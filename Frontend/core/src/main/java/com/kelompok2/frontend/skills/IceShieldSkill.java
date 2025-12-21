@@ -15,6 +15,8 @@ public class IceShieldSkill extends BaseSkill {
 
     private GameCharacter shieldedUser;
 
+    private float reductionAmount = 0.5f;
+
     public IceShieldSkill() {
         super("Ice Shield", "Reduce damage by 50% for 5s", 20f); // 20 second cooldown
     }
@@ -28,7 +30,8 @@ public class IceShieldSkill extends BaseSkill {
         shieldTimer = shieldDuration;
         shieldedUser = user;
 
-        System.out.println("[Ice Shield] Shield activated for 5 seconds! 50% damage reduction");
+        System.out.println(
+                "[Ice Shield] Shield activated for 5 seconds! " + (int) (reductionAmount * 100) + "% damage reduction");
         return true;
     }
 
@@ -56,7 +59,7 @@ public class IceShieldSkill extends BaseSkill {
     }
 
     public float getDamageReduction() {
-        return 0.5f;
+        return reductionAmount;
     }
 
     public GameCharacter getShieldedUser() {
@@ -65,16 +68,29 @@ public class IceShieldSkill extends BaseSkill {
 
     @Override
     public Skill copy() {
-        return new IceShieldSkill();
+        IceShieldSkill copy = new IceShieldSkill();
+        copy.reductionAmount = this.reductionAmount;
+        copy.description = this.description;
+        return copy;
     }
 
     @Override
     public float onOwnerTakeDamage(GameCharacter owner, float amount) {
         if (shieldActive) {
-            float reduced = amount * 0.5f;
+            float reduced = amount * (1.0f - reductionAmount); // If 0.5 reduction, take 0.5. If 0.8, take 0.2
             System.out.println("[Ice Shield] Shield active! Damage reduced from " + amount + " to " + reduced);
             return reduced;
         }
         return amount;
+    }
+
+    @Override
+    public void onEquip(GameCharacter owner) {
+        // Bonus for Isolde: 80% Damage Reduction (Ice Force)
+        if (owner instanceof com.kelompok2.frontend.entities.Isolde) {
+            this.reductionAmount = 0.8f;
+            this.description = "Reduce damage by 80% for 5s - ISOLDE COMBO!";
+            System.out.println("[Ice Shield] Combo activated for Isolde! Reduction increased to 80%.");
+        }
     }
 }

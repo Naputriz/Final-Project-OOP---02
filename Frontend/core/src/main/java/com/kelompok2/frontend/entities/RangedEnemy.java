@@ -1,8 +1,5 @@
 package com.kelompok2.frontend.entities;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.kelompok2.frontend.strategies.RangedAttackStrategy;
 
@@ -11,25 +8,79 @@ public class RangedEnemy extends BaseEnemy {
     private static final float ATTACK_RANGE = 300f; // Range to start shooting
     private static final float KITE_DISTANCE = 200f; // Too close, back away
 
+    // Animation fields
+    private com.kelompok2.frontend.states.AnimationState currentState;
+    private com.kelompok2.frontend.states.AnimationState idleState;
+    private com.kelompok2.frontend.states.AnimationState runningState;
+    private float stateTime;
+    private Vector2 previousPosition = new Vector2();
+
     public RangedEnemy(float x, float y, GameCharacter target) {
         super(x, y, 140f, 40f, target); // Moderate speed, Lower HP
 
         this.atk = 15f;
         this.bounds.setSize(32, 32);
 
+        // Visual Setup: 2x Hitbox (64x64)
+        this.renderWidth = 64f;
+        this.renderHeight = 64f;
+        this.boundsOffsetX = (renderWidth - bounds.width) / 2f;
+        this.boundsOffsetY = 0f;
+
         // IMPORTANT: Use Ranged Strategy
         this.attackStrategy = new RangedAttackStrategy();
         this.autoAttack = true; // Enable auto-attacking
 
-        createTexture();
+        // Initial animation state
+        // Idle: 6 cols, 1 row
+        this.idleState = new com.kelompok2.frontend.states.IdleState(
+                "Enemies/enemies-vampire_idle.png", 6, 1, 6, 0.1f);
+        // Run: 8 cols, 1 row (User correction)
+        this.runningState = new com.kelompok2.frontend.states.RunningState(
+                "Enemies/enemies-vampire_movement.png", 8, 1, 8, 0.1f);
+
+        this.currentState = idleState;
+        this.stateTime = 0f;
     }
 
-    private void createTexture() {
-        Pixmap pixmap = new Pixmap(32, 32, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.ORANGE); // Orange for ranged
-        pixmap.fill();
-        this.texture = new Texture(pixmap);
-        pixmap.dispose();
+    @Override
+    public void update(float delta) {
+        super.update(delta);
+        stateTime += delta;
+
+        // Simple state switch based on movement
+        boolean isMoving = !position.epsilonEquals(previousPosition, 0.1f);
+        if (isMoving && currentState == idleState) {
+            currentState = runningState;
+            stateTime = 0;
+        } else if (!isMoving && currentState == runningState) {
+            currentState = idleState;
+            stateTime = 0;
+        }
+        previousPosition.set(position);
+
+        // Update state
+        currentState.update(this, delta);
+    }
+
+    @Override
+    public void render(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        if (currentState != null) {
+            com.badlogic.gdx.graphics.g2d.TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
+
+            // Flip logic for Right-Facing Source Assets
+            boolean targetFlip = !isFacingRight;
+            if (currentFrame.isFlipX() != targetFlip) {
+                currentFrame.flip(true, false);
+            }
+
+            float drawWidth = (renderWidth > 0) ? renderWidth : bounds.width;
+            float drawHeight = (renderHeight > 0) ? renderHeight : bounds.height;
+
+            batch.draw(currentFrame, position.x, position.y, drawWidth, drawHeight);
+        } else {
+            super.render(batch);
+        }
     }
 
     @Override

@@ -37,4 +37,9 @@ public interface Skill {
     default float getRange() {
         return 0; // Default range
     }
+
+    // New method for Character-Skill Combos
+    default void onEquip(GameCharacter owner) {
+        // Default implementation does nothing
+    }
 }

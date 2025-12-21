@@ -9,7 +9,7 @@ import com.kelompok2.frontend.entities.Projectile;
 // Frozen Apocalypse - Ultimate from Boss Isolde (one-time use, screen-wide freeze, Arts×2.5)
 public class FrozenApocalypseSkill extends BaseSkill {
 
-    private static final float DAMAGE_MULTIPLIER = 2.5f; // Arts × 2.5
+    private float damageMultiplier = 2.5f;
 
     @Override
     public float getRadius() {
@@ -47,13 +47,15 @@ public class FrozenApocalypseSkill extends BaseSkill {
         }
 
         // Screen-wide effect - affect ALL enemies regardless of position
-        float damage = user.getArts() * DAMAGE_MULTIPLIER;
+        float damage = user.getArts() * damageMultiplier;
         int affectedCount = 0;
 
         for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemies) {
             if (enemy.isDead())
                 continue; // Skip already dead enemies
 
+            // Freeze first, then damage (so if they die, logic holds)
+            // But usually modify state then damage.
             enemy.takeDamage(damage);
             enemy.freeze();
 
@@ -79,6 +81,19 @@ public class FrozenApocalypseSkill extends BaseSkill {
 
     @Override
     public Skill copy() {
-        return new FrozenApocalypseSkill();
+        FrozenApocalypseSkill copy = new FrozenApocalypseSkill();
+        copy.damageMultiplier = this.damageMultiplier;
+        copy.description = this.description;
+        return copy;
+    }
+
+    @Override
+    public void onEquip(GameCharacter owner) {
+        // Bonus for Isolde: Stronger multiplier (2.5 -> 3.5)
+        if (owner instanceof com.kelompok2.frontend.entities.Isolde) {
+            this.damageMultiplier = 3.5f;
+            this.description = "ULTIMATE: Screen-wide freeze (Arts×3.5) - ISOLDE COMBO!";
+            System.out.println("[Frozen Apocalypse] Combo activated for Isolde! Multiplier increased to 3.5x.");
+        }
     }
 }
