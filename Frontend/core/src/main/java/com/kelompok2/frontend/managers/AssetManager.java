@@ -13,6 +13,10 @@ public class AssetManager {
     // Flag untuk tracking apakah sudah diinisialisasi
     private boolean initialized;
 
+    // Skill Texture Path
+    public static final String HELLFIRE_WARNING = "skills/HPWarn.png";
+    public static final String HELLFIRE_PILLAR = "skills/HP.png";
+
     // Private constructor untuk mencegah instantiasi langsung
     private AssetManager() {
         textureCache = new HashMap<>();
@@ -47,13 +51,18 @@ public class AssetManager {
         }
     }
 
+
     public Texture getTexture(String path) {
         return textureCache.get(path);
     }
 
     public void preloadTextures() {
         System.out.println("[AssetManager] Preloading common textures...");
-        // TODO: Tambahkan preload untuk texture yang sering digunakan
+
+        // Skill Texture
+        loadTexture(HELLFIRE_WARNING);
+        loadTexture(HELLFIRE_PILLAR);
+
         initialized = true;
     }
 

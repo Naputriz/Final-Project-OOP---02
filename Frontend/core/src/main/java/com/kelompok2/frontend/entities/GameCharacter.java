@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.skills.BaseSkill;
 import com.kelompok2.frontend.strategies.AttackStrategy;
 import com.kelompok2.frontend.managers.GameManager;
 import com.kelompok2.frontend.skills.Skill;
@@ -61,6 +62,9 @@ public abstract class GameCharacter {
 
     // Strategy Pattern untuk attack behavior
     protected AttackStrategy attackStrategy;
+
+    // Innate Skill
+    protected Skill innateSkill;
 
     // Secondary Skill System (Q key) - Command Pattern
     protected Skill secondarySkill; // Q skill slot
@@ -595,6 +599,20 @@ public abstract class GameCharacter {
             // RESET Color explicitly to avoid leaking tint to next sprites
             batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
         }
+
+        if (innateSkill != null) {
+            if (innateSkill instanceof BaseSkill) {
+                ((BaseSkill) innateSkill).render(batch);
+            }
+        }
+
+        if (secondarySkill != null) {
+            ((BaseSkill) secondarySkill).render(batch);
+        }
+
+        if (ultimateSkill != null) {
+            ((BaseSkill) ultimateSkill).render(batch);
+        }
     }
 
     public void dispose() {
@@ -725,6 +743,15 @@ public abstract class GameCharacter {
     // Reset movement/attack state (used when pausing/leveling up)
     public void stop() {
         this.isAimingUltimate = false;
+    }
+
+    // Innate Skill System methods
+    public void setInnateSkill(Skill skill) {
+        this.innateSkill = skill;
+    }
+
+    public Skill getInnateSkill() {
+        return innateSkill;
     }
 
     // Secondary Skill System methods

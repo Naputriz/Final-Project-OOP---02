@@ -114,7 +114,7 @@ public class RenderingSystem {
         renderHurricaneBinds();
         renderMindFracture();
         renderPhantomHaze();
-        renderHellfirePillar();
+        // renderHellfirePillar();
 
         renderGroundSlam();
         renderIceShield();
@@ -326,7 +326,7 @@ public class RenderingSystem {
         }
     }
 
-    // Extracted from GameScreen lines 746-756
+    /*
     private void renderHellfirePillar() {
         if (!(player instanceof com.kelompok2.frontend.entities.Blaze))
             return;
@@ -338,6 +338,7 @@ public class RenderingSystem {
             shapeRenderer.end();
         }
     }
+    */
 
     // Extracted from GameScreen lines 814-834
     private void renderGroundSlam() {

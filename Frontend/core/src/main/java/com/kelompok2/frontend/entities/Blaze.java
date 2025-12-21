@@ -22,9 +22,6 @@ public class Blaze extends GameCharacter {
     // Movement tracking for state transitions
     private Vector2 lastPosition;
 
-    // Skill
-    private HellfirePillarSkill innateSkill;
-
     public Blaze(float x, float y) {
         super(x, y, 180f, 110f); // Moderate speed, Moderate HP
 
@@ -34,7 +31,7 @@ public class Blaze extends GameCharacter {
         this.def = 5f; // Low Defence
 
         // Initialize Skill
-        this.innateSkill = new HellfirePillarSkill();
+        this.setInnateSkill(new com.kelompok2.frontend.skills.HellfirePillarSkill());
 
         // Initialize animation states
         // 4 columns × 23 rows = 92 frames total
@@ -121,10 +118,8 @@ public class Blaze extends GameCharacter {
         // Reset color explicitly
         batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
 
-        // Render Hellfire Pillar if active (visual placeholder)
-        if (innateSkill.isPillarActive()) {
-            // TODO: Add actual pillar sprite/animation
-            // For now, pillar damage is handled in GameScreen
+        if (innateSkill != null && innateSkill instanceof com.kelompok2.frontend.skills.BaseSkill) {
+            ((com.kelompok2.frontend.skills.BaseSkill) innateSkill).render(batch);
         }
     }
 
@@ -138,43 +133,50 @@ public class Blaze extends GameCharacter {
 
     @Override
     public void performInnateSkill(Vector2 mousePos) {
-        // Delegate to Skill
-        innateSkill.activate(this, mousePos, null, null);
+        if (innateSkill != null) {
+            innateSkill.activate(this, mousePos, null, null);
+        }
     }
 
     public boolean isPillarActive() {
-        return innateSkill.isPillarActive();
+        return (innateSkill instanceof HellfirePillarSkill) && ((HellfirePillarSkill) innateSkill).isPillarActive();
     }
 
     public Vector2 getPillarPosition() {
-        return innateSkill.getPillarPosition();
+        if (innateSkill instanceof HellfirePillarSkill) {
+            return ((HellfirePillarSkill) innateSkill).getPillarPosition();
+        }
+        return new Vector2(); // Fallback
     }
 
     public float getPillarRadius() {
-        return innateSkill.getPillarRadius();
+        if (innateSkill instanceof HellfirePillarSkill) {
+            return ((HellfirePillarSkill) innateSkill).getPillarRadius();
+        }
+        return 0f;
     }
 
     public boolean shouldShowPillarVisual() {
-        return innateSkill.shouldShowVisual();
+        return (innateSkill instanceof HellfirePillarSkill) && ((HellfirePillarSkill) innateSkill).shouldShowVisual();
     }
 
     // Getter untuk skill cooldown bar
     public float getSkillTimer() {
-        return innateSkill.getRemainingCooldown();
+        return (innateSkill != null) ? innateSkill.getRemainingCooldown() : 0f;
     }
 
     public float getSkillCooldown() {
-        return innateSkill.getCooldown();
+        return (innateSkill != null) ? innateSkill.getCooldown() : 0f;
     }
 
     @Override
     public float getInnateSkillTimer() {
-        return innateSkill.getRemainingCooldown();
+        return (innateSkill != null) ? innateSkill.getRemainingCooldown() : 0f;
     }
 
     @Override
     public float getInnateSkillCooldown() {
-        return innateSkill.getCooldown();
+        return (innateSkill != null) ? innateSkill.getCooldown() : 0f;
     }
 
     @Override

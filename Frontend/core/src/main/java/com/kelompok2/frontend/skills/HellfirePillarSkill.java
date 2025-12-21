@@ -1,10 +1,14 @@
 package com.kelompok2.frontend.skills;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
+import com.kelompok2.frontend.managers.AssetManager;
 
 public class HellfirePillarSkill extends BaseSkill {
     private static final float COOLDOWN = 5f;
@@ -18,11 +22,43 @@ public class HellfirePillarSkill extends BaseSkill {
     private float warningTimer = 0f;
     private Vector2 pillarPosition;
 
+    private Texture warningTexture;
+    private Texture activeTexture;
+
     public HellfirePillarSkill() {
         super("Hellfire Pillar", "Summons a pillar of fire.", COOLDOWN);
         this.pillarPosition = new Vector2();
+
+        this.warningTexture = AssetManager.getInstance().loadTexture(AssetManager.HELLFIRE_WARNING);
+        this.activeTexture = AssetManager.getInstance().loadTexture(AssetManager.HELLFIRE_PILLAR);
     }
 
+    @Override
+    public void render(SpriteBatch batch) {
+        // Check 1: Is the render method even called?
+        System.out.println("Render called on HellfireSkill");
+
+        if (!shouldShowVisual()) {
+            return;
+        }
+
+        float drawX = pillarPosition.x - RADIUS;
+        float drawY = pillarPosition.y - RADIUS;
+        float size = RADIUS * 2;
+
+        // Check 2: Where is it trying to draw?
+        // If these numbers are huge (e.g., 2000, 2000) or 0,0, checking against your player position helps.
+        System.out.println("Drawing Hellfire at: " + drawX + ", " + drawY + " | Warning: " + isWarning + " | Tex: " + (warningTexture != null));
+
+        batch.setColor(Color.WHITE);
+
+        if (isWarning && warningTexture != null) {
+            batch.draw(warningTexture, drawX, drawY, size, size);
+        }
+        else if (isActive && activeTexture != null) {
+            batch.draw(activeTexture, drawX, drawY, size, size);
+        }
+    }
     @Override
     protected boolean executeSkill(GameCharacter user, Vector2 targetPos, Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks) {

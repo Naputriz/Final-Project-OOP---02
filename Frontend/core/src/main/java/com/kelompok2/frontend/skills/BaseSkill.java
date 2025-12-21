@@ -1,5 +1,6 @@
 package com.kelompok2.frontend.skills;
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 import com.kelompok2.frontend.entities.GameCharacter;
@@ -44,6 +45,8 @@ public abstract class BaseSkill implements Skill {
     protected abstract boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
             Array<MeleeAttack> meleeAttacks);
+
+    public void render(SpriteBatch batch) {}
 
     @Override
     public boolean canUse() {

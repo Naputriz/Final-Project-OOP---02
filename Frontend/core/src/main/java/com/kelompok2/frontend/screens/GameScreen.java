@@ -53,6 +53,9 @@ public class GameScreen extends ScreenAdapter {
         this.game = game;
         this.selectedCharacter = selectedCharacter;
 
+        System.out.println("[GameScreen] Preloading assets...");
+        AssetManager.getInstance().preloadTextures();
+
         // Reset Input Processor agar UI menu sebelumnya tidak mengganggu
         Gdx.input.setInputProcessor(null);
 
