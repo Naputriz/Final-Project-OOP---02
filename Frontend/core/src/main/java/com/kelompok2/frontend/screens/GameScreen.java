@@ -88,6 +88,11 @@ public class GameScreen extends ScreenAdapter {
         System.out.println("[GameScreen] Player: " + selectedCharacter);
     }
 
+    @Override
+    public void show(){
+        Gdx.input.setInputProcessor(null);
+    }
+
     public String getSelectedCharacter() {
         return selectedCharacter;
     }
