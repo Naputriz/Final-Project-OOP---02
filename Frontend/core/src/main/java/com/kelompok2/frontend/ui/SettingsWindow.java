@@ -3,6 +3,7 @@ package com.kelompok2.frontend.ui;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
@@ -76,5 +77,14 @@ public class SettingsWindow extends Window {
         this.add(soundLabel).width(120).pad(10);
         this.add(soundSlider).width(250).pad(10).row();
         this.add(closeButton).colspan(2).width(100).padTop(20);
+    }
+
+    public void show(Stage stage) {
+        this.setPosition(stage.getWidth() / 2f, stage.getHeight() / 2f, Align.center);
+        this.setVisible(true);
+        // Cek agar tidak double add actor ke stage
+        if (!this.hasParent()) {
+            stage.addActor(this);
+        }
     }
 }
