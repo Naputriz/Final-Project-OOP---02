@@ -32,6 +32,10 @@ public class RenderingSystem {
     private com.badlogic.gdx.graphics.g2d.BitmapFont damageFont;
     private com.kelompok2.frontend.managers.GameEventManager eventManager;
 
+    // Skill Textures
+    private Texture hellfirePillarTexture;
+    private Texture hellfireWarningTexture;
+
     public RenderingSystem(SpriteBatch batch, ShapeRenderer shapeRenderer, Texture background) {
         this.batch = batch;
         this.shapeRenderer = shapeRenderer;
@@ -39,6 +43,12 @@ public class RenderingSystem {
         this.damageIndicators = new Array<>();
         this.damageFont = new com.badlogic.gdx.graphics.g2d.BitmapFont();
         this.damageFont.getData().setScale(1.5f); // Make damage numbers visible
+
+        // Load Skill Textures
+        this.hellfirePillarTexture = com.kelompok2.frontend.managers.AssetManager.getInstance()
+                .loadTexture("skills/HP.png");
+        this.hellfireWarningTexture = com.kelompok2.frontend.managers.AssetManager.getInstance()
+                .loadTexture("skills/HPWarn.png");
     }
 
     public void initialize(GameCharacter player, EnemyPool enemyPool, ProjectilePool projectilePool,
@@ -327,18 +337,20 @@ public class RenderingSystem {
     }
 
     /*
-    private void renderHellfirePillar() {
-        if (!(player instanceof com.kelompok2.frontend.entities.Blaze))
-            return;
-        com.kelompok2.frontend.entities.Blaze blaze = (com.kelompok2.frontend.entities.Blaze) player;
-        if (blaze.shouldShowPillarVisual()) { // Show during warning AND active
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-            shapeRenderer.setColor(1f, 0.5f, 0f, 0.4f);
-            shapeRenderer.circle(blaze.getPillarPosition().x, blaze.getPillarPosition().y, blaze.getPillarRadius(), 50);
-            shapeRenderer.end();
-        }
-    }
-    */
+     * private void renderHellfirePillar() {
+     * if (!(player instanceof com.kelompok2.frontend.entities.Blaze))
+     * return;
+     * com.kelompok2.frontend.entities.Blaze blaze =
+     * (com.kelompok2.frontend.entities.Blaze) player;
+     * if (blaze.shouldShowPillarVisual()) { // Show during warning AND active
+     * shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+     * shapeRenderer.setColor(1f, 0.5f, 0f, 0.4f);
+     * shapeRenderer.circle(blaze.getPillarPosition().x,
+     * blaze.getPillarPosition().y, blaze.getPillarRadius(), 50);
+     * shapeRenderer.end();
+     * }
+     * }
+     */
 
     // Extracted from GameScreen lines 814-834
     private void renderGroundSlam() {
@@ -350,14 +362,19 @@ public class RenderingSystem {
                     .getSecondarySkill();
 
             if (groundSlam.isShockwaveActive()) {
+                com.badlogic.gdx.Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+                com.badlogic.gdx.Gdx.gl.glBlendFunc(com.badlogic.gdx.graphics.GL20.GL_SRC_ALPHA,
+                        com.badlogic.gdx.graphics.GL20.GL_ONE_MINUS_SRC_ALPHA);
+
                 shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
                 // Draw expanding shockwave circle
                 com.badlogic.gdx.math.Vector2 slamPos = groundSlam.getShockwavePosition();
-                shapeRenderer.setColor(0.8f, 0.6f, 0.3f, 0.3f); // Brown/orange semi-transparent
+                shapeRenderer.setColor(1f, 0.5f, 0f, 0.5f); // Semi-transparent Orange
                 shapeRenderer.circle(slamPos.x, slamPos.y, groundSlam.getRadius(), 50);
 
                 shapeRenderer.end();
+                com.badlogic.gdx.Gdx.gl.glDisable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
             }
         }
     }
@@ -442,12 +459,34 @@ public class RenderingSystem {
         // Render Hellfire Pillar for BossBlaze
         if (boss instanceof com.kelompok2.frontend.entities.BossBlaze) {
             com.kelompok2.frontend.entities.BossBlaze bossBlaze = (com.kelompok2.frontend.entities.BossBlaze) boss;
-            if (bossBlaze.shouldShowPillarVisual()) { // Show during warning AND active
-                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-                shapeRenderer.setColor(1f, 0.5f, 0f, 0.4f);
-                shapeRenderer.circle(bossBlaze.getPillarPosition().x, bossBlaze.getPillarPosition().y,
-                        bossBlaze.getPillarRadius(), 50);
-                shapeRenderer.end();
+
+            if (bossBlaze.shouldShowPillarVisual()) {
+                batch.begin();
+                Texture textureToDraw = null;
+
+                if (bossBlaze.isInWarningPhase()) {
+                    textureToDraw = hellfireWarningTexture;
+                } else if (bossBlaze.isPillarActive()) {
+                    textureToDraw = hellfirePillarTexture;
+                }
+
+                if (textureToDraw != null) {
+                    float radius = bossBlaze.getPillarRadius();
+                    float size = radius * 2.5f; // Scale up slightly to cover hit circle
+                    float x = bossBlaze.getPillarPosition().x - size / 2;
+                    float y = bossBlaze.getPillarPosition().y - size / 2;
+
+                    // Set color based on phase (Warning: Transparent, Active: Full)
+                    if (bossBlaze.isInWarningPhase()) {
+                        batch.setColor(1f, 1f, 1f, 0.7f);
+                    } else {
+                        batch.setColor(1f, 1f, 1f, 1f);
+                    }
+
+                    batch.draw(textureToDraw, x, y, size, size);
+                    batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
+                }
+                batch.end();
             }
         }
 

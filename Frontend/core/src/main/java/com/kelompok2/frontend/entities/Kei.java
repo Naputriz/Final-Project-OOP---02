@@ -41,8 +41,11 @@ public class Kei extends GameCharacter {
         this.innateSkill = new PhantomHazeSkill();
 
         // Initialize animation states
-        idleState = new IdleState("KeiPlaceholder.png", 1, 1, 1, 0.1f);
-        runningState = new RunningState("KeiPlaceholder.png", 1, 1, 1, 0.1f);
+        // Idle: 2x2 grid, 4 frames (Kei/pcgp-Kei.png)
+        idleState = new IdleState("Kei/pcgp-Kei.png", 2, 2, 4, 0.15f);
+
+        // Run: 3x4 grid, 10 frames (Kei/pcgp-Kei-run.png)
+        runningState = new RunningState("Kei/pcgp-Kei-run.png", 3, 4, 10, 0.1f);
 
         // Start dengan idle state
         currentState = idleState;
@@ -100,16 +103,6 @@ public class Kei extends GameCharacter {
         }
 
         previousPosition.set(position);
-    }
-
-    @Override
-    protected Color getRenderColor() {
-        Color c = super.getRenderColor();
-        // If no status effect (WHITE), use identity tint (Magenta)
-        if (c.equals(Color.WHITE)) {
-            return new Color(1f, 0.4f, 1f, 1f);
-        }
-        return c;
     }
 
     @Override

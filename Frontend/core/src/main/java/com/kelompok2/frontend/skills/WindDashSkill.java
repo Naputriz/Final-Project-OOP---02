@@ -66,6 +66,7 @@ public class WindDashSkill extends BaseSkill {
                     false, // No mark
                     true // Is Arts damage
             );
+            attack.setVisible(false); // Invisible damage source
             meleeAttacks.add(attack);
             System.out.println("[Wind Dash] Combo Slash activated! Damage: " + damage);
         }
