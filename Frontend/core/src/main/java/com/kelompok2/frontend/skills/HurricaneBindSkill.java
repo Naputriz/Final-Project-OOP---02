@@ -11,7 +11,7 @@ import com.kelompok2.frontend.managers.AssetManager;
 
 public class HurricaneBindSkill extends BaseSkill {
 
-    private float damageMultiplier = 2.0f; //Arts * 2.0
+    private float damageMultiplier = 2f; // Arts * 2.0
     private Texture skillTexture;
     private Array<Projectile> activeProjectiles;
 
@@ -24,8 +24,8 @@ public class HurricaneBindSkill extends BaseSkill {
 
     @Override
     protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
-                                   Array<Projectile> projectiles,
-                                   Array<MeleeAttack> meleeAttacks) {
+            Array<Projectile> projectiles,
+            Array<MeleeAttack> meleeAttacks) {
 
         if (projectiles == null) {
             System.err.println("[HurricaneBind] ERROR: Projectile list is null! Check Whisperwind.java");
@@ -36,8 +36,8 @@ public class HurricaneBindSkill extends BaseSkill {
         float playerCenterY = user.getPosition().y + user.getVisualHeight() / 2;
 
         Vector2 direction = new Vector2(
-            targetPos.x - playerCenterX,
-            targetPos.y - playerCenterY).nor();
+                targetPos.x - playerCenterX,
+                targetPos.y - playerCenterY).nor();
 
         float damage = user.getArts() * damageMultiplier;
 
@@ -65,6 +65,7 @@ public class HurricaneBindSkill extends BaseSkill {
             windBall.setVisualSize(40f);
 
             windBall.setPiercing(true);
+            windBall.setHandledBySkill(true); // Let SkillCollisionHandler handle this
 
             activeProjectiles.add(windBall);
 

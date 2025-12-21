@@ -126,14 +126,21 @@ public class SkillCollisionHandler {
                 HurricaneBindSkill hurricaneSkill = (HurricaneBindSkill) player.getInnateSkill();
 
                 for (Projectile hurricane : hurricaneSkill.getActiveProjectiles()) {
-                    if (!hurricane.active) continue;
+                    if (!hurricane.active)
+                        continue;
 
                     for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
-                        if (enemy.isDead()) continue;
+                        if (enemy.isDead())
+                            continue;
 
+                        // DEBUG: Check overlap
+                        // System.out.println("Hurricane Pos: " + hurricane.getBounds().toString() + "
+                        // vs Enemy: " + enemy.getBounds().toString());
                         if (hurricane.getBounds().overlaps(enemy.getBounds())) {
+                            System.out.println("[Hurricane] OVERLAP DETECTED with " + enemy.getClass().getSimpleName());
 
-                            // 1. Check if we already hit this enemy (prevents hitting same enemy every frame)
+                            // 1. Check if we already hit this enemy (prevents hitting same enemy every
+                            // frame)
                             if (hurricane.canHit(enemy)) {
                                 enemy.takeDamage(hurricane.getDamage());
                                 enemy.stun(3.0f);
@@ -141,9 +148,13 @@ public class SkillCollisionHandler {
                                 // 2. Add to hit list
                                 hurricane.addHit(enemy);
 
-                                eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, hurricane.getDamage(), true));
+                                eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy,
+                                        hurricane.getDamage(), true));
+                                // System.out.println("[Hurricane] HIT " + enemy.getClass().getSimpleName() + "
+                                // - STUN APPLIED!");
 
-                                if (enemy.isDead()) handleEnemyKilled(enemy);
+                                if (enemy.isDead())
+                                    handleEnemyKilled(enemy);
 
                                 // 3. Only destroy if NOT piercing
                                 if (!hurricane.isPiercing()) {
@@ -264,7 +275,8 @@ public class SkillCollisionHandler {
                 HurricaneBindSkill hurricaneSkill = (HurricaneBindSkill) player.getInnateSkill();
 
                 for (Projectile hurricane : hurricaneSkill.getActiveProjectiles()) {
-                    if (!hurricane.active) continue;
+                    if (!hurricane.active)
+                        continue;
 
                     if (hurricane.getBounds().overlaps(boss.getBounds())) {
                         if (hurricane.canHit(boss)) {
@@ -274,7 +286,8 @@ public class SkillCollisionHandler {
                             hurricane.addHit(boss);
 
                             eventManager.publish(
-                                new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, hurricane.getDamage(), true));
+                                    new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, hurricane.getDamage(),
+                                            true));
 
                             if (!hurricane.isPiercing()) {
                                 hurricane.active = false;
