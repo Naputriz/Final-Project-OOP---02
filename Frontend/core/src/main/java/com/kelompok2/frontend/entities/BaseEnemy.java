@@ -74,6 +74,13 @@ public abstract class BaseEnemy extends GameCharacter {
             return; // Skip movement/behavior if frozen
         }
 
+        // Update stun
+        if (isStunned) {
+            // System.out.println(this.getClass().getSimpleName() + " is currently
+            // STUNNED.");
+            return; // Skip movement/behavior if stunned
+        }
+
         // Update hallucination
         if (isHallucinating) {
             if (target != null) {

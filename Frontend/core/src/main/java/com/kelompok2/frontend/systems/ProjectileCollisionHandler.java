@@ -33,8 +33,7 @@ public class ProjectileCollisionHandler {
             if (!projectile.active)
                 continue;
 
-            // ✅ FIX: Skip enemy projectiles in player collision check
-            if (projectile.isEnemyProjectile())
+            if (projectile.isHandledBySkill())
                 continue;
 
             Rectangle projBounds = projectile.getBounds();
@@ -81,6 +80,10 @@ public class ProjectileCollisionHandler {
 
             // ✅ FIX: Skip enemy projectiles against boss
             if (projectile.isEnemyProjectile())
+                continue;
+
+            // ✅ FIX: Skip projectiles handled by specific skills
+            if (projectile.isHandledBySkill())
                 continue;
 
             if (projectile.getBounds().overlaps(boss.getBounds())) {

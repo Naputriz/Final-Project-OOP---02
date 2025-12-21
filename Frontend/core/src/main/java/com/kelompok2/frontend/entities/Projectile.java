@@ -124,7 +124,6 @@ public class Projectile {
         // Gerakkan peluru
         position.add(moveX, moveY);
 
-
         if (customTexture != null) {
             // Optional: Adjust hit box to be bigger for skills
             // this.bounds.setSize(64, 64);
@@ -139,7 +138,8 @@ public class Projectile {
     }
 
     public void render(SpriteBatch batch) {
-        if (!active) return;
+        if (!active)
+            return;
 
         if (customTexture != null) {
             float size = this.visualSize;
@@ -206,6 +206,16 @@ public class Projectile {
         this.isEnemyProjectile = isEnemyProjectile;
     }
 
+    private boolean handledBySkill = false;
+
+    public boolean isHandledBySkill() {
+        return handledBySkill;
+    }
+
+    public void setHandledBySkill(boolean handledBySkill) {
+        this.handledBySkill = handledBySkill;
+    }
+
     public boolean isPiercing() {
         return piercing;
     }
@@ -223,6 +233,7 @@ public class Projectile {
     }
 
     public void dispose() {
-        if (defaultTexture != null) defaultTexture.dispose();
+        if (defaultTexture != null)
+            defaultTexture.dispose();
     }
 }

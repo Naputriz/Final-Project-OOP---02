@@ -186,10 +186,8 @@ public class Isolde extends GameCharacter {
                 mousePos.x - playerCenterX,
                 mousePos.y - playerCenterY).nor();
 
-        // Calculate damage (Arts scaling × 0.3 - heavily reduced for freeze testing)
-        // Damage: 40 Arts × 0.3 = 12 damage (won't one-shot with basic attack combo)
-        // Bakal dinaikin di versi akhir
-        float damage = this.arts * 0.3f;
+        // Calculate damage (Arts scaling x 1.0)
+        float damage = this.arts * 1.5f;
 
         // Create Glacial Breath cone attack (0.5s duration) aiming toward mouse
         GlacialBreath glacialBreath = new GlacialBreath(this, direction, damage, 0.5f);

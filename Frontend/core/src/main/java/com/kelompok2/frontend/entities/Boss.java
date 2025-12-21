@@ -91,6 +91,11 @@ public abstract class Boss extends GameCharacter {
 
         // Call AI behavior
         if (!isDead()) {
+            if (isFrozen)
+                return; // Skip update if frozen
+            if (isStunned)
+                return; // Skip update if stunned
+
             if (isHallucinating) {
                 if (target != null) {
                     com.badlogic.gdx.math.Vector2 dir = position.cpy().sub(target.getPosition()).nor();
