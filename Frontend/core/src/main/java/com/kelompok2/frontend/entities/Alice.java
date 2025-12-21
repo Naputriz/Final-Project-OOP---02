@@ -1,13 +1,22 @@
 package com.kelompok2.frontend.entities;
 
 import com.badlogic.gdx.math.Vector2;
-import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.skills.FeralRushSkill;
 import com.kelompok2.frontend.strategies.MeleeAttackStrategy;
 import com.kelompok2.frontend.systems.GameFacade;
 import com.kelompok2.frontend.pools.EnemyPool;
 
 public class Alice extends GameCharacter {
+
+    // Animation state system
+    private com.kelompok2.frontend.states.AnimationState currentState;
+    private com.kelompok2.frontend.states.AnimationState idleState;
+    private com.kelompok2.frontend.states.AnimationState runState;
+    private float stateTime;
+
+    // Movement tracking
+    private Vector2 previousPosition;
+    private boolean isMoving;
 
     // Innate Skill
     private FeralRushSkill feralRushSkill;
@@ -27,8 +36,21 @@ public class Alice extends GameCharacter {
         this.skillName = "Feral Rush";
         this.skillDescription = "Dashes forward rapidly and unleashes 5x scratch attacks. Cooldown: 5s";
 
-        // Load asset placeholder
-        this.texture = AssetManager.getInstance().loadTexture("AlicePlaceholder.png");
+        // Initialize Animation States
+        // Idle: 2x2 grid, 4 frames
+        idleState = new com.kelompok2.frontend.states.IdleState("Alice/pcgp-alice.png", 2, 2, 4, 0.1f);
+
+        // Run: 2x3 grid, 6 frames
+        runState = new com.kelompok2.frontend.states.RunningState("Alice/pcgp-alice_run.png", 2, 3, 6, 0.1f);
+
+        // Start with idle state
+        currentState = idleState;
+        currentState.enter(this);
+        stateTime = 0f;
+
+        // Initialize movement tracking
+        previousPosition = new Vector2(x, y);
+        isMoving = false;
 
         // Visual and Hitbox setup
         float visualSize = 128f;
@@ -65,11 +87,41 @@ public class Alice extends GameCharacter {
     @Override
     public void update(float delta) {
         super.update(delta);
+        stateTime += delta;
+
+        // Check movement for state transition
+        checkMovementState();
+
+        // Update animation state
+        currentState.update(this, delta);
 
         // Update skill
         if (feralRushSkill != null) {
             feralRushSkill.update(delta);
         }
+    }
+
+    private void checkMovementState() {
+        // Compare current position with previous position
+        isMoving = !position.epsilonEquals(previousPosition, 0.1f);
+
+        // Transition states
+        if (isMoving && currentState == idleState) {
+            // Idle -> Run
+            currentState.exit(this);
+            currentState = runState;
+            currentState.enter(this);
+            stateTime = 0f;
+        } else if (!isMoving && currentState == runState) {
+            // Run -> Idle
+            currentState.exit(this);
+            currentState = idleState;
+            currentState.enter(this);
+            stateTime = 0f;
+        }
+
+        // Update previous position
+        previousPosition.set(position);
     }
 
     // Override move to block control during basic dash skill
@@ -79,6 +131,28 @@ public class Alice extends GameCharacter {
             return; // Block input movement during dash
         }
         super.move(direction, delta);
+    }
+
+    @Override
+    public void render(com.badlogic.gdx.graphics.g2d.SpriteBatch batch) {
+        // Get current animation frame
+        com.badlogic.gdx.graphics.g2d.TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
+
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
+        // Flip sprite based on facing direction
+        // Assuming sprite faces LEFT by default (like others), flip if facing RIGHT
+        boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
+        if (needsFlip) {
+            currentFrame.flip(true, false);
+        }
+
+        // Draw character
+        batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
+
+        // Reset color
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
     }
 
     @Override
