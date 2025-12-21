@@ -125,6 +125,28 @@ public class BladeFurySkill extends BaseSkill {
 
     @Override
     public Skill copy() {
-        return new BladeFurySkill();
+        BladeFurySkill copy = new BladeFurySkill();
+        copy.maxHits = this.maxHits;
+        copy.activeDuration = this.activeDuration; // Copy duration too
+        copy.hitInterval = this.hitInterval;
+        copy.description = this.description;
+        return copy;
+    }
+
+    @Override
+    public void onEquip(GameCharacter owner) {
+        // Bonus for Ryze, Insania, and Alice: 10 hits instead of 5
+        if (owner instanceof com.kelompok2.frontend.entities.Ryze ||
+                owner instanceof com.kelompok2.frontend.entities.Insania ||
+                owner instanceof com.kelompok2.frontend.entities.Alice) {
+
+            this.maxHits = 10;
+            // Update active duration to match new hit count so it doesn't end early!
+            this.activeDuration = this.maxHits * this.hitInterval;
+
+            this.description = "Spin rapidly, 10 hits (ATK × 0.8 each) - COMBO BONUS!";
+            System.out.println(
+                    "[Blade Fury] Combo activated for " + owner.getClass().getSimpleName() + "! Hits increased to 10.");
+        }
     }
 }

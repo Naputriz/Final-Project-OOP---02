@@ -352,6 +352,12 @@ public abstract class GameCharacter {
         float effectiveSpeed = isSlowed ? speed * 0.5f : speed;
 
         direction.nor();
+
+        // Update facing direction
+        if (direction.x != 0) {
+            this.isFacingRight = direction.x > 0;
+        }
+
         position.add(direction.x * effectiveSpeed * delta, direction.y * effectiveSpeed * delta);
 
         // Position sekarang merepresentasikan posisi pojok kiri-bawah GAMBAR (Visual),

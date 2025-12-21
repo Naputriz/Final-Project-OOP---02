@@ -9,12 +9,12 @@ import com.kelompok2.frontend.entities.Projectile;
 // Inferno Nova - Ultimate skill from Boss Blaze (one-time use, Arts×4.0, 400px AoE)
 public class InfernoNovaSkill extends BaseSkill {
 
-    private static final float RADIUS = 400f; // 400px radius
-    private static final float DAMAGE_MULTIPLIER = 4.0f; // Arts × 4.0 (highest damage)
+    private float radius = 400f; // 400px radius
+    private float damageMultiplier = 4.0f; // Arts × 4.0 (highest damage)
 
     @Override
     public float getRadius() {
-        return RADIUS;
+        return radius;
     }
 
     // Enemy array untuk damage
@@ -54,7 +54,7 @@ public class InfernoNovaSkill extends BaseSkill {
         float centerY = user.getPosition().y + user.getVisualHeight() / 2;
 
         // Deal massive damage to all enemies in radius
-        float damage = user.getArts() * DAMAGE_MULTIPLIER;
+        float damage = user.getArts() * damageMultiplier;
         int affectedCount = 0;
 
         for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemies) {
@@ -68,7 +68,7 @@ public class InfernoNovaSkill extends BaseSkill {
             float dy = enemyCenterY - centerY;
             float distanceSq = dx * dx + dy * dy;
 
-            if (distanceSq <= RADIUS * RADIUS) {
+            if (distanceSq <= radius * radius) {
                 // Deal massive fire damage
                 enemy.takeDamage(damage);
 
@@ -89,7 +89,7 @@ public class InfernoNovaSkill extends BaseSkill {
             float bossDy = bossCenterY - centerY;
             float bossDistanceSq = bossDx * bossDx + bossDy * bossDy;
 
-            if (bossDistanceSq <= RADIUS * RADIUS) {
+            if (bossDistanceSq <= radius * radius) {
                 currentBoss.takeDamage(damage);
                 System.out.println("[ULTIMATE] Inferno Nova hit boss! Massive damage: " + damage);
             }
@@ -102,6 +102,21 @@ public class InfernoNovaSkill extends BaseSkill {
 
     @Override
     public Skill copy() {
-        return new InfernoNovaSkill();
+        InfernoNovaSkill copy = new InfernoNovaSkill();
+        copy.radius = this.radius;
+        copy.damageMultiplier = this.damageMultiplier;
+        copy.description = this.description;
+        return copy;
+    }
+
+    @Override
+    public void onEquip(GameCharacter owner) {
+        // Bonus for Blaze: Bigger and Stronger (Radius 400->600, DMG 4.0->6.0)
+        if (owner instanceof com.kelompok2.frontend.entities.Blaze) {
+            this.radius = 600f;
+            this.damageMultiplier = 6.0f;
+            this.description = "ULTIMATE: Massive fire explosion (600px, Arts×6.0) - BLAZE COMBO!";
+            System.out.println("[Inferno Nova] Combo activated for Blaze! Radius 600px, Multiplier 6.0x.");
+        }
     }
 }
