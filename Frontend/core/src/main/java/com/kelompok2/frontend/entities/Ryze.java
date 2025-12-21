@@ -146,6 +146,7 @@ public class Ryze extends GameCharacter {
         super.takeDamage(damage, attacker);
     }
 
+    @Override
     public boolean isInvulnerable() {
         return innateSkill.isSpectralActive();
     }

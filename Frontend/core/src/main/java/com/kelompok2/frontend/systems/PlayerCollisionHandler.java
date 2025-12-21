@@ -61,6 +61,12 @@ public class PlayerCollisionHandler {
                         System.out.println("[Lumi] Enemy marked!");
                     }
 
+                    // Apply Stun (Ground Slam, etc.)
+                    if (attack.getStunDuration() > 0) {
+                        enemy.stun(attack.getStunDuration());
+                        System.out.println("[Collision] Enemy stunned for " + attack.getStunDuration() + "s");
+                    }
+
                     enemy.takeDamage(damage);
                     attack.markAsHit(enemy);
                     eventManager.publish(

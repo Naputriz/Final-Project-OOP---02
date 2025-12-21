@@ -6,24 +6,11 @@ import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.entities.MeleeAttack;
 import com.kelompok2.frontend.entities.Projectile;
 
-/**
- * Shield Bash attack strategy untuk Aegis
- * Extends MeleeAttackStrategy dengan damage scaling dari ATK + DEF
- * dan dash forward movement saat attack
- */
 public class ShieldBashAttackStrategy extends MeleeAttackStrategy {
 
     private float defenseScaling; // Scaling dari DEF stat (contoh: 0.5 untuk 50% DEF)
     private float dashDistance; // Jarak dash forward (pixels)
 
-    /**
-     * @param range          Jangkauan serangan
-     * @param width          Lebar hitbox
-     * @param atkMultiplier  Multiplier untuk ATK (default 0.7)
-     * @param defenseScaling Multiplier untuk DEF (default 0.5)
-     * @param duration       Durasi hitbox aktif
-     * @param dashDistance   Jarak dash forward saat attack
-     */
     public ShieldBashAttackStrategy(float range, float width, float atkMultiplier,
             float defenseScaling, float duration, float dashDistance) {
         super(range, width, atkMultiplier, duration);
@@ -31,15 +18,6 @@ public class ShieldBashAttackStrategy extends MeleeAttackStrategy {
         this.dashDistance = dashDistance;
     }
 
-    /**
-     * Default constructor untuk Aegis
-     * Range: 90px (sedikit lebih jauh dari melee biasa)
-     * Width: 70px (shield bash lebih luas)
-     * ATK scaling: 0.7x (lower base damage)
-     * DEF scaling: 0.5x (compensates with defense)
-     * Duration: 0.25s
-     * Dash: 30px forward
-     */
     public ShieldBashAttackStrategy() {
         this(90f, 70f, 0.7f, 0.5f, 0.25f, 30f);
     }
@@ -83,6 +61,10 @@ public class ShieldBashAttackStrategy extends MeleeAttackStrategy {
         float edgeOffsetY = Math.abs(direction.y) * radiusY;
         float edgeOffset = (float) Math.sqrt(edgeOffsetX * edgeOffsetX + edgeOffsetY * edgeOffsetY);
 
+        // Create shared hit registry effectively prevents double damage
+        java.util.Set<GameCharacter> sharedHits = new java.util.HashSet<>();
+
+        // 1. MAIN ATTACK (Visible, Reach)
         float hitboxStartX = boundsCenterX + (direction.x * (edgeOffset + 5));
         float hitboxStartY = boundsCenterY + (direction.y * (edgeOffset + 5));
 
@@ -110,7 +92,7 @@ public class ShieldBashAttackStrategy extends MeleeAttackStrategy {
         float rotationAngle = (float) Math.toDegrees(Math.atan2(direction.y, direction.x));
 
         // Create melee attack
-        MeleeAttack attack = new MeleeAttack(
+        MeleeAttack mainAttack = new MeleeAttack(
                 hitboxX,
                 hitboxY,
                 width,
@@ -120,7 +102,31 @@ public class ShieldBashAttackStrategy extends MeleeAttackStrategy {
                 animationType,
                 rotationAngle);
 
-        meleeAttacks.add(attack);
+        mainAttack.setSharedHitRegistry(sharedHits);
+        meleeAttacks.add(mainAttack);
+
+        // 2. POINT BLANK ATTACK (Invisible, Collision Range)
+        // Hitbox centered on the character itself to catch enemies standing on
+        // top/inside
+        // NOTE: boundsCenterX/Y are already based on NEW position after dash, so this
+        // works!
+        float pbWidth = width * 0.8f; // Slightly smaller to avoid hitting behind unnecessarily
+        float pbX = boundsCenterX - (pbWidth / 2);
+        float pbY = boundsCenterY - (pbWidth / 2);
+
+        MeleeAttack pbAttack = new MeleeAttack(
+                pbX,
+                pbY,
+                pbWidth,
+                pbWidth,
+                finalDamage,
+                0.25f, // duration
+                animationType,
+                rotationAngle);
+
+        pbAttack.setVisible(false); // Invisible
+        pbAttack.setSharedHitRegistry(sharedHits); // Share hits so enemy only takes damage once
+        meleeAttacks.add(pbAttack);
 
         System.out.println("[ShieldBash] Dash " + dashDistance + "px, Damage: ATK(" +
                 String.format("%.1f", atkDamage) + ") + DEF(" +

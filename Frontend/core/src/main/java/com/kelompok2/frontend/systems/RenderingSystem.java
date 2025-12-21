@@ -62,7 +62,7 @@ public class RenderingSystem {
 
     private void onEnemyDamaged(com.kelompok2.frontend.events.EnemyDamagedEvent event) {
         float x = event.getEnemy().getPosition().x + event.getEnemy().getVisualWidth() / 2;
-        float y = event.getEnemy().getPosition().y + event.getEnemy().getVisualHeight();
+        float y = event.getEnemy().getPosition().y + event.getEnemy().getVisualHeight() + 20f; // +20f padding
         com.badlogic.gdx.graphics.Color color;
 
         if (event.isArts()) {
@@ -76,7 +76,7 @@ public class RenderingSystem {
 
     private void onPlayerDamaged(com.kelompok2.frontend.events.PlayerDamagedEvent event) {
         float x = event.getPlayer().getPosition().x + event.getPlayer().getVisualWidth() / 2;
-        float y = event.getPlayer().getPosition().y + event.getPlayer().getVisualHeight();
+        float y = event.getPlayer().getPosition().y + event.getPlayer().getVisualHeight() + 20f; // +20f padding
         // Red for Player Damage
         damageIndicators.add(new com.kelompok2.frontend.entities.DamageIndicator(x, y, event.getDamage(),
                 com.badlogic.gdx.graphics.Color.RED));

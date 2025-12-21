@@ -65,7 +65,12 @@ public class MeleeAttackStrategy implements AttackStrategy {
         float edgeOffsetY = Math.abs(direction.y) * radiusY;
         float edgeOffset = (float) Math.sqrt(edgeOffsetX * edgeOffsetX + edgeOffsetY * edgeOffsetY);
 
-        // Titik awal hitbox: dari edge collision bounds + 5px gap kecil
+        // Create shared hit registry effectively prevents double damage
+        java.util.Set<GameCharacter> sharedHits = new java.util.HashSet<>();
+
+        // 1. MAIN ATTACK (Visible, Reach)
+        // Titik awal hitbox: dari edge collision bounds + 5px (original visual offset)
+        // Ini memastikan visual slash sesuai dengan jarak yang diharapkan user
         float hitboxStartX = boundsCenterX + (direction.x * (edgeOffset + 5));
         float hitboxStartY = boundsCenterY + (direction.y * (edgeOffset + 5));
 
@@ -91,7 +96,7 @@ public class MeleeAttackStrategy implements AttackStrategy {
         float rotationAngle = (float) Math.toDegrees(Math.atan2(direction.y, direction.x));
 
         // Buat MeleeAttack baru dengan animation dan rotation
-        MeleeAttack attack = new MeleeAttack(
+        MeleeAttack mainAttack = new MeleeAttack(
                 hitboxX,
                 hitboxY,
                 width,
@@ -101,7 +106,27 @@ public class MeleeAttackStrategy implements AttackStrategy {
                 animationType, // Pass animation type
                 rotationAngle); // Pass rotation angle in degrees
 
-        // Tambahkan ke array meleeAttacks
-        meleeAttacks.add(attack);
+        mainAttack.setSharedHitRegistry(sharedHits);
+        meleeAttacks.add(mainAttack);
+
+        // 2. POINT BLANK ATTACK (Invisible, Collision Range)
+        // Hitbox centered on the character itself to catch enemies standing on top/inside
+        float pbWidth = width * 0.8f; // Slightly smaller to avoid hitting behind unnecessarily
+        float pbX = boundsCenterX - (pbWidth / 2);
+        float pbY = boundsCenterY - (pbWidth / 2);
+
+        MeleeAttack pbAttack = new MeleeAttack(
+                pbX,
+                pbY,
+                pbWidth,
+                pbWidth,
+                finalDamage,
+                duration,
+                animationType,
+                rotationAngle);
+
+        pbAttack.setVisible(false); // Invisible
+        pbAttack.setSharedHitRegistry(sharedHits); // Share hits so enemy only takes damage once
+        meleeAttacks.add(pbAttack);
     }
 }

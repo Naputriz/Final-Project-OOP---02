@@ -25,13 +25,19 @@ public class MeleeAttack {
     private float rotationAngle; // Rotation angle in degrees (0 = right, 90 = up, 180 = left, 270 = down)
 
     // Damage tracking -mencegah hit multiple kali
-    private HashSet<GameCharacter> hitEnemies;
+    private java.util.Set<GameCharacter> hitEnemies;
+
+    // Visibility
+    private boolean visible = true;
 
     // Damage Type
     private boolean isArts;
 
     // Lumi's Mark
     private boolean appliesMark;
+
+    // Stun Support
+    private float stunDuration = 0f;
 
     public MeleeAttack(float x, float y, float width, float height, float damage, float duration, String animationType,
             float rotationAngle) {
@@ -54,10 +60,9 @@ public class MeleeAttack {
         this.animationType = animationType;
         this.rotationAngle = rotationAngle;
         this.animationTime = 0;
-        this.hitEnemies = new HashSet<>();
+        this.hitEnemies = new java.util.HashSet<>();
         this.appliesMark = appliesMark;
         this.isArts = isArts;
-
 
         loadAnimation();
     }
@@ -119,7 +124,7 @@ public class MeleeAttack {
     }
 
     public void render(SpriteBatch batch) {
-        if (!active)
+        if (!active || !visible)
             return;
 
         // Get current frame from animation
@@ -169,6 +174,14 @@ public class MeleeAttack {
         hitEnemies.add(enemy);
     }
 
+    public void setSharedHitRegistry(java.util.Set<GameCharacter> sharedRegistry) {
+        this.hitEnemies = sharedRegistry;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
     public float getDamage() {
         return damage;
     }
@@ -199,5 +212,13 @@ public class MeleeAttack {
 
     public void setArts(boolean arts) {
         isArts = arts;
+    }
+
+    public float getStunDuration() {
+        return stunDuration;
+    }
+
+    public void setStunDuration(float stunDuration) {
+        this.stunDuration = stunDuration;
     }
 }
