@@ -13,6 +13,7 @@ public abstract class Boss extends GameCharacter {
     protected boolean defeated = false; // This replaces the original 'isDefeated'
 
     private long lastMindFractureHitId = -1;
+    private long lastPhantomHazeHitId = -1;
 
     // Target untuk AI (player)
     protected GameCharacter target;
@@ -90,7 +91,14 @@ public abstract class Boss extends GameCharacter {
 
         // Call AI behavior
         if (!isDead()) {
-            updateAI(delta);
+            if (isConfused) {
+                if (target != null) {
+                    com.badlogic.gdx.math.Vector2 dir = position.cpy().sub(target.getPosition()).nor();
+                    move(dir, delta);
+                }
+            } else {
+                updateAI(delta);
+            }
         } else if (!defeated) {
             // Mark as defeated on death
             markDefeated();
@@ -115,5 +123,13 @@ public abstract class Boss extends GameCharacter {
 
     public void markMindFractureHit(long activationId) {
         lastMindFractureHitId = activationId;
+    }
+
+    public boolean wasHitByPhantomHaze(long activationId) {
+        return lastPhantomHazeHitId == activationId;
+    }
+
+    public void markPhantomHazeHit(long activationId) {
+        lastPhantomHazeHitId = activationId;
     }
 }

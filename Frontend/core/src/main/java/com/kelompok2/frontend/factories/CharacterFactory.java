@@ -22,6 +22,7 @@ public class CharacterFactory {
         characterRegistry.put("Aegis", Aegis::new);
         characterRegistry.put("Lumi", Lumi::new);
         characterRegistry.put("Alice", Alice::new);
+        characterRegistry.put("Kei", Kei::new);
     }
 
     public static GameCharacter createCharacter(String characterId, float x, float y) {

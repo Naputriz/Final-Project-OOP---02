@@ -110,6 +110,41 @@ public class SkillCollisionHandler {
             }
         }
 
+        // Kei: Phantom Haze
+        if (player instanceof com.kelompok2.frontend.entities.Kei) {
+            com.kelompok2.frontend.entities.Kei kei = (com.kelompok2.frontend.entities.Kei) player;
+            if (kei.shouldShowPhantomHazeCircle()) {
+                long activationId = kei.getPhantomHazeActivationId();
+                float radius = kei.getSkillRadius();
+                float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
+                float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
+
+                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
+                    if (enemy.isDead())
+                        continue;
+                    if (enemy.wasHitByPhantomHaze(activationId))
+                        continue;
+
+                    float enemyCenterX = enemy.getPosition().x + enemy.getVisualWidth() / 2;
+                    float enemyCenterY = enemy.getPosition().y + enemy.getVisualHeight() / 2;
+                    float distance = (float) Math.sqrt(
+                            Math.pow(enemyCenterX - playerCenterX, 2) +
+                                    Math.pow(enemyCenterY - playerCenterY, 2));
+
+                    if (distance <= radius) {
+                        float damage = player.getArts() * 0.5f;
+                        enemy.confuse(5.0f);
+                        enemy.takeDamage(damage);
+                        enemy.markPhantomHazeHit(activationId);
+                        eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, true));
+
+                        if (enemy.isDead())
+                            handleEnemyKilled(enemy);
+                    }
+                }
+            }
+        }
+
         // Insania: Mind Fracture
         if (player instanceof com.kelompok2.frontend.entities.Insania) {
             com.kelompok2.frontend.entities.Insania insania = (com.kelompok2.frontend.entities.Insania) player;
@@ -197,6 +232,33 @@ public class SkillCollisionHandler {
                     eventManager.publish(
                             new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, hurricane.getDamage(), true));
                     break;
+                }
+            }
+        }
+
+        // Kei
+        if (player instanceof com.kelompok2.frontend.entities.Kei) {
+            com.kelompok2.frontend.entities.Kei kei = (com.kelompok2.frontend.entities.Kei) player;
+            if (kei.shouldShowPhantomHazeCircle()) {
+                long activationId = kei.getPhantomHazeActivationId();
+                if (!boss.wasHitByPhantomHaze(activationId)) {
+                    float radius = kei.getSkillRadius();
+                    float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
+                    float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
+                    float bossCenterX = boss.getPosition().x + boss.getVisualWidth() / 2;
+                    float bossCenterY = boss.getPosition().y + boss.getVisualHeight() / 2;
+
+                    float distance = (float) Math.sqrt(
+                            Math.pow(bossCenterX - playerCenterX, 2) +
+                                    Math.pow(bossCenterY - playerCenterY, 2));
+
+                    if (distance <= radius) {
+                        float damage = player.getArts() * 0.5f;
+                        boss.confuse(3.0f); // Less confusion duration on boss
+                        boss.takeDamage(damage);
+                        boss.markPhantomHazeHit(activationId);
+                        eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, damage, true));
+                    }
                 }
             }
         }
