@@ -22,7 +22,7 @@ public class SpawningSystem {
     private GameCharacter player;
 
     // Boss spawning
-    private float bossSpawnInterval = 30f; // 5 seconds for testing (change to 300f for 5 min production)
+    private float bossSpawnInterval = 5f; // 5 seconds for testing (change to 300f for 5 min production)
     private float bossSpawnTimer = 0f;
     private Boss currentBoss = null;
 
@@ -62,8 +62,16 @@ public class SpawningSystem {
             return;
         }
 
+        // Calculate spawn interval based on player level
+        // Base: 1.5s, decreases by 0.05s per level, min 0.1s
+        float baseInterval = 1.5f;
+        float reductionPerLevel = 0.05f;
+        float minInterval = 0.1f;
+
+        float currentInterval = Math.max(minInterval, baseInterval - (player.getLevel() * reductionPerLevel));
+
         spawnTimer += delta;
-        if (spawnTimer > 1.5f) {
+        if (spawnTimer > currentInterval) {
             float angle = MathUtils.random(360);
             float distance = MathUtils.random(600, 800);
             // Calculate potential position

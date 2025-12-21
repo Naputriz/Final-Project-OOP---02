@@ -55,9 +55,9 @@ public class BossInsania extends Boss {
         // Idle: 2x2 grid, 4 frames (pcgp-insania-idle.png)
         idleState = new com.kelompok2.frontend.states.IdleState("Insania/pcgp-insania-idle.png", 2, 2, 4, 0.15f);
 
-        // Run: 2x3 grid, 6 frames (From pcgp-insania-run_1.png in assets)
+        // Run: 3x4 grid, 10 frames (From pcgp-insania-run_1.png in assets)
         // Check asset: pcgp-insania-run_1.png
-        runState = new com.kelompok2.frontend.states.RunningState("Insania/pcgp-insania-run_1.png", 2, 3, 6, 0.1f);
+        runState = new com.kelompok2.frontend.states.RunningState("Insania/pcgp-insania-run_1.png", 3, 4, 10, 0.1f);
 
         // Start with idle state
         currentState = idleState;
