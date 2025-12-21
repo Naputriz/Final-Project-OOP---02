@@ -17,6 +17,10 @@ public class Lumi extends GameCharacter {
         this.atk = 45f;
         this.arts = 10f;
         this.def = 15f;
+        this.title = "The Pale Renegade";
+        this.description = "The rogue operator known as 'White Scarf.', now more known as 'The Pale Renegade'. Once a loyal weapon of the Maestra Hunters. In a bid for vengeance against her brother, Ryze, she sacrificed her own arms to wield the Maestra 'Returnious,` a weapon allowing her to pull anything back towards her. But his death brought only a hollow silence, revealing the lies she had been fed. Now, she wanders the world in solitude, hunted by the very organization she once served. Burdened by Maestron poisoning and crushing guilt, she fights not for a cause, but to survive the consequences of her own hatred.";
+        this.skillName = "Returnious Pull";
+        this.skillDescription = "Marks enemies with attacks. Skill pulls marked enemy + Dmg + Stun. Cooldown: 12s";
 
         // Load asset placeholder
         this.texture = AssetManager.getInstance().loadTexture("LumiPlaceholder.png");

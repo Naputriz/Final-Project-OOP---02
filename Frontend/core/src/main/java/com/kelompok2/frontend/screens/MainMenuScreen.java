@@ -65,8 +65,8 @@ public class MainMenuScreen extends ScreenAdapter {
         Texture accountIconTex = AssetManager.getInstance().loadTexture("settings_akun.png");
 
         AudioManager.getInstance().playMusic(
-            "Audio/helmet_-_tales_of_the_helmets_knight_-_01_start_screen_theme_-_prelude (Start or main menu).wav",
-            true);
+                "Audio/helmet_-_tales_of_the_helmets_knight_-_01_start_screen_theme_-_prelude (Start or main menu).wav",
+                true);
 
         // --- CENTER TABLE ---
         Table centerTable = new Table();
@@ -83,9 +83,31 @@ public class MainMenuScreen extends ScreenAdapter {
         centerTable.add(logoImage).width(800).height(250).padTop(50).padBottom(20).row();
         centerTable.add(titleLabel).padBottom(50).row();
         centerTable.add(playButton).width(200).height(50).padBottom(20).row();
+
+        TextButton charListButton = new TextButton("DAFTAR KARAKTER", skin);
+        centerTable.add(charListButton).width(200).height(50).padBottom(20).row();
+
         centerTable.add(exitButton).width(200).height(50).row();
 
-        // --- TOP RIGHT ---
+        // --- LISTENERS ---
+        playButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                if (game.isLoggedIn()) {
+                    AudioManager.getInstance().stopMusic();
+                    game.setScreen(new CharacterSelectionScreen(game));
+                    dispose();
+                }
+            }
+        });
+
+        charListButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new CharacterListScreen(game));
+                dispose();
+            }
+        });
         Table topTable = new Table();
         topTable.setFillParent(true);
         topTable.top().right();
@@ -158,10 +180,12 @@ public class MainMenuScreen extends ScreenAdapter {
     }
 
     private void showLoginWindow(boolean canCancel) {
-        if (activeLoginWindow != null) activeLoginWindow.remove();
+        if (activeLoginWindow != null)
+            activeLoginWindow.remove();
         activeLoginWindow = new LoginWindow("Login", skin, game, canCancel, () -> {
             System.out.println("User Logged In: " + game.getPlayerName());
-            if (accountWindow != null) accountWindow.setVisible(false);
+            if (accountWindow != null)
+                accountWindow.setVisible(false);
             activeLoginWindow = null;
         });
         activeLoginWindow.setPosition(stage.getWidth() / 2f, stage.getHeight() / 2f, Align.center);
@@ -233,7 +257,8 @@ public class MainMenuScreen extends ScreenAdapter {
         filterTable = new Table();
         filterTable.add(new Label("Filter:", skin)).padRight(10);
         charFilterBox = new SelectBox<>(skin);
-        charFilterBox.setItems("All", "Isolde", "Ryze", "Insania", "Blaze", "Whisperwind", "Aelita", "Aegis", "Lumi", "Alice");
+        charFilterBox.setItems("All", "Isolde", "Ryze", "Insania", "Blaze", "Whisperwind", "Aelita", "Aegis", "Lumi",
+                "Alice");
         filterTable.add(charFilterBox).width(120).padRight(20);
         filterTable.add(new Label("Urutkan:", skin)).padRight(10);
         sortFilterBox = new SelectBox<>(skin);
@@ -243,7 +268,8 @@ public class MainMenuScreen extends ScreenAdapter {
         ChangeListener refreshListener = new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                if (filterTable.isVisible()) fetchLeaderboardData();
+                if (filterTable.isVisible())
+                    fetchLeaderboardData();
             }
         };
         charFilterBox.addListener(refreshListener);
@@ -295,6 +321,7 @@ public class MainMenuScreen extends ScreenAdapter {
                 String result = httpResponse.getResultAsString();
                 Gdx.app.postRunnable(() -> updateLeaderboardUI(result));
             }
+
             @Override
             public void failed(Throwable t) {
                 Gdx.app.postRunnable(() -> {
@@ -302,8 +329,10 @@ public class MainMenuScreen extends ScreenAdapter {
                     leaderboardContentTable.add(new Label("Gagal koneksi!", skin));
                 });
             }
+
             @Override
-            public void cancelled() {}
+            public void cancelled() {
+            }
         });
     }
 
@@ -335,7 +364,8 @@ public class MainMenuScreen extends ScreenAdapter {
                     sb.append("\"value\":").append(data.value);
                     sb.append("}");
 
-                    if (i < history.size - 1) sb.append(",");
+                    if (i < history.size - 1)
+                        sb.append(",");
                 }
                 sb.append("]");
 
@@ -357,6 +387,7 @@ public class MainMenuScreen extends ScreenAdapter {
                 String result = httpResponse.getResultAsString();
                 Gdx.app.postRunnable(() -> updateLeaderboardUI(result));
             }
+
             @Override
             public void failed(Throwable t) {
                 Gdx.app.postRunnable(() -> {
@@ -364,13 +395,16 @@ public class MainMenuScreen extends ScreenAdapter {
                     leaderboardContentTable.add(new Label("Gagal koneksi!", skin));
                 });
             }
+
             @Override
-            public void cancelled() {}
+            public void cancelled() {
+            }
         });
     }
 
     private String formatTime(int totalSeconds) {
-        if (totalSeconds < 0) return "0 detik";
+        if (totalSeconds < 0)
+            return "0 detik";
         int hours = totalSeconds / 3600;
         int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
@@ -392,7 +426,11 @@ public class MainMenuScreen extends ScreenAdapter {
         leaderboardContentTable.clear();
         try {
             JsonValue root = new JsonReader().parse(jsonString);
-            float colRank = 40; float colName = 140; float colChar = 130; float colLvl = 60; float colTime = 120;
+            float colRank = 40;
+            float colName = 140;
+            float colChar = 130;
+            float colLvl = 60;
+            float colTime = 120;
             int rank = 1;
             String myName = game.getPlayerName();
 
@@ -454,10 +492,14 @@ public class MainMenuScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
 
-        if (settingsWindow != null) settingsWindow.setPosition(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, Align.center);
-        if (leaderboardWindow != null) leaderboardWindow.setPosition(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, Align.center);
-        if (accountWindow != null) accountWindow.setPosition(20, WORLD_HEIGHT - 300);
-        if (activeLoginWindow != null) activeLoginWindow.setPosition(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, Align.center);
+        if (settingsWindow != null)
+            settingsWindow.setPosition(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, Align.center);
+        if (leaderboardWindow != null)
+            leaderboardWindow.setPosition(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, Align.center);
+        if (accountWindow != null)
+            accountWindow.setPosition(20, WORLD_HEIGHT - 300);
+        if (activeLoginWindow != null)
+            activeLoginWindow.setPosition(WORLD_WIDTH / 2f, WORLD_HEIGHT / 2f, Align.center);
     }
 
     @Override

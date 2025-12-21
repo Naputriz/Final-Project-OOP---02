@@ -28,6 +28,10 @@ public class Insania extends GameCharacter {
         this.atk = 35f; // High ATK - primary damage
         this.arts = 25f; // Moderate Arts - untuk skill
         this.def = 5f; // Low Defence - glass cannon style
+        this.title = "The Chaos Kaiser";
+        this.description = "The wandering 'Chaos Kaiser,' a living relic of a forgotten era. Once a human girl, her identity was erased the moment she fused with the first-generation Maestra, 'Insania'. Now over two centuries old, she is cursed with a passive radiance that drains the sanity of anyone who draws near. Haunted by the civilizations she unintentionally destroyed, she roams the world in eternal isolation, searching for someone strong enough to withstand her presence so she may finally know what it means to be human again.";
+        this.skillName = "Mind Fracture";
+        this.skillDescription = "AoE Insanity debuff. Enemies move randomly and attack each other. Duration: 5s, Cooldown: 10s";
 
         // Initialize Skill
         this.innateSkill = new MindFractureSkill();

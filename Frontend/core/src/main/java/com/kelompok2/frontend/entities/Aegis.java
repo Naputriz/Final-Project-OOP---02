@@ -30,6 +30,10 @@ public class Aegis extends GameCharacter {
         this.atk = 15f; // Low ATK (compensated by DEF scaling)
         this.arts = 10f; // Low Arts
         this.def = 40f; // High Defence (main stat untuk Shield Bash)
+        this.title = "The Impenetrable Shield";
+        this.description = "The sworn protector of the Logica region. She wields the Maestra 'Aegis,' a tool capable of blocking any attack, and has adopted its name as her official codename. Her ability to intercept and neutralize all incoming damage has earned her the title of 'The Impenetrable Shield";
+        this.skillName = "Here, I shall stand!";
+        this.skillDescription = "Immobilized for 2s, blocks frontal damage and reflects 50% damage back. Cooldown: 10s";
 
         // Initialize Animation States
         // Idle: 2x2, 4 frames

@@ -30,6 +30,10 @@ public class Ryze extends GameCharacter {
         this.atk = 30f; // High ATK untuk melee
         this.arts = 10f; // Low Arts
         this.def = 5f; // Low Defence
+        this.title = "The Ghost of Insania";
+        this.description = "A bounty hunter from the Insania region. He took the mantle of his past mentor, Black Scarf. His resemblance towards the late bounty hunter earned him the title of 'Ghost of Black Scarf', which evolved to 'Ghost of Insania' due to his constant presence in the region, taking down criminals every night. He earned the attention of the King of Eldoria, which later made him hired by the Eldorian government, finally giving him the chance to escape the Insanian region full of chaos.";
+        this.skillName = "Spectral Body";
+        this.skillDescription = "Invulnerability for 3 seconds. Cooldown: 15s";
 
         // Initialize Skill
         this.innateSkill = new SpectralBodySkill();
