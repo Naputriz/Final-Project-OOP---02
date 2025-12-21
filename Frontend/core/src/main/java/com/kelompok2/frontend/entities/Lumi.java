@@ -1,8 +1,15 @@
 package com.kelompok2.frontend.entities;
 
-import com.kelompok2.frontend.managers.AssetManager;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
+
 import com.kelompok2.frontend.pools.EnemyPool;
 import com.kelompok2.frontend.skills.ReturniousPullSkill;
+import com.kelompok2.frontend.states.AnimationState;
+import com.kelompok2.frontend.states.IdleState;
+import com.kelompok2.frontend.states.RunningState;
 import com.kelompok2.frontend.strategies.MarkingMeleeAttackStrategy;
 
 import com.kelompok2.frontend.systems.GameFacade;
@@ -10,6 +17,16 @@ import com.kelompok2.frontend.systems.GameFacade;
 public class Lumi extends GameCharacter {
 
     private ReturniousPullSkill innateSkill;
+
+    // Animation state system
+    private AnimationState currentState;
+    private AnimationState idleState;
+    private AnimationState runState;
+    private float stateTime;
+
+    // Movement tracking
+    private Vector2 previousPosition;
+    private boolean isMoving;
 
     public Lumi(float x, float y) {
         super(x, y, 210f, 90f);
@@ -22,8 +39,21 @@ public class Lumi extends GameCharacter {
         this.skillName = "Returnious Pull";
         this.skillDescription = "Marks enemies with attacks. Skill pulls marked enemy + Dmg + Stun. Cooldown: 12s";
 
-        // Load asset placeholder
-        this.texture = AssetManager.getInstance().loadTexture("LumiPlaceholder.png");
+        // Initialize Animation States
+        // Idle: 2x2 grid, 4 frames
+        idleState = new IdleState("Lumi/pcgp-lumi_1.png", 2, 2, 4, 0.15f);
+
+        // Run: 3x4 grid, 10 frames
+        runState = new RunningState("Lumi/pcgp-lumi-run.png", 3, 4, 10, 0.1f);
+
+        // Start with idle state
+        currentState = idleState;
+        currentState.enter(this);
+        stateTime = 0f;
+
+        // Initialize movement tracking
+        previousPosition = new Vector2(x, y);
+        isMoving = false;
 
         // Setup visual dan hitbox (matching Ryze/Blaze/Aegis pattern)
         float visualSize = 128f;
@@ -60,15 +90,67 @@ public class Lumi extends GameCharacter {
     }
 
     @Override
-    public void performInnateSkill() {
-        System.out.println("Lumi needs a target context? No, it finds nearest marked.");
-        innateSkill.activate(this, null, null, null);
+    public void update(float delta) {
+        super.update(delta);
+        stateTime += delta;
+
+        // Check movement for state transition
+        checkMovementState();
+
+        // Update current state (animation)
+        currentState.update(this, delta);
+
+        innateSkill.update(delta);
+    }
+
+    private void checkMovementState() {
+        // Bandingkan posisi sekarang dengan posisi sebelumnya
+        isMoving = !position.epsilonEquals(previousPosition, 0.1f);
+
+        // Transition states
+        if (isMoving && currentState == idleState) {
+            // Idle -> Run
+            currentState.exit(this);
+            currentState = runState;
+            currentState.enter(this);
+            stateTime = 0f;
+        } else if (!isMoving && currentState == runState) {
+            // Run -> Idle
+            currentState.exit(this);
+            currentState = idleState;
+            currentState.enter(this);
+            stateTime = 0f;
+        }
+
+        // Update previous position
+        previousPosition.set(position);
     }
 
     @Override
-    public void update(float delta) {
-        super.update(delta);
-        innateSkill.update(delta);
+    public void render(SpriteBatch batch) {
+        // Get current animation frame from state
+        TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
+
+        // Flip logic
+        boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
+        if (needsFlip) {
+            currentFrame.flip(true, false);
+        }
+
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
+        // Draw current frame
+        batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
+
+        // Reset color
+        batch.setColor(Color.WHITE);
+    }
+
+    @Override
+    public void performInnateSkill() {
+        System.out.println("Lumi needs a target context? No, it finds nearest marked.");
+        innateSkill.activate(this, null, null, null);
     }
 
     @Override
