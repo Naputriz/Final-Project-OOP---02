@@ -75,6 +75,14 @@ public class ShieldStanceSkill extends BaseSkill {
         if (!isActive)
             return false;
 
+        float distance = attackerPos.dst(defenderPos);
+
+        // 360-degree block if attacker is very close (within 50 units)
+        // Matches the "Red Circle" around Aegis
+        if (distance < 50f) {
+            return true;
+        }
+
         // Calculate direction dari defender ke attacker
         Vector2 attackDirection = new Vector2(
                 attackerPos.x - defenderPos.x,
@@ -84,6 +92,7 @@ public class ShieldStanceSkill extends BaseSkill {
         // User requested "bigger range"
         float dotProduct = facingDirection.dot(attackDirection);
 
+        // Matches the "Orange Arc" in front
         return dotProduct > -0.2f; // Frontal if angle is less than ~100 degrees
     }
 

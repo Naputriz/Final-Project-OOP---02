@@ -251,6 +251,11 @@ public abstract class GameCharacter {
                 takeDamage(pullDamageOnArrival);
                 stun(pullStunOnArrival);
 
+                // Publish Damage Event (moved from ReturniousPullSkill)
+                // False for Physical damage (White numbers)
+                com.kelompok2.frontend.managers.GameEventManager.getInstance().publish(
+                        new com.kelompok2.frontend.events.EnemyDamagedEvent(this, pullDamageOnArrival, false));
+
                 // Award XP if enemy died from pull damage (same pattern as
                 // FrozenApocalypseSkill)
                 if (isDead() && pullAttacker != null && this instanceof DummyEnemy) {
@@ -352,6 +357,12 @@ public abstract class GameCharacter {
         float effectiveSpeed = isSlowed ? speed * 0.5f : speed;
 
         direction.nor();
+
+        // Update facing direction
+        if (direction.x != 0) {
+            this.isFacingRight = direction.x > 0;
+        }
+
         position.add(direction.x * effectiveSpeed * delta, direction.y * effectiveSpeed * delta);
 
         // Position sekarang merepresentasikan posisi pojok kiri-bawah GAMBAR (Visual),

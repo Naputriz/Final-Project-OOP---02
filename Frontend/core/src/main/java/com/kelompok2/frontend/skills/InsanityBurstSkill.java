@@ -9,12 +9,13 @@ import com.kelompok2.frontend.entities.Projectile;
 // Insanity Burst - Ultimate from Boss Insania (one-time use, Arts×3.0, 500px AoE with insanity effect)
 public class InsanityBurstSkill extends BaseSkill {
 
-    private static final float RADIUS = 500f; // Massive 500px radius
-    private static final float DAMAGE_MULTIPLIER = 3.0f; // Arts × 3.0
+    private float radius = 500f; // Massive 500px radius
+    private float damageMultiplier = 3.0f; // Arts × 3.0
+    private float insanityDuration = 5.0f; // Default 5s
 
     @Override
     public float getRadius() {
-        return RADIUS;
+        return radius;
     }
 
     // Enemy array untuk damage (akan diset dari GameScreen saat activate)
@@ -52,7 +53,7 @@ public class InsanityBurstSkill extends BaseSkill {
         float centerY = user.getPosition().y + user.getVisualHeight() / 2;
 
         // Apply damage and insanity to all enemies in radius
-        float damage = user.getArts() * DAMAGE_MULTIPLIER;
+        float damage = user.getArts() * damageMultiplier;
         int affectedCount = 0;
 
         for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemies) {
@@ -66,9 +67,9 @@ public class InsanityBurstSkill extends BaseSkill {
             float dy = enemyCenterY - centerY;
             float distanceSq = dx * dx + dy * dy;
 
-            if (distanceSq <= RADIUS * RADIUS) {
+            if (distanceSq <= radius * radius) {
                 // Apply insanity effect
-                enemy.makeInsane(5.0f); // Use GameCharacter's system
+                enemy.makeInsane(insanityDuration); // Use configurable duration
 
                 // Deal psychic damage
                 enemy.takeDamage(damage);
@@ -90,8 +91,8 @@ public class InsanityBurstSkill extends BaseSkill {
             float bossDy = bossCenterY - centerY;
             float bossDistanceSq = bossDx * bossDx + bossDy * bossDy;
 
-            if (bossDistanceSq <= RADIUS * RADIUS) {
-                currentBoss.makeInsane(5.0f); // 5 second insanity
+            if (bossDistanceSq <= radius * radius) {
+                currentBoss.makeInsane(insanityDuration); // Use configurable duration
                 currentBoss.takeDamage(damage);
                 System.out.println("[ULTIMATE] Insanity Burst hit boss! Damage: " + damage + ", Insanity applied!");
             }
@@ -104,6 +105,23 @@ public class InsanityBurstSkill extends BaseSkill {
 
     @Override
     public Skill copy() {
-        return new InsanityBurstSkill();
+        InsanityBurstSkill copy = new InsanityBurstSkill();
+        copy.radius = this.radius;
+        copy.damageMultiplier = this.damageMultiplier;
+        copy.insanityDuration = this.insanityDuration;
+        copy.description = this.description;
+        return copy;
+    }
+
+    @Override
+    public void onEquip(GameCharacter owner) {
+        // Bonus for Insania: Longer Insanity (5s -> 10s) and massive damage (3.0 ->
+        // 5.0)
+        if (owner instanceof com.kelompok2.frontend.entities.Insania) {
+            this.insanityDuration = 10.0f;
+            this.damageMultiplier = 5.0f;
+            this.description = "ULTIMATE: Massive AoE Insanity (10s, Arts×5.0) - INSANIA COMBO!";
+            System.out.println("[Insanity Burst] Combo activated for Insania! Duration 10s, Multiplier 5.0x.");
+        }
     }
 }

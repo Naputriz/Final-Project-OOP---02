@@ -450,13 +450,15 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ### 🚧 Current TODOs 
 
-#### Lootable skill + selected character combo
-- **TODO:** Bikin beberapa karakter punya bonus kalau milih lootable skill yang sesuai dengan karakter yang dipilih 
-  - Fireball: Ketika Blaze memilih skill ini, fireball dapat damage tambahan
-  - Ice Shield: Ketika Isolde memilih skill ini, musuh yang nyerang kena damage
-  - Wind Dash: Ketika Whisperwind memilih skill ini, deal damage + knockback di area teleport
-  - **Healing Wave:** Ketika Aelita memilih skill ini, heals 20% instead of 10%
-  - **Blade Fury:** Ketika Ryze memilih skill ini, attacks 10 times instead of 5
+#### Lootable skill + selected character combo ✅ **IMPLEMENTED**
+- **Feature:** Characters gain significant bonuses when using their signature skills (e.g. from loot/rewards).
+  - **Fireball + Blaze:** Damage multiplier increases from 3.0x to 5.0x (Arts), Radius increases to 600px.
+  - **Ice Shield + Isolde:** Damage reduction increases from 50% to 80%.
+  - **Wind Dash + Whisperwind:** Deals damage and knockback at arrival point.
+  - **Healing Wave + Aelita:** Healing increases from 10% to 20% Max HP.
+  - **Frozen Apocalypse + Isolde:** Ultimate damage multiplier increases to 3.5x.
+  - **Insanity Burst + Insania:** Ultimate duration increases to 10s, damage to 5.0x.
+  - **Inferno Nova + Blaze:** Ultimate radius increases to 600px, damage to 6.0x.
 
 #### Character System Scalability
 - ~~**TODO:** Extract CharacterInfo as separate class~~ **(DONE)** ✅
@@ -660,9 +662,10 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Fix:** Overridden `takeDamage(float, GameCharacter)` in `Ryze.java` to properly intercept damage calls from the collision system.
   - **Status:** ✅ Verified fix in code.
 
-- **TODO:** Fix Lumi's Skill Damage Counter
+- ~~**TODO:** Fix Lumi's Skill Damage Counter~~ ✅ **FIXED**
   - **Issue:** Damage counter triggers on skill usage, should trigger only when enemy is pulled and damaged.
   - **Goal:** Provide accurate feedback to player.
+  - **Status:** ✅ Moved event publishing to `GameCharacter.update()` on pull arrival.
 
 - ~~**TODO:** Fix Stun Status Reset~~ ✅ **FIXED**
   - **Issue:** Enemies killed while stunned retain status when returned to pool.
@@ -706,6 +709,31 @@ Each character has a unique innate skill but has a second skill slot that can be
     - `UISystem` subscribes to these events (Observer).
     - Render bars at fixed screen coordinates (top-left) instead of world coordinates.
   - Benefits: Better performance (no polling), cleaner code, professional HUD look.
+
+#### Known Issues & Balancing (TODO)
+- ~~**TODO:** Leaderboard Filter Fix~~ ✅ **FIXED**
+  - **Issue:** Alice currently doesn't show up on leaderboard filter options.
+  - **Status:** ✅ Added Alice to filter list.
+
+- ~~**TODO:** Boss Balancing Adjustments~~ ✅ **COMPLETED**
+  - **Issue:** Bosses deal too much damage (one-shot potential) and die too quickly (DPS race).
+  - **Goal:** Increase Boss HP (longer fight) and Decrease Boss Damage (fairer fight).
+  - **Changes Implemented (Boss Insania):**
+    - **HP:** 500 -> 1000 (Base), +50 -> +100 (Per Level).
+    - **ATK:** 25 -> 15 (Base), +2.0 -> +1.5 (Per Level).
+    - **ARTS:** 35 -> 25 (Base), +3.0 -> +2.5 (Per Level).
+  - **Changes Implemented (Boss Blaze):**
+    - **HP:** 450 -> 900 (Base), +45 -> +90 (Per Level).
+    - **ATK:** 20 -> 15 (Base), +2.0 -> +1.5 (Per Level).
+    - **ARTS:** 60 -> 40 (Base), +5.0 -> +3.5 (Per Level).
+  - **Changes Implemented (Boss Isolde):**
+    - **HP:** 400 -> 800 (Base), +40 -> +80 (Per Level).
+    - **ATK:** 8 -> 6 (Base), +0.8 -> +0.6 (Per Level).
+    - **ARTS:** 15 -> 12 (Base), +1.5 -> +1.2 (Per Level).
+
+- **TODO:** Skill Visual Strategy Refactor
+  - **Issue:** Some skills (Ground Slam, Wind Dash Combo) use `MeleeAttackStrategy` for visuals which looks wrong (slash animations for impact effects).
+  - **Goal:** Create dedicated visual effects or `ImpactStrategy` for these skills to separate mechanics from "Slash" animations.
 
 
 #### Code Quality Improvements

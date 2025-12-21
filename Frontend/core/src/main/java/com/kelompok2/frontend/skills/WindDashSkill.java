@@ -19,6 +19,8 @@ public class WindDashSkill extends BaseSkill {
         super("Wind Dash", "Dash 400px + 0.3s invuln", 6f); // 6 second cooldown
     }
 
+    private boolean comboActive = false;
+
     @Override
     protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
@@ -47,8 +49,39 @@ public class WindDashSkill extends BaseSkill {
         invulnerabilityTimer = invulnerabilityDuration;
         dashedUser = user;
 
+        // Combo: Spawn circular slash attack at destination
+        if (comboActive && meleeAttacks != null) {
+            float attackSize = 200f; // Large area
+            float damage = user.getArts() * 2.5f; // High damage
+
+            MeleeAttack attack = new MeleeAttack(
+                    dashTarget.x - attackSize / 2,
+                    dashTarget.y - attackSize / 2,
+                    attackSize,
+                    attackSize,
+                    damage,
+                    0.2f, // Very short duration
+                    "slash",
+                    0f,
+                    false, // No mark
+                    true // Is Arts damage
+            );
+            meleeAttacks.add(attack);
+            System.out.println("[Wind Dash] Combo Slash activated! Damage: " + damage);
+        }
+
         System.out.println("[Wind Dash] Dashed " + distance + " pixels! Invulnerable for 0.3s");
         return true;
+    }
+
+    @Override
+    public void onEquip(GameCharacter owner) {
+        // Bonus for Whisperwind: Explosive arrival
+        if (owner instanceof com.kelompok2.frontend.entities.Whisperwind) {
+            this.comboActive = true;
+            this.description = "Dash 400px + Arrival Damage (Arts x 2.5) - WHISPERWIND COMBO!";
+            System.out.println("[Wind Dash] Combo activated for Whisperwind! Arrival damage enabled.");
+        }
     }
 
     @Override
@@ -80,7 +113,10 @@ public class WindDashSkill extends BaseSkill {
 
     @Override
     public Skill copy() {
-        return new WindDashSkill();
+        WindDashSkill copy = new WindDashSkill();
+        copy.comboActive = this.comboActive;
+        copy.description = this.description;
+        return copy;
     }
 
     @Override

@@ -8,6 +8,8 @@ import com.kelompok2.frontend.entities.Projectile;
 
 public class FireballSkill extends BaseSkill {
 
+    private float damageMultiplier = 3.0f;
+
     public FireballSkill() {
         super("Fireball", "Shoots a large fireball (Arts × 3.0)", 8f); // 8 second cooldown
     }
@@ -23,8 +25,8 @@ public class FireballSkill extends BaseSkill {
 
         Vector2 direction = new Vector2(targetPos).sub(userCenter).nor();
 
-        // Calculate damage: Arts × 3.0
-        float damage = user.getArts() * 3.0f;
+        // Calculate damage: Arts × multiplier
+        float damage = user.getArts() * damageMultiplier;
 
         // Create fireball projectile using existing Projectile API
         if (projectiles != null) {
@@ -55,6 +57,19 @@ public class FireballSkill extends BaseSkill {
 
     @Override
     public Skill copy() {
-        return new FireballSkill();
+        FireballSkill copy = new FireballSkill();
+        copy.damageMultiplier = this.damageMultiplier;
+        copy.description = this.description;
+        return copy;
+    }
+
+    @Override
+    public void onEquip(GameCharacter owner) {
+        // Bonus for Blaze: Massive damage increase (3.0x -> 5.0x)
+        if (owner instanceof com.kelompok2.frontend.entities.Blaze) {
+            this.damageMultiplier = 5.0f;
+            this.description = "Shoots a large fireball (Arts × 5.0) - BLAZE COMBO!";
+            System.out.println("[Fireball] Combo activated for Blaze! Multiplier increased to 5.0x.");
+        }
     }
 }
