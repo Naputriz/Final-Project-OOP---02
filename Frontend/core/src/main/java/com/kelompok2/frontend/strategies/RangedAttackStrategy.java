@@ -47,6 +47,12 @@ public class RangedAttackStrategy implements AttackStrategy {
                 projectileSpeed);
         // Set ownership
         p.setEnemyProjectile(!attacker.isPlayerCharacter());
+
+        // Make ALL player ranged attacks pierce (User Request)
+        if (attacker.isPlayerCharacter()) {
+            p.setPiercing(true);
+        }
+
         projectiles.add(p);
     }
 }

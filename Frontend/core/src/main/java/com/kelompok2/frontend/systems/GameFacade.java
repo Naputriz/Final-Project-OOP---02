@@ -62,8 +62,10 @@ public class GameFacade {
         this.player = player;
         this.enemyPool = enemyPool;
 
-        renderingSystem.initialize(player, enemyPool, projectilePool, playerMeleeAttacks, bossMeleeAttacks, bossProjectiles, eventManager);
-        collisionSystem.initialize(player, enemyPool, projectilePool, playerMeleeAttacks, bossMeleeAttacks, bossProjectiles, eventManager);
+        renderingSystem.initialize(player, enemyPool, projectilePool, playerMeleeAttacks, bossMeleeAttacks,
+                bossProjectiles, eventManager);
+        collisionSystem.initialize(player, enemyPool, projectilePool, playerMeleeAttacks, bossMeleeAttacks,
+                bossProjectiles, eventManager);
         spawningSystem.initialize(player, enemyPool, eventManager, bossMeleeAttacks, bossProjectiles);
         // [HAPUS] uiSystem.initialize(player, enemyPool, eventManager);
         bossCinematicSystem.initialize(player, enemyPool);
@@ -85,9 +87,16 @@ public class GameFacade {
 
     private void onBossDefeated(BossDefeatedEvent event) {
         Skill ultimate = event.getUltimateSkill();
-        if (ultimate instanceof InsanityBurstSkill) ((InsanityBurstSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
-        else if (ultimate instanceof InfernoNovaSkill) ((InfernoNovaSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
-        else if (ultimate instanceof FrozenApocalypseSkill) ((FrozenApocalypseSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
+        if (ultimate instanceof InsanityBurstSkill) {
+            ((InsanityBurstSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
+            ((InsanityBurstSkill) ultimate).setEventManager(this.eventManager);
+        } else if (ultimate instanceof InfernoNovaSkill) {
+            ((InfernoNovaSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
+            ((InfernoNovaSkill) ultimate).setEventManager(this.eventManager);
+        } else if (ultimate instanceof FrozenApocalypseSkill) {
+            ((FrozenApocalypseSkill) ultimate).setEnemies(enemyPool.getActiveEnemies());
+            ((FrozenApocalypseSkill) ultimate).setEventManager(this.eventManager);
+        }
 
         player.setUltimateSkill(ultimate);
         player.gainXp(500f);
@@ -96,7 +105,8 @@ public class GameFacade {
         AudioManager.getInstance().playMusic("Audio/battleThemeA.mp3", true);
 
         String characterToUnlock = mapBossToCharacter(event.getBossName());
-        if (characterToUnlock != null) GameManager.getInstance().unlockCharacter(characterToUnlock);
+        if (characterToUnlock != null)
+            GameManager.getInstance().unlockCharacter(characterToUnlock);
     }
 
     public void update(float delta, OrthographicCamera camera) {
@@ -118,11 +128,14 @@ public class GameFacade {
 
         if (!bossCinematicSystem.isCinematicActive()) {
             for (com.kelompok2.frontend.entities.BaseEnemy enemy : enemyPool.getActiveEnemies()) {
-                if (!enemy.isDead()) enemy.update(delta);
+                if (!enemy.isDead())
+                    enemy.update(delta);
             }
-            if (currentBoss != null && !currentBoss.isDead()) currentBoss.update(delta);
+            if (currentBoss != null && !currentBoss.isDead())
+                currentBoss.update(delta);
         } else {
-            if (currentBoss != null && !currentBoss.isDead()) currentBoss.updateAnimationsOnly(delta);
+            if (currentBoss != null && !currentBoss.isDead())
+                currentBoss.updateAnimationsOnly(delta);
         }
 
         collisionSystem.checkAllCollisions(delta, currentBoss);
@@ -132,18 +145,23 @@ public class GameFacade {
         for (int i = bossProjectiles.size - 1; i >= 0; i--) {
             Projectile proj = bossProjectiles.get(i);
             proj.update(delta);
-            if (!proj.active) bossProjectiles.removeIndex(i);
+            if (!proj.active)
+                bossProjectiles.removeIndex(i);
         }
 
-        if (currentBoss != null && currentBoss.isDead()) handleBossDefeat(currentBoss);
+        if (currentBoss != null && currentBoss.isDead())
+            handleBossDefeat(currentBoss);
     }
 
     private void updateUltimateSkillReferences(Boss currentBoss) {
         if ((player.hasUltimateSkill() || player.isUltimateUsed()) && player.getUltimateSkill() != null) {
             Skill ult = player.getUltimateSkill();
-            if (ult instanceof InsanityBurstSkill) ((InsanityBurstSkill) ult).setBoss(currentBoss);
-            else if (ult instanceof InfernoNovaSkill) ((InfernoNovaSkill) ult).setBoss(currentBoss);
-            else if (ult instanceof FrozenApocalypseSkill) ((FrozenApocalypseSkill) ult).setBoss(currentBoss);
+            if (ult instanceof InsanityBurstSkill)
+                ((InsanityBurstSkill) ult).setBoss(currentBoss);
+            else if (ult instanceof InfernoNovaSkill)
+                ((InfernoNovaSkill) ult).setBoss(currentBoss);
+            else if (ult instanceof FrozenApocalypseSkill)
+                ((FrozenApocalypseSkill) ult).setBoss(currentBoss);
         }
     }
 
@@ -162,12 +180,14 @@ public class GameFacade {
         for (int i = playerMeleeAttacks.size - 1; i >= 0; i--) {
             MeleeAttack m = playerMeleeAttacks.get(i);
             m.update(delta);
-            if (!m.isActive()) playerMeleeAttacks.removeIndex(i);
+            if (!m.isActive())
+                playerMeleeAttacks.removeIndex(i);
         }
         for (int i = bossMeleeAttacks.size - 1; i >= 0; i--) {
             MeleeAttack m = bossMeleeAttacks.get(i);
             m.update(delta);
-            if (!m.isActive()) bossMeleeAttacks.removeIndex(i);
+            if (!m.isActive())
+                bossMeleeAttacks.removeIndex(i);
         }
     }
 
@@ -192,15 +212,38 @@ public class GameFacade {
     }
 
     // Getters
-    public RenderingSystem getRenderingSystem() { return renderingSystem; }
-    public CollisionSystem getCollisionSystem() { return collisionSystem; }
-    public SpawningSystem getSpawningSystem() { return spawningSystem; }
+    public RenderingSystem getRenderingSystem() {
+        return renderingSystem;
+    }
+
+    public CollisionSystem getCollisionSystem() {
+        return collisionSystem;
+    }
+
+    public SpawningSystem getSpawningSystem() {
+        return spawningSystem;
+    }
+
     // [HAPUS] public UISystem getUISystem()
-    public BossCinematicSystem getBossCinematicSystem() { return bossCinematicSystem; } // Penting untuk GameScreen
-    public GameEventManager getEventManager() { return eventManager; }
-    public Array<MeleeAttack> getPlayerMeleeAttacks() { return playerMeleeAttacks; }
-    public Array<MeleeAttack> getBossMeleeAttacks() { return bossMeleeAttacks; }
-    public Array<Projectile> getBossProjectiles() { return bossProjectiles; }
+    public BossCinematicSystem getBossCinematicSystem() {
+        return bossCinematicSystem;
+    } // Penting untuk GameScreen
+
+    public GameEventManager getEventManager() {
+        return eventManager;
+    }
+
+    public Array<MeleeAttack> getPlayerMeleeAttacks() {
+        return playerMeleeAttacks;
+    }
+
+    public Array<MeleeAttack> getBossMeleeAttacks() {
+        return bossMeleeAttacks;
+    }
+
+    public Array<Projectile> getBossProjectiles() {
+        return bossProjectiles;
+    }
 
     public void dispose() {
         // [HAPUS] uiSystem.dispose();

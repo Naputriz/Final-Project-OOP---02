@@ -7,6 +7,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Projectile {
     private Vector2 position;
     private Vector2 velocity;
@@ -20,6 +23,10 @@ public class Projectile {
 
     private float distanceTraveled = 0f;
     private float maxDistance = 1000f; // Max range of the bullet
+
+    // Piercing Logic
+    private boolean piercing = false;
+    private Set<GameCharacter> hitEntities = new HashSet<>();
 
     public Projectile(float startX, float startY, float targetX, float targetY, float damage) {
         this(startX, startY, targetX, targetY, damage, Color.YELLOW);
@@ -93,6 +100,7 @@ public class Projectile {
         this.active = true;
         this.distanceTraveled = 0f;
         this.isEnemyProjectile = false;
+        this.hitEntities.clear();
     }
 
     public void update(float delta) {
@@ -169,6 +177,22 @@ public class Projectile {
 
     public void setEnemyProjectile(boolean isEnemyProjectile) {
         this.isEnemyProjectile = isEnemyProjectile;
+    }
+
+    public boolean isPiercing() {
+        return piercing;
+    }
+
+    public void setPiercing(boolean piercing) {
+        this.piercing = piercing;
+    }
+
+    public boolean canHit(GameCharacter target) {
+        return !hitEntities.contains(target);
+    }
+
+    public void addHit(GameCharacter target) {
+        hitEntities.add(target);
     }
 
     public void dispose() {

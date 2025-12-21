@@ -44,20 +44,31 @@ public class ProjectileCollisionHandler {
                     continue;
 
                 if (projBounds.overlaps(enemy.getBounds())) {
+                    if (!projectile.canHit(enemy))
+                        continue; // Skip if already hit by this projectile (piercing)
+
                     float damage = projectile.getDamage();
                     if (player instanceof com.kelompok2.frontend.entities.Insania && enemy.isInsane()) {
                         damage *= 1.5f;
                         System.out.println("[Insania] Bonus damage vs insane: " + damage);
                     }
                     enemy.takeDamage(damage);
-                    projectile.active = false;
+
+                    // Piercing Logic
+                    projectile.addHit(enemy);
+                    if (!projectile.isPiercing()) {
+                        projectile.active = false;
+                    }
+
                     eventManager.publish(
                             new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, projectile.isArts()));
 
                     if (enemy.isDead()) {
                         handleEnemyKilled(enemy);
                     }
-                    break;
+
+                    if (!projectile.active)
+                        break;
                 }
             }
         }
@@ -73,13 +84,22 @@ public class ProjectileCollisionHandler {
                 continue;
 
             if (projectile.getBounds().overlaps(boss.getBounds())) {
+                if (!projectile.canHit(boss))
+                    continue;
+
                 float damage = projectile.getDamage();
                 boss.takeDamage(damage);
-                projectile.active = false;
+
+                projectile.addHit(boss);
+                if (!projectile.isPiercing()) {
+                    projectile.active = false;
+                }
+
                 eventManager.publish(
                         new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, damage, projectile.isArts()));
                 System.out.println("[Collision] Boss hit! HP: " + boss.getHp() + "/" + boss.getMaxHp());
-                break;
+                if (!projectile.active)
+                    break;
             }
         }
     }

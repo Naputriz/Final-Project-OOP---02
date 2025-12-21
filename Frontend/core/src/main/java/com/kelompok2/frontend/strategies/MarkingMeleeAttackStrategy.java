@@ -19,12 +19,14 @@ public class MarkingMeleeAttackStrategy extends MeleeAttackStrategy {
         // Simpan jumlah melee attacks sebelum execute
         int previousSize = meleeAttacks.size;
 
-        // Panggil parent execute untuk membuat MeleeAttack dengan positioning yang benar
+        // Panggil parent execute untuk membuat MeleeAttack dengan positioning yang
+        // benar
         super.execute(attacker, targetPos, projectiles, meleeAttacks);
 
-        // Set appliesMark = true pada MeleeAttack yang baru dibuat
-        if (meleeAttacks.size > previousSize) {
-            MeleeAttack newAttack = meleeAttacks.get(meleeAttacks.size - 1);
+        // Set appliesMark = true pada SEMUA MeleeAttack yang baru dibuat (Main &
+        // Point-Blank)
+        for (int i = previousSize; i < meleeAttacks.size; i++) {
+            MeleeAttack newAttack = meleeAttacks.get(i);
             newAttack.setAppliesMark(true);
         }
     }

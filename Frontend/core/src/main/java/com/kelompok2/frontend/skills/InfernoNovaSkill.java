@@ -11,6 +11,7 @@ public class InfernoNovaSkill extends BaseSkill {
 
     private float radius = 400f; // 400px radius
     private float damageMultiplier = 4.0f; // Arts × 4.0 (highest damage)
+    private com.kelompok2.frontend.managers.GameEventManager eventManager;
 
     @Override
     public float getRadius() {
@@ -35,6 +36,10 @@ public class InfernoNovaSkill extends BaseSkill {
     // Set boss (optional)
     public void setBoss(com.kelompok2.frontend.entities.Boss boss) {
         this.currentBoss = boss;
+    }
+
+    public void setEventManager(com.kelompok2.frontend.managers.GameEventManager eventManager) {
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -72,6 +77,11 @@ public class InfernoNovaSkill extends BaseSkill {
                 // Deal massive fire damage
                 enemy.takeDamage(damage);
 
+                if (eventManager != null) {
+                    eventManager
+                            .publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, true));
+                }
+
                 // Grant XP if enemy was killed
                 if (enemy.isDead()) {
                     user.gainXp(enemy.getXpReward());
@@ -91,6 +101,10 @@ public class InfernoNovaSkill extends BaseSkill {
 
             if (bossDistanceSq <= radius * radius) {
                 currentBoss.takeDamage(damage);
+                if (eventManager != null) {
+                    eventManager.publish(
+                            new com.kelompok2.frontend.events.EnemyDamagedEvent(currentBoss, damage, true));
+                }
                 System.out.println("[ULTIMATE] Inferno Nova hit boss! Massive damage: " + damage);
             }
         }
@@ -106,6 +120,7 @@ public class InfernoNovaSkill extends BaseSkill {
         copy.radius = this.radius;
         copy.damageMultiplier = this.damageMultiplier;
         copy.description = this.description;
+        copy.setEventManager(this.eventManager);
         return copy;
     }
 
