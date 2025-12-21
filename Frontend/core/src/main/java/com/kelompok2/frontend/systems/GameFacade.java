@@ -33,6 +33,7 @@ public class GameFacade {
     private UISystem uiSystem;
     private BossCinematicSystem bossCinematicSystem;
     private MapBoundarySystem mapBoundarySystem;
+    private MinimapSystem minimapSystem;
 
     // Attack arrays (shared between systems)
     private Array<MeleeAttack> playerMeleeAttacks;
@@ -63,6 +64,7 @@ public class GameFacade {
         uiSystem = new UISystem(batch, shapeRenderer);
         bossCinematicSystem = new BossCinematicSystem();
         mapBoundarySystem = new MapBoundarySystem();
+        minimapSystem = new MinimapSystem(shapeRenderer);
 
         System.out.println("[GameFacade] All subsystems created");
     }
@@ -79,6 +81,7 @@ public class GameFacade {
         spawningSystem.initialize(player, enemyPool, eventManager, bossMeleeAttacks, bossProjectiles);
         uiSystem.initialize(player, enemyPool, eventManager);
         bossCinematicSystem.initialize(player, enemyPool);
+        minimapSystem.initialize(player, enemyPool, spawningSystem);
 
         // Subscribe to boss events untuk handle boss spawning & defeat
         subscribeToEvents();
@@ -235,6 +238,7 @@ public class GameFacade {
         // Render UI overlay (Hide during cinematic)
         if (!bossCinematicSystem.isCinematicActive()) {
             uiSystem.render(camera, currentBoss);
+            minimapSystem.render(camera);
         }
     }
 
@@ -274,9 +278,12 @@ public class GameFacade {
 
     private String mapBossToCharacter(String bossName) {
         // nama boss
-        if (bossName.contains("Isolde")) return "Isolde";
-        if (bossName.contains("Insania")) return "Insania";
-        if (bossName.contains("Blaze")) return "Blaze";
+        if (bossName.contains("Isolde"))
+            return "Isolde";
+        if (bossName.contains("Insania"))
+            return "Insania";
+        if (bossName.contains("Blaze"))
+            return "Blaze";
         // boss lain belum ditambahkan
         return null;
     }

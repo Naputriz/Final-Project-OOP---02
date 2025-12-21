@@ -19,7 +19,7 @@ public class RangedEnemy extends BaseEnemy {
         super(x, y, 140f, 40f, target); // Moderate speed, Lower HP
 
         this.atk = 15f;
-        this.bounds.setSize(32, 32);
+        this.bounds.setSize(32, 50); // Adjusted: 32x50 (More vertical)
 
         // Visual Setup: 2x Hitbox (64x64)
         this.renderWidth = 64f;

@@ -14,7 +14,7 @@ public class DummyEnemy extends BaseEnemy {
         super(x, y, 125f, 50f, target); // Speed 125, HP 50
 
         this.atk = 15f;
-        this.bounds.setSize(32, 32);
+        this.bounds.setSize(40, 80); // Adjusted: 40x80 (More vertical coverage for skeleton)
 
         // Visual Setup: 3x Hitbox (96x96) - User requested larger size
         this.renderWidth = 96f;

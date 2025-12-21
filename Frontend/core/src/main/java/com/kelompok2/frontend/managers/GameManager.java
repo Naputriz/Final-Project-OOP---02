@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Json;
 import com.badlogic.gdx.utils.JsonWriter;
 import java.util.HashMap;
 import java.util.Map;
+import com.badlogic.gdx.Preferences;
 
 public class GameManager {
     private static GameManager instance;
@@ -22,17 +23,75 @@ public class GameManager {
 
     private GameManager() {
         unlockedCharacters = new HashSet<>();
-        // Default unlocked characters
-        unlockedCharacters.add("Ryze");
-        unlockedCharacters.add("Whisperwind");
-        unlockedCharacters.add("Aelita");
-        unlockedCharacters.add("Aegis");
-        unlockedCharacters.add("Lumi");
-        unlockedCharacters.add("Alice");
-        unlockedCharacters.add("Kei");
+        // Default to Guest or generic load if no user yet (though usually empty until
+        // login)
+        loadUnlocks("Guest");
 
-        reset();
         System.out.println("[GameManager] Instance created (Singleton)");
+    }
+
+    private void loadUnlocks(String username) {
+        if (username == null || username.isEmpty())
+            username = "Guest";
+
+        unlockedCharacters.clear();
+        Preferences prefs = Gdx.app.getPreferences("MaestraTrialsSave");
+        String key = "unlockedCharacters_" + username;
+        String unlocksString = prefs.getString(key, "");
+
+        if (!unlocksString.isEmpty()) {
+            String[] chars = unlocksString.split(",");
+            for (String c : chars) {
+                if (!c.trim().isEmpty()) {
+                    unlockedCharacters.add(c.trim());
+                }
+            }
+        }
+
+        // Ensure defaults are always present
+        addDefaultUnlocks();
+
+        // If it was empty (new user/save), save the defaults immediately to disk
+        if (unlocksString.isEmpty()) {
+            saveUnlocks();
+        }
+    }
+
+    private void addDefaultUnlocks() {
+        boolean changed = false;
+        if (unlockedCharacters.add("Ryze"))
+            changed = true;
+        // Isolde is a boss, locked by default
+        // Insania is a boss, locked by default
+        // Blaze is a boss, locked by default
+        if (unlockedCharacters.add("Whisperwind"))
+            changed = true;
+        if (unlockedCharacters.add("Aelita"))
+            changed = true;
+        if (unlockedCharacters.add("Aegis"))
+            changed = true;
+        if (unlockedCharacters.add("Lumi"))
+            changed = true;
+        if (unlockedCharacters.add("Alice"))
+            changed = true;
+        if (unlockedCharacters.add("Kei"))
+            changed = true;
+
+        // Note: We don't call saveUnlocks() here to avoid recursion loop or unnecessary
+        // writes during tight loops,
+        // but 'loadUnlocks' handles the initial save check.
+    }
+
+    private void saveUnlocks() {
+        String username = currentUsername != null ? currentUsername : "Guest";
+        Preferences prefs = Gdx.app.getPreferences("MaestraTrialsSave");
+        StringBuilder sb = new StringBuilder();
+        for (String c : unlockedCharacters) {
+            sb.append(c).append(",");
+        }
+        prefs.putString("unlockedCharacters_" + username, sb.toString());
+        prefs.flush();
+        System.out.println("[GameManager] Saved unlocks for [" + username + "]: " + sb.toString());
     }
 
     public static synchronized GameManager getInstance() {
@@ -59,19 +118,41 @@ public class GameManager {
 
     public void loginUser(String username, Set<String> serverUnlockedChars) {
         this.currentUsername = username;
+
+        // 1. Load Local Unlocks for this user first
+        loadUnlocks(username);
+
+        // 2. If server provided data, merge it (Server is authority + Local progress)
+        // Usually server > local, but if playing offline we might have new local
+        // unlocks.
+        // For now, we simply ADD server unlocks to local.
         if (serverUnlockedChars != null && !serverUnlockedChars.isEmpty()) {
-            this.unlockedCharacters = serverUnlockedChars;
-        } else {
-            this.unlockedCharacters.add("Ryze");
-            this.unlockedCharacters.add("Whisperwind");
-            this.unlockedCharacters.add("Aelita");
-            this.unlockedCharacters.add("Aegis");
-            this.unlockedCharacters.add("Lumi");
-            this.unlockedCharacters.add("Alice");
-            this.unlockedCharacters.add("Kei");
+            boolean changed = false;
+            for (String charName : serverUnlockedChars) {
+                if (unlockedCharacters.add(charName)) {
+                    changed = true;
+                }
+            }
+            if (changed) {
+                saveUnlocks(); // Sync back to local disk
+            }
         }
+
         System.out.println("[GameManager] User logged in: " + username);
-        System.out.println("[GameManager] Unlocked chars: " + unlockedCharacters);
+        System.out.println("[GameManager] Final Unlocked chars: " + unlockedCharacters);
+    }
+
+    public void resetProgress() {
+        String username = currentUsername != null ? currentUsername : "Guest";
+        Preferences prefs = Gdx.app.getPreferences("MaestraTrialsSave");
+        // Clear specific user key
+        prefs.remove("unlockedCharacters_" + username);
+        prefs.flush();
+
+        System.out.println("[GameManager] Progress reset for: " + username);
+
+        // Reload defaults
+        loadUnlocks(username);
     }
 
     public boolean isCharacterUnlocked(String charName) {
@@ -81,6 +162,7 @@ public class GameManager {
     public void unlockCharacter(String charName) {
         if (!unlockedCharacters.contains(charName)) {
             unlockedCharacters.add(charName);
+            saveUnlocks(); // Persistence
             System.out.println("[GameManager] Character UNLOCKED locally: " + charName);
             // Panggil API Backend di sini atau via event listener terpisah
             syncUnlockToBackend(charName);
@@ -88,9 +170,11 @@ public class GameManager {
     }
 
     private void syncUnlockToBackend(String charName) {
-        if (currentUsername == null) return;
+        if (currentUsername == null)
+            return;
 
-        // 1. Setup URL (Ganti localhost dengan IP server jika running di device berbeda/Android)
+        // 1. Setup URL (Ganti localhost dengan IP server jika running di device
+        // berbeda/Android)
         String url = "http://localhost:8080/api/user/unlock";
 
         // 2. Buat JSON Body
@@ -154,15 +238,19 @@ public class GameManager {
     public int getCurrentLevel() {
         return currentLevel;
     }
+
     public float getGameTime() {
         return gameTime;
     }
+
     public String getCurrentCharacterName() {
         return currentCharacterName;
     }
+
     public String getCurrentUsername() {
         return currentUsername;
     }
+
     public boolean isGameOver() {
         return isGameOver;
     }
