@@ -212,8 +212,14 @@ public class BossInsania extends Boss {
             currentFrame.flip(true, false);
         }
 
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
         // Draw current frame
         batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
+
+        // Reset color
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
     }
 
     @Override

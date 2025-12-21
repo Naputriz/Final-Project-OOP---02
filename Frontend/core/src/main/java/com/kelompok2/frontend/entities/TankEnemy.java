@@ -70,7 +70,13 @@ public class TankEnemy extends BaseEnemy {
             float drawWidth = (renderWidth > 0) ? renderWidth : bounds.width;
             float drawHeight = (renderHeight > 0) ? renderHeight : bounds.height;
 
+            // Set Color explicitly based on status
+            batch.setColor(getRenderColor());
+
             batch.draw(currentFrame, position.x, position.y, drawWidth, drawHeight);
+
+            // Reset color
+            batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
         } else {
             super.render(batch);
         }

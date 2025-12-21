@@ -85,6 +85,11 @@ public class ProjectileCollisionHandler {
     }
 
     public void checkBossProjectilesVsPlayer(Boss boss) {
+        // Ryze Spectral Body Fix
+        if (player.isInvulnerable()) {
+            return;
+        }
+
         for (Projectile projectile : bossProjectiles) {
             if (!projectile.active)
                 continue;
@@ -108,6 +113,11 @@ public class ProjectileCollisionHandler {
     }
 
     public void checkEnemyProjectilesVsPlayer() {
+        // Ryze Spectral Body Fix
+        if (player.isInvulnerable()) {
+            return;
+        }
+
         for (Projectile projectile : projectilePool.getActiveProjectiles()) {
             if (!projectile.active)
                 continue;

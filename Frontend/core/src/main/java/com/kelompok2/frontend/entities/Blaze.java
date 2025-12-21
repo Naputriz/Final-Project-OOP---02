@@ -105,6 +105,9 @@ public class Blaze extends GameCharacter {
         // Get current frame from state
         TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
         // Flip sprite based on facing direction
         // Sprites default to facing LEFT, flip when facing RIGHT
         boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
@@ -114,6 +117,9 @@ public class Blaze extends GameCharacter {
 
         // Draw character sprite
         batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
+
+        // Reset color explicitly
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
 
         // Render Hellfire Pillar if active (visual placeholder)
         if (innateSkill.isPillarActive()) {
