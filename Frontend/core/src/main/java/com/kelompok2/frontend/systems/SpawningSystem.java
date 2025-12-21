@@ -22,7 +22,7 @@ public class SpawningSystem {
     private GameCharacter player;
 
     // Boss spawning
-    private float bossSpawnInterval = 5f; // 5 seconds for testing (change to 300f for 5 min production)
+    private float bossSpawnInterval = 90f; // 5 seconds for testing (change to 300f for 5 min production)
     private float bossSpawnTimer = 0f;
     private Boss currentBoss = null;
 
