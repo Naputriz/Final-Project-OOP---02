@@ -2,7 +2,6 @@ package com.kelompok2.frontend.entities;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public abstract class BaseEnemy extends GameCharacter {
     protected GameCharacter target;
@@ -22,6 +21,7 @@ public abstract class BaseEnemy extends GameCharacter {
     protected float directionChangeTimer = 0f;
 
     protected long lastMindFractureHitId = -1;
+    protected long lastPhantomHazeHitId = -1;
 
     // Base stats for scaling
     protected float baseMaxHp;
@@ -74,6 +74,16 @@ public abstract class BaseEnemy extends GameCharacter {
             return; // Skip movement/behavior if frozen
         }
 
+        // Update hallucination
+        if (isHallucinating) {
+            if (target != null) {
+                // Move AWAY from target
+                Vector2 awayDir = position.cpy().sub(target.getPosition()).nor();
+                move(awayDir, delta);
+            }
+            return;
+        }
+
         // Update insanity
         if (isInsane) {
             directionChangeTimer -= delta;
@@ -92,21 +102,11 @@ public abstract class BaseEnemy extends GameCharacter {
     }
 
     @Override
-    public void render(SpriteBatch batch) {
-        if (frozen) {
-            batch.setColor(0.5f, 0.8f, 1f, 0.7f);
-        } else if (isInsane) {
-            batch.setColor(0.8f, 0.3f, 0.8f, 0.8f);
-        }
-
-        super.render(batch);
-
-        if (frozen || isInsane) {
-            batch.setColor(Color.WHITE);
-        }
+    protected Color getRenderColor() {
+        if (frozen)
+            return new Color(0.5f, 0.8f, 1f, 0.7f); // Override for BaseEnemy specific frozen field
+        return super.getRenderColor();
     }
-
-    // --- Common Helper Methods ---
 
     protected void generateRandomDirection() {
         float angle = (float) (Math.random() * Math.PI * 2);
@@ -130,6 +130,7 @@ public abstract class BaseEnemy extends GameCharacter {
         super.clearStun();
         super.clearSlow();
         super.clearFreeze();
+        super.clearHallucination();
         this.isMarked = false;
     }
 
@@ -163,6 +164,14 @@ public abstract class BaseEnemy extends GameCharacter {
 
     public void markMindFractureHit(long activationId) {
         this.lastMindFractureHitId = activationId;
+    }
+
+    public boolean wasHitByPhantomHaze(long activationId) {
+        return lastPhantomHazeHitId == activationId;
+    }
+
+    public void markPhantomHazeHit(long activationId) {
+        this.lastPhantomHazeHitId = activationId;
     }
 
     @Override

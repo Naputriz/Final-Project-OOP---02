@@ -250,8 +250,14 @@ public class BossBlaze extends Boss {
             currentFrame.flip(true, false);
         }
 
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
         // Draw character sprite
         batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
+
+        // Reset color
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
     }
 
     @Override

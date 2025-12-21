@@ -120,6 +120,9 @@ public class Insania extends GameCharacter {
         float renderX = position.x;
         float renderY = position.y;
 
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
         // Flip sprite based on facing direction
         // Sprite awalnya menghadap KIRI, jadi:
         // - Jika isFacingRight = true dan sprite belum flip -> FLIP
@@ -131,6 +134,9 @@ public class Insania extends GameCharacter {
 
         // Draw current animation frame
         batch.draw(currentFrame, renderX, renderY, renderWidth, renderHeight);
+
+        // Reset color
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
     }
 
     @Override
