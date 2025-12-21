@@ -38,15 +38,17 @@ public class Blaze extends GameCharacter {
         this.setInnateSkill(new com.kelompok2.frontend.skills.HellfirePillarSkill());
 
         // Initialize animation states
-        // 4 columns × 23 rows = 92 frames total
-        idleState = new IdleState("BlazeCharacterPlaceholder.png", 4, 23, 92, 0.1f);
-        runningState = new RunningState("BlazeCharacterPlaceholder.png", 4, 23, 92, 0.08f); // Slightly faster for run
+        // Idle: 2x2 grid, 4 frames (Blaze/pcgp-blaze_1.png)
+        idleState = new IdleState("Blaze/pcgp-blaze_1.png", 2, 2, 4, 0.15f);
+
+        // Run: 3x4 grid, 10 frames (Blaze/pcgp-blaze-run.png)
+        runningState = new RunningState("Blaze/pcgp-blaze-run.png", 3, 4, 10, 0.1f);
 
         currentState = idleState;
         currentState.enter(this);
 
         // Placeholder texture (will use animation frames instead)
-        Texture placeholder = AssetManager.getInstance().loadTexture("BlazeCharacterPlaceholder.png");
+        Texture placeholder = AssetManager.getInstance().loadTexture("Blaze/pcgp-blaze_1.png");
         this.texture = placeholder;
 
         // Setup visual dan hitbox
@@ -110,9 +112,9 @@ public class Blaze extends GameCharacter {
         batch.setColor(getRenderColor());
 
         // Flip sprite based on facing direction
-        // Sprites default to facing LEFT, flip when facing RIGHT
-        boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
-        if (needsFlip) {
+        // Source Faces LEFT (based on user feedback)
+        boolean flip = isFacingRight;
+        if (currentFrame.isFlipX() != flip) {
             currentFrame.flip(true, false);
         }
 
