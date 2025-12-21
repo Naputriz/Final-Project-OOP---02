@@ -59,14 +59,17 @@ public class BossBlaze extends Boss {
         this.def = 5f + (playerLevel * 1f); // DEF scales: 5 + 1 per level
 
         // Initialize animation states (sama dengan playable version)
-        idleState = new IdleState("BlazeCharacterPlaceholder.png", 4, 23, 92, 0.1f);
-        runningState = new RunningState("BlazeCharacterPlaceholder.png", 4, 23, 92, 0.08f);
+        // Idle: 2x2 grid, 4 frames (Blaze/pcgp-blaze_1.png)
+        idleState = new IdleState("Blaze/pcgp-blaze_1.png", 2, 2, 4, 0.15f);
+
+        // Run: 3x4 grid, 10 frames (Blaze/pcgp-blaze-run.png)
+        runningState = new RunningState("Blaze/pcgp-blaze-run.png", 3, 4, 10, 0.1f);
 
         currentState = idleState;
         currentState.enter(this);
 
         // Placeholder texture
-        Texture placeholder = AssetManager.getInstance().loadTexture("BlazeCharacterPlaceholder.png");
+        Texture placeholder = AssetManager.getInstance().loadTexture("Blaze/pcgp-blaze_1.png");
         this.texture = placeholder;
 
         // Setup visual dan hitbox
@@ -245,8 +248,9 @@ public class BossBlaze extends Boss {
         TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
         // Flip sprite based on facing direction
-        boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
-        if (needsFlip) {
+        // Source Faces LEFT (based on user feedback)
+        boolean flip = isFacingRight;
+        if (currentFrame.isFlipX() != flip) {
             currentFrame.flip(true, false);
         }
 

@@ -105,11 +105,11 @@
     "speed": 190,
     "skillName": "Hallucina Mist",
     "skillDesc": "Releases a hallucinogenic mist that\nconfuses enemies.\nCooldown: 12s",
-    "texturePath": "KeiPlaceholder.png",
-    "frameCols": 1,
-    "frameRows": 1,
-    "totalFrames": 1,
-    "frameDuration": 0.1
+    "texturePath": "Kei/pcgp-Kei.png",
+    "frameCols": 2,
+    "frameRows": 2,
+    "totalFrames": 4,
+    "frameDuration": 0.15
   },
   {
     "name": "Isolde",
@@ -153,10 +153,10 @@
     "speed": 180,
     "skillName": "Hellfire Pillar",
     "skillDesc": "Summons a damage pillar at cursor.\nDamage: High, Cooldown: 5s",
-    "texturePath": "BlazeCharacterPlaceholder.png",
-    "frameCols": 4,
-    "frameRows": 23,
-    "totalFrames": 92,
-    "frameDuration": 0.1
+    "texturePath": "Blaze/pcgp-blaze_1.png",
+    "frameCols": 2,
+    "frameRows": 2,
+    "totalFrames": 4,
+    "frameDuration": 0.15
   }
 ]

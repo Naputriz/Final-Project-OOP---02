@@ -47,6 +47,7 @@ public class GroundSlamSkill extends BaseSkill {
                 0.2f, // Lasts 0.2s
                 "slash", // Use slash animation for now
                 0);
+        attack.setVisible(false); // Disable slash visual, only show shockwave
         attack.setStunDuration(1.5f);
         meleeAttacks.add(attack);
 
