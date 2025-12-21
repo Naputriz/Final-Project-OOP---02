@@ -3,7 +3,7 @@ package com.kelompok2.frontend.entities;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.kelompok2.frontend.managers.AssetManager;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.kelompok2.frontend.strategies.RangedAttackStrategy;
 import com.kelompok2.frontend.skills.VerdantDomainSkill;
 
@@ -14,14 +14,41 @@ public class Aelita extends GameCharacter {
     float atkBuffMultiplier = 1.0f;
     float artsBuffMultiplier = 1.0f;
 
+    // Animation state system
+    private com.kelompok2.frontend.states.AnimationState currentState;
+    private com.kelompok2.frontend.states.AnimationState idleState;
+    private com.kelompok2.frontend.states.AnimationState runState;
+    private float stateTime;
+
+    // Pulse fields for tracking movement
+    private Vector2 previousPosition;
+    private boolean isMoving;
+
     public Aelita(float x, float y) {
         super(x, y, 170f, 140f); // Speed: 170, HP: 140
         this.atk = 15f;
         this.arts = 30f;
         this.def = 20f;
 
-        // Load texture (placeholder)
-        this.texture = AssetManager.getInstance().loadTexture("AelitaPlaceholder.png");
+        // Initialize Animation States
+        // Idle: 2x2 grid, 4 frames
+        idleState = new com.kelompok2.frontend.states.IdleState("Aelita/pcgp-aelita.png", 2, 2, 4, 0.15f);
+
+        // Run: 2x3 grid, 6 frames
+        runState = new com.kelompok2.frontend.states.RunningState("Aelita/pcgp-aelita-run.png", 2, 3, 6, 0.1f);
+
+        // Start with idle state
+        currentState = idleState;
+        currentState.enter(this);
+        stateTime = 0f;
+
+        // Initialize movement tracking
+        previousPosition = new Vector2(x, y);
+        isMoving = false;
+
+        // Note: this.texture is no longer used for rendering with AnimationState system
+        // keeping it null or placeholder if needed for other systems, but usually safe
+        // to ignore
 
         // Ukuran visual dan hitbox
         float visualSize = 128f;
@@ -84,7 +111,67 @@ public class Aelita extends GameCharacter {
     @Override
     public void update(float delta) {
         super.update(delta);
+        stateTime += delta;
         verdantDomain.update(delta, this); // Pass player reference for healing
+
+        // Check movement for state transition
+        checkMovementState();
+
+        // Update current state (animation)
+        currentState.update(this, delta);
+    }
+
+    private void checkMovementState() {
+        // Bandingkan posisi sekarang dengan posisi sebelumnya
+        isMoving = !position.epsilonEquals(previousPosition, 0.1f);
+
+        // Transition states
+        if (isMoving && currentState == idleState) {
+            // Idle -> Run
+            currentState.exit(this);
+            currentState = runState;
+            currentState.enter(this);
+            stateTime = 0f;
+        } else if (!isMoving && currentState == runState) {
+            // Run -> Idle
+            currentState.exit(this);
+            currentState = idleState;
+            currentState.enter(this);
+            stateTime = 0f;
+        }
+
+        // Update previous position
+        previousPosition.set(position);
+    }
+
+    @Override
+    public void render(SpriteBatch batch) {
+        // Get current animation frame from state
+        com.badlogic.gdx.graphics.g2d.TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
+
+        // Create a copy or use logic to determine flip without modifying original if
+        // shared (usually distinct instances though)
+        // TextureRegion frameToDraw = new TextureRegion(currentFrame);
+        // Actually, AnimationState returns frames from array, so modifying them (flip)
+        // modifies the cached frame.
+        // We should handle flip carefully.
+        // Ryze implementation flips the frame object itself back and forth.
+
+        // Flip logic (standard for all characters)
+        // Asset faces LEFT by default.
+        boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
+        if (needsFlip) {
+            currentFrame.flip(true, false);
+        }
+
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
+        // Draw current frame
+        batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
+
+        // Reset color
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
     }
 
     // Override getAtk to apply Verdant Domain buff

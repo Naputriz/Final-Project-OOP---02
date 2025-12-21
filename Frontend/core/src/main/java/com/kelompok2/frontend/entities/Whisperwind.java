@@ -18,7 +18,12 @@ public class Whisperwind extends GameCharacter {
     // Animation state system
     private com.kelompok2.frontend.states.AnimationState currentState;
     private com.kelompok2.frontend.states.AnimationState idleState;
+    private com.kelompok2.frontend.states.AnimationState runState;
     private float stateTime;
+
+    // Pulse fields for tracking movement
+    private Vector2 previousPosition;
+    private boolean isMoving;
 
     public Whisperwind(float x, float y) {
         super(x, y, 190f, 110f); // Moderate speed, Moderate HP
@@ -32,10 +37,18 @@ public class Whisperwind extends GameCharacter {
         // Idle: 2x2 grid, 4 frames
         idleState = new com.kelompok2.frontend.states.IdleState("Whisperwind/pcgp-whisperwind_1.png", 2, 2, 4, 0.15f);
 
+        // Run: 3x4 grid, 10 frames
+        runState = new com.kelompok2.frontend.states.RunningState("Whisperwind/pcgp-whisperwind-run.png", 3, 4, 10,
+                0.1f);
+
         // Start with idle state
         currentState = idleState;
         currentState.enter(this);
         stateTime = 0f;
+
+        // Initialize movement tracking
+        previousPosition = new Vector2(x, y);
+        isMoving = false;
 
         // Note: this.texture is no longer used for rendering, but kept for
         // compatibility if needed elsewhere
@@ -77,6 +90,9 @@ public class Whisperwind extends GameCharacter {
         super.update(delta);
         stateTime += delta;
 
+        // Check movement for state transition
+        checkMovementState();
+
         // Update current state (animation)
         currentState.update(this, delta);
 
@@ -93,6 +109,29 @@ public class Whisperwind extends GameCharacter {
                 hurricaneProjectiles.removeIndex(i);
             }
         }
+    }
+
+    private void checkMovementState() {
+        // Bandingkan posisi sekarang dengan posisi sebelumnya
+        isMoving = !position.epsilonEquals(previousPosition, 0.1f);
+
+        // Transition states
+        if (isMoving && currentState == idleState) {
+            // Idle -> Run
+            currentState.exit(this);
+            currentState = runState;
+            currentState.enter(this);
+            stateTime = 0f;
+        } else if (!isMoving && currentState == runState) {
+            // Run -> Idle
+            currentState.exit(this);
+            currentState = idleState;
+            currentState.enter(this);
+            stateTime = 0f;
+        }
+
+        // Update previous position
+        previousPosition.set(position);
     }
 
     @Override
