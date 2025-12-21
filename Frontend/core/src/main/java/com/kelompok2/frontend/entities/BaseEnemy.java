@@ -22,6 +22,7 @@ public abstract class BaseEnemy extends GameCharacter {
     protected float directionChangeTimer = 0f;
 
     protected long lastMindFractureHitId = -1;
+    protected long lastPhantomHazeHitId = -1;
 
     // Base stats for scaling
     protected float baseMaxHp;
@@ -85,6 +86,16 @@ public abstract class BaseEnemy extends GameCharacter {
             return;
         }
 
+        // Update confusion
+        if (isConfused) {
+            if (target != null) {
+                // Move AWAY from target
+                Vector2 awayDir = position.cpy().sub(target.getPosition()).nor();
+                move(awayDir, delta);
+            }
+            return;
+        }
+
         // If not disabled, run specific behavior
         if (!isBeingPulled) {
             updateBehavior(delta);
@@ -97,11 +108,13 @@ public abstract class BaseEnemy extends GameCharacter {
             batch.setColor(0.5f, 0.8f, 1f, 0.7f);
         } else if (isInsane) {
             batch.setColor(0.8f, 0.3f, 0.8f, 0.8f);
+        } else if (isConfused) {
+            batch.setColor(1f, 0.4f, 1f, 0.8f); // Pinkish for hallucination
         }
 
         super.render(batch);
 
-        if (frozen || isInsane) {
+        if (frozen || isInsane || isConfused) {
             batch.setColor(Color.WHITE);
         }
     }
@@ -130,6 +143,8 @@ public abstract class BaseEnemy extends GameCharacter {
         super.clearStun();
         super.clearSlow();
         super.clearFreeze();
+        super.clearConfusion();
+        this.isMarked = false;
         this.isMarked = false;
     }
 
@@ -163,6 +178,14 @@ public abstract class BaseEnemy extends GameCharacter {
 
     public void markMindFractureHit(long activationId) {
         this.lastMindFractureHitId = activationId;
+    }
+
+    public boolean wasHitByPhantomHaze(long activationId) {
+        return lastPhantomHazeHitId == activationId;
+    }
+
+    public void markPhantomHazeHit(long activationId) {
+        this.lastPhantomHazeHitId = activationId;
     }
 
     @Override

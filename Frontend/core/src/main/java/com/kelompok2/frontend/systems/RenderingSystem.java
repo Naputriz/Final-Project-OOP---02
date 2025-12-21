@@ -113,6 +113,7 @@ public class RenderingSystem {
         renderGlacialBreaths();
         renderHurricaneBinds();
         renderMindFracture();
+        renderPhantomHaze();
         renderHellfirePillar();
 
         renderGroundSlam();
@@ -295,6 +296,33 @@ public class RenderingSystem {
             shapeRenderer.circle(playerCenterX, playerCenterY, insania.getSkillRadius(), 50);
             com.badlogic.gdx.Gdx.gl.glLineWidth(1);
             shapeRenderer.end();
+        }
+    }
+
+    // Kei
+    private void renderPhantomHaze() {
+        if (!(player instanceof com.kelompok2.frontend.entities.Kei))
+            return;
+        com.kelompok2.frontend.entities.Kei kei = (com.kelompok2.frontend.entities.Kei) player;
+        if (kei.shouldShowPhantomHazeCircle()) {
+            com.badlogic.gdx.Gdx.gl.glEnable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled); // Filled for semi-transparent overlay
+            float playerCenterX = player.getPosition().x + player.getVisualWidth() / 2;
+            float playerCenterY = player.getPosition().y + player.getVisualHeight() / 2;
+
+            // Magenta semi-transparent
+            shapeRenderer.setColor(1f, 0.4f, 1f, 0.4f);
+            shapeRenderer.circle(playerCenterX, playerCenterY, kei.getSkillRadius(), 50);
+            shapeRenderer.end();
+
+            // Border
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+            com.badlogic.gdx.Gdx.gl.glLineWidth(2);
+            shapeRenderer.setColor(1f, 0.4f, 1f, 0.8f);
+            shapeRenderer.circle(playerCenterX, playerCenterY, kei.getSkillRadius(), 50);
+            com.badlogic.gdx.Gdx.gl.glLineWidth(1);
+            shapeRenderer.end();
+            com.badlogic.gdx.Gdx.gl.glDisable(com.badlogic.gdx.graphics.GL20.GL_BLEND);
         }
     }
 

@@ -35,7 +35,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     private int hoveredIndex = 0; // Currently hovered character
     private int selectedIndex = -1; // Selected character (-1 = none)
 
-    // UI layout constants (centered for 1920x1080) (Belum gw cek buat dimensi lain, kalo ga centered nanti ubah)
+    // UI layout constants (centered for 1920x1080) (Belum gw cek buat dimensi lain,
+    // kalo ga centered nanti ubah)
     private static final float GRID_X = 400; // Centered left side
     private static final float GRID_Y = 400; // Centered vertically
     private static final float PORTRAIT_SIZE = 100;
@@ -84,7 +85,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void initializeCharacters() {
         // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        characters = new CharacterInfo[9]; // Updated to 9 characters
+        characters = new CharacterInfo[10]; // Updated to 10 characters
 
         // Ryze - The Ghost of Insania
         Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
@@ -193,6 +194,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 "AlicePlaceholder.png",
                 aliceSprite,
                 1, 1, 1, 0.1f); // 1x1 grid (no animation)
+
+        // Kei - The Phantom Hunter
+        Texture keiSheet = AssetManager.getInstance().loadTexture("FrostPlaceholderSprite.png");
+        characters[9] = new CharacterInfo(
+                "Kei",
+                "The Phantom Hunter",
+                95, 20, 45, 10, 190,
+                "Phantom Haze",
+                "Releases a hallucinogenic mist.\nConfuses enemies (move away).\nCooldown: 12s",
+                "FrostPlaceholderSprite.png", // Using placeholder
+                keiSheet,
+                10, 10, 100, 0.1f);
     }
 
     @Override
@@ -320,7 +333,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 }
             }
         } else {
-            // Jika terkunci: Render gambar "?" (Menggunakan FrostPlaceholderSprite.png sesuai request)
+            // Jika terkunci: Render gambar "?" (Menggunakan FrostPlaceholderSprite.png
+            // sesuai request)
             // Pastikan string path ini sama persis dengan yang di-load di AssetManager
             Texture lockedTexture = AssetManager.getInstance().getTexture("question_mark.png");
             if (lockedTexture != null) {
