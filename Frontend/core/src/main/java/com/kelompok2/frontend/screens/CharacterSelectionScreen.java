@@ -15,6 +15,9 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.models.CharacterInfo;
@@ -31,13 +34,13 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     private Texture lockedTexture;
 
     // Character data
-    private CharacterInfo[] characters;
+    private Array<CharacterInfo> characters;
     private int hoveredIndex = 0; // Currently hovered character
     private int selectedIndex = -1; // Selected character (-1 = none)
 
     // UI layout constants (centered for 1920x1080) (Belum gw cek buat dimensi lain, kalo ga centered nanti ubah)
     private static final float GRID_X = 400; // Centered left side
-    private static final float GRID_Y = 400; // Centered vertically
+    private static final float GRID_Y = 450; // Centered vertically
     private static final float PORTRAIT_SIZE = 100;
     private static final float PORTRAIT_SPACING = 120;
 
@@ -83,116 +86,41 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     }
 
     private void initializeCharacters() {
-        // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
-        characters = new CharacterInfo[9]; // Updated to 9 characters
+        // Todo: bikin ini lebih scalable, jika mungkin, biar ga nambah2 per karakter
+        characters = new Array<>();
+        JsonReader json = new JsonReader();
 
-        // Ryze - The Ghost of Insania
-        Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
-        characters[0] = new CharacterInfo(
-                "Ryze",
-                "The Ghost of Insania",
-                100, 30, 10, 5, 200,
-                "Spectral Body",
-                "Invulnerability for 3 seconds.\nCooldown: 15s",
-                "Ryze/pcgp-ryze-idle.png",
-                ryzeSheet,
-                3, 3, 8, 0.1f); // 8 frames in 3x3 grid
+        try {
 
-        // Isolde - The Frost Kaiser
-        Texture isoldeSheet = AssetManager.getInstance().loadTexture("FrostPlaceholderSprite.png");
-        characters[1] = new CharacterInfo(
-                "Isolde",
-                "The Frost Kaiser",
-                120, 15, 40, 10, 180,
-                "Glacial Breath",
-                "Cone attack that freezes enemies.\nDamage: Arts x1.0, Cooldown: 10s",
-                "FrostPlaceholderSprite.png",
-                isoldeSheet,
-                10, 10, 100, 0.1f); // 100 frames in 10x10 grid
+            JsonValue root = json.parse(Gdx.files.internal("data/characters.json"));
 
-        // Insania - The Chaos Kaiser
-        Texture insaniaSheet = AssetManager.getInstance().loadTexture("Insania/pcgp-insania-idle.png");
-        characters[2] = new CharacterInfo(
-                "Insania",
-                "The Chaos Kaiser",
-                110, 35, 25, 5, 180,
-                "Mind Fracture",
-                "AoE Insanity debuff. Enemies move\nrandomly and attack each other.\nDuration: 5s, Cooldown: 10s",
-                "Insania/pcgp-insania-idle.png",
-                insaniaSheet,
-                2, 2, 4, 0.2f); // 4 frames in 2x2 grid, slower animation (0.2s per frame)
+            for (JsonValue entry : root){
+                String texturePath = entry.getString("texturePath");
+                Texture texture = AssetManager.getInstance().loadTexture(texturePath);
 
-        // Blaze - The Flame Kaiser
-        Texture blazeSheet = AssetManager.getInstance().loadTexture("BlazeCharacterPlaceholder.png");
-        characters[3] = new CharacterInfo(
-                "Blaze",
-                "The Flame Kaiser",
-                110, 25, 40, 5, 180,
-                "Hellfire Pillar",
-                "Summons a damage pillar at cursor.\\nDamage: High, Cooldown: 5s",
-                "BlazeCharacterPlaceholder.png",
-                blazeSheet,
-                4, 23, 92, 0.1f); // 4 columns × 23 rows = 92 frames
+                CharacterInfo info = new CharacterInfo(
+                    entry.getString("name"),
+                    entry.getString("title"),
+                    entry.getFloat("hp"),
+                    entry.getFloat("atk"),
+                    entry.getFloat("arts"),
+                    entry.getFloat("def"),
+                    entry.getFloat("speed"),
+                    entry.getString("skillName"),
+                    entry.getString("skillDesc"),
+                    texturePath,
+                    texture,
+                    entry.getInt("frameCols"),
+                    entry.getInt("frameRows"),
+                    entry.getInt("totalFrames"),
+                    entry.getFloat("frameDuration")
+                    );
 
-        // Whisperwind - The Silent Caster
-        Texture whisperwindSprite = AssetManager.getInstance().loadTexture("WhisperwindPlaceholder.png");
-        characters[4] = new CharacterInfo(
-                "Whisperwind",
-                "The Silent Caster",
-                110, 15, 38, 12, 190,
-                "Hurricane Bind",
-                "Wind ball with knockback and stun.\\nDamage: Arts x2.0, Cooldown: 10s",
-                "WhisperwindPlaceholder.png",
-                whisperwindSprite,
-                1, 1, 1, 0.1f); // Stationary sprite
-
-        // Aelita - The Evergreen Healer
-        Texture aelitaSprite = AssetManager.getInstance().loadTexture("AelitaPlaceholder.png");
-        characters[5] = new CharacterInfo(
-                "Aelita",
-                "The Evergreen Healer",
-                140, 15, 30, 20, 170,
-                "Verdant Domain",
-                "Consume 25% HP to create a healing\\nzone. Heals 50% HP over 5s and boosts\\nATK/Arts +25%. Cooldown: 15s",
-                "AelitaPlaceholder.png",
-                aelitaSprite,
-                1, 1, 1, 0.1f); // Stationary sprite (placeholder)
-
-        // Aegis - The Impenetrable Shield
-        Texture aegisSprite = AssetManager.getInstance().loadTexture("Aegis/pcgp-aegis.png");
-        characters[6] = new CharacterInfo(
-                "Aegis",
-                "The Impenetrable Shield",
-                150, 15, 10, 40, 170,
-                "Here, I shall stand!",
-                "Immobilized for 2s, blocks frontal damage\\nand reflects 50% damage back.\\nCooldown: 10s",
-                "Aegis/pcgp-aegis.png",
-                aegisSprite,
-                2, 2, 4, 0.15f);
-
-        // Lumi - The Pale Renegade
-        Texture lumiSprite = AssetManager.getInstance().loadTexture("LumiPlaceholder.png");
-        characters[7] = new CharacterInfo(
-                "Lumi",
-                "The Pale Renegade",
-                90, 45, 10, 15, 210,
-                "Returnious Pull",
-                "Marks enemies with attacks.\nSkill pulls marked enemy + Dmg + Stun.\nCooldown: 12s",
-                "LumiPlaceholder.png",
-                lumiSprite,
-                1, 1, 1, 0.1f);
-
-        // Alice - The Reckless Princess
-        Texture aliceSprite = AssetManager.getInstance().loadTexture("AlicePlaceholder.png");
-        characters[8] = new CharacterInfo(
-                "Alice",
-                "The Reckless Princess",
-                100, 40, 10, 10, 200,
-                "Feral Rush",
-                "Dashes forward rapidly and unleashes\n5x scratch attacks.\nCooldown: 5s",
-                "AlicePlaceholder.png",
-                aliceSprite,
-                1, 1, 1, 0.1f); // 1x1 grid (no animation)
+                characters.add(info);
+            }
+        } catch (Exception e) {
+            Gdx.app.error("CharacterSelect", "Failed to load characters.json", e);
+        }
     }
 
     @Override
@@ -213,7 +141,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         // Portrait backgrounds - 3 column layout (3 per column now)
-        for (int i = 0; i < characters.length; i++) {
+        for (int i = 0; i < characters.size; i++) {
             float x, y;
             // Calculate column (0, 1, 2) and row (0, 1, 2) for 3x3 grid
             int col = i / 3;
@@ -248,7 +176,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         shapeRenderer.setColor(Color.WHITE);
 
         // Portrait borders - 3 column layout
-        for (int i = 0; i < characters.length; i++) {
+        for (int i = 0; i < characters.size; i++) {
             float x, y;
             int col = i / 3;
             int row = i % 3;
@@ -274,7 +202,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         titleFont.draw(batch, "Character Select", 760, 950); // Centered
 
         // Character grid portraits
-        for (int i = 0; i < characters.length; i++) {
+        for (int i = 0; i < characters.size; i++) {
             drawPortraitSprite(i);
         }
 
@@ -295,7 +223,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     }
 
     private void drawPortraitSprite(int index) {
-        CharacterInfo character = characters[index];
+        CharacterInfo character = characters.get(index);
         float x, y;
 
         // Calculate position based on 3x3 grid layout
@@ -346,7 +274,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     }
 
     private void drawPreview(int index) {
-        CharacterInfo character = characters[index];
+        CharacterInfo character = characters.get(index);
         boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
         if (isUnlocked) {
@@ -370,7 +298,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     }
 
     private void drawStatsText(int index) {
-        CharacterInfo character = characters[index];
+        CharacterInfo character = characters.get(index);
         boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
         font.setColor(Color.YELLOW);
@@ -403,7 +331,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     }
 
     private void drawSkillText(int index) {
-        CharacterInfo character = characters[index];
+        CharacterInfo character = characters.get(index);
         boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
         font.setColor(Color.YELLOW);
@@ -449,7 +377,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         float worldY = worldCoords.y;
 
         // Check hover over portraits - 3x3 grid layout
-        for (int i = 0; i < characters.length; i++) {
+        for (int i = 0; i < characters.size; i++) {
             float x, y;
             int col = i / 3;
             int row = i % 3;
@@ -464,11 +392,11 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 // Click to select
                 if (Gdx.input.justTouched()) {
                     // CEK DULU APAKAH UNLOCKED
-                    if (GameManager.getInstance().isCharacterUnlocked(characters[i].name)) {
+                    if (GameManager.getInstance().isCharacterUnlocked(characters.get(i).name)) {
                         selectedIndex = i;
                         startGame();
                     } else {
-                        System.out.println("Character Locked: " + characters[i].name);
+                        System.out.println("Character Locked: " + characters.get(i).name);
                         // Opsional: Play sound effect "Access Denied" disini
                     }
                 }
@@ -483,10 +411,10 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     }
 
     private void startGame() {
-        System.out.println("Selected character: " + characters[selectedIndex].name);
+        System.out.println("Selected character: " + characters.get(selectedIndex).name);
         // Note: Don't dispose while screen is still active - causes crash
         // LibGDX will garbage collect this screen after transition
-        game.setScreen(new GameScreen(game, characters[selectedIndex].name));
+        game.setScreen(new GameScreen(game, characters.get(selectedIndex).name));
     }
 
     @Override

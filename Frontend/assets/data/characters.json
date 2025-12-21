@@ -1,0 +1,83 @@
+[
+  {
+    "name": "Ryze",
+    "title": "The Ghost of Insania",
+    "hp": 100, "atk": 30, "arts": 10, "def": 5, "speed": 200,
+    "skillName": "Spectral Body",
+    "skillDesc": "Invulnerability for 3 seconds.\nCooldown: 15s",
+    "texturePath": "Ryze/pcgp-ryze-idle.png",
+    "frameCols": 3, "frameRows": 3, "totalFrames": 8, "frameDuration": 0.1
+  },
+  {
+    "name": "Isolde",
+    "title": "The Frost Kaiser",
+    "hp": 120, "atk": 15, "arts": 40, "def": 10, "speed": 180,
+    "skillName": "Glacial Breath",
+    "skillDesc": "Cone attack that freezes enemies.\nDamage: Arts x1.0, Cooldown: 10s",
+    "texturePath": "FrostPlaceholderSprite.png",
+    "frameCols": 10, "frameRows": 10, "totalFrames": 100, "frameDuration": 0.1
+  },
+  {
+    "name": "Insania",
+    "title": "The Chaos Kaiser",
+    "hp": 110, "atk": 35, "arts": 25, "def": 5, "speed": 180,
+    "skillName": "Mind Fracture",
+    "skillDesc": "AoE Insanity debuff. Enemies move\nrandomly and attack each other.\nDuration: 5s, Cooldown: 10s",
+    "texturePath": "Insania/pcgp-insania-idle.png",
+    "frameCols": 2, "frameRows": 2, "totalFrames": 4, "frameDuration": 0.2
+  },
+  {
+    "name": "Blaze",
+    "title": "The Flame Kaiser",
+    "hp": 110, "atk": 25, "arts": 40, "def": 5, "speed": 180,
+    "skillName": "Hellfire Pillar",
+    "skillDesc": "Summons a damage pillar at cursor.\nDamage: High, Cooldown: 5s",
+    "texturePath": "BlazeCharacterPlaceholder.png",
+    "frameCols": 4, "frameRows": 23, "totalFrames": 92, "frameDuration": 0.1
+  },
+  {
+    "name": "Whisperwind",
+    "title": "The Silent Caster",
+    "hp": 110, "atk": 15, "arts": 38, "def": 12, "speed": 190,
+    "skillName": "Hurricane Bind",
+    "skillDesc": "Wind ball with knockback and stun.\nDamage: Arts x2.0, Cooldown: 10s",
+    "texturePath": "WhisperwindPlaceholder.png",
+    "frameCols": 1, "frameRows": 1, "totalFrames": 1, "frameDuration": 0.1
+  },
+  {
+    "name": "Aelita",
+    "title": "The Evergreen Healer",
+    "hp": 140, "atk": 15, "arts": 30, "def": 20, "speed": 170,
+    "skillName": "Verdant Domain",
+    "skillDesc": "Consume 25% HP to create a healing\nzone. Heals 50% HP over 5s and boosts\nATK/Arts +25%. Cooldown: 15s",
+    "texturePath": "AelitaPlaceholder.png",
+    "frameCols": 1, "frameRows": 1, "totalFrames": 1, "frameDuration": 0.1
+  },
+  {
+    "name": "Aegis",
+    "title": "The Impenetrable Shield",
+    "hp": 150, "atk": 15, "arts": 10, "def": 40, "speed": 170,
+    "skillName": "Here, I shall stand!",
+    "skillDesc": "Immobilized for 2s, blocks frontal damage\nand reflects 50% damage back.\nCooldown: 10s",
+    "texturePath": "Aegis/pcgp-aegis.png",
+    "frameCols": 2, "frameRows": 2, "totalFrames": 4, "frameDuration": 0.15
+  },
+  {
+    "name": "Lumi",
+    "title": "The Pale Renegade",
+    "hp": 90, "atk": 45, "arts": 10, "def": 15, "speed": 210,
+    "skillName": "Returnious Pull",
+    "skillDesc": "Marks enemies with attacks.\nSkill pulls marked enemy + Dmg + Stun.\nCooldown: 12s",
+    "texturePath": "LumiPlaceholder.png",
+    "frameCols": 1, "frameRows": 1, "totalFrames": 1, "frameDuration": 0.1
+  },
+  {
+    "name": "Alice",
+    "title": "The Reckless Princess",
+    "hp": 100, "atk": 40, "arts": 10, "def": 10, "speed": 200,
+    "skillName": "Feral Rush",
+    "skillDesc": "Dashes forward rapidly and unleashes\n5x scratch attacks.\nCooldown: 5s",
+    "texturePath": "AlicePlaceholder.png",
+    "frameCols": 1, "frameRows": 1, "totalFrames": 1, "frameDuration": 0.1
+  }
+]
