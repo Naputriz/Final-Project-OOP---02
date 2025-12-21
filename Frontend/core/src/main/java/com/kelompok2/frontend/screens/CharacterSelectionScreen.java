@@ -98,7 +98,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     }
 
     private void initializeCharacters() {
-        characters = new CharacterInfo[9];
+        // Todo: bikin ini lebioh scalable, jika mungkin, biar ga nambah2 per karakter
+        characters = new CharacterInfo[10]; // Updated to 10 characters
 
         // Ryze
         Texture ryzeSheet = AssetManager.getInstance().loadTexture("Ryze/pcgp-ryze-idle.png");
@@ -167,10 +168,26 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         // Alice
         Texture aliceSprite = AssetManager.getInstance().loadTexture("AlicePlaceholder.png");
         characters[8] = new CharacterInfo(
-            "Alice", "The Reckless Princess",
-            100, 40, 10, 10, 200,
-            "Feral Rush", "Dashes forward rapidly and\nunleashes 5x scratch attacks.\nCD: 5s",
-            "AlicePlaceholder.png", aliceSprite, 1, 1, 1, 0.1f);
+                "Alice",
+                "The Reckless Princess",
+                100, 40, 10, 10, 200,
+                "Feral Rush",
+                "Dashes forward rapidly and unleashes\n5x scratch attacks.\nCooldown: 5s",
+                "AlicePlaceholder.png",
+                aliceSprite,
+                1, 1, 1, 0.1f); // 1x1 grid (no animation)
+
+        // Kei - The Phantom Hunter
+        Texture keiSheet = AssetManager.getInstance().loadTexture("FrostPlaceholderSprite.png");
+        characters[9] = new CharacterInfo(
+                "Kei",
+                "The Phantom Hunter",
+                95, 20, 45, 10, 190,
+                "Phantom Haze",
+                "Releases a hallucinogenic mist.\nConfuses enemies (move away).\nCooldown: 12s",
+                "FrostPlaceholderSprite.png", // Using placeholder
+                keiSheet,
+                10, 10, 100, 0.1f);
     }
 
     @Override
@@ -282,7 +299,10 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 }
             }
         } else {
-            // Locked
+            // Jika terkunci: Render gambar "?" (Menggunakan FrostPlaceholderSprite.png
+            // sesuai request)
+            // Pastikan string path ini sama persis dengan yang di-load di AssetManager
+            Texture lockedTexture = AssetManager.getInstance().getTexture("question_mark.png");
             if (lockedTexture != null) {
                 batch.draw(lockedTexture, x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
             }
