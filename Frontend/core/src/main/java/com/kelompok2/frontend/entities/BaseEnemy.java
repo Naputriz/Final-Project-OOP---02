@@ -2,7 +2,6 @@ package com.kelompok2.frontend.entities;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public abstract class BaseEnemy extends GameCharacter {
     protected GameCharacter target;
@@ -103,23 +102,11 @@ public abstract class BaseEnemy extends GameCharacter {
     }
 
     @Override
-    public void render(SpriteBatch batch) {
-        if (frozen) {
-            batch.setColor(0.5f, 0.8f, 1f, 0.7f);
-        } else if (isInsane) {
-            batch.setColor(0.8f, 0.3f, 0.8f, 0.8f);
-        } else if (isHallucinating) {
-            batch.setColor(1f, 0.4f, 1f, 0.8f); // Pinkish for hallucination
-        }
-
-        super.render(batch);
-
-        if (frozen || isInsane || isHallucinating) {
-            batch.setColor(Color.WHITE);
-        }
+    protected Color getRenderColor() {
+        if (frozen)
+            return new Color(0.5f, 0.8f, 1f, 0.7f); // Override for BaseEnemy specific frozen field
+        return super.getRenderColor();
     }
-
-    // --- Common Helper Methods ---
 
     protected void generateRandomDirection() {
         float angle = (float) (Math.random() * Math.PI * 2);

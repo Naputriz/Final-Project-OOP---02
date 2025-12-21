@@ -541,18 +541,29 @@ public abstract class GameCharacter {
         return texture;
     }
 
+    protected com.badlogic.gdx.graphics.Color getRenderColor() {
+        if (isFrozen)
+            return new com.badlogic.gdx.graphics.Color(0.5f, 0.8f, 1f, 0.7f); // Cyan
+        if (isInsane)
+            return new com.badlogic.gdx.graphics.Color(0.8f, 0.3f, 0.8f, 0.8f); // Purple
+        if (isHallucinating)
+            return new com.badlogic.gdx.graphics.Color(1f, 0.4f, 1f, 0.8f); // Pink
+        if (isStunned)
+            return com.badlogic.gdx.graphics.Color.YELLOW;
+        return com.badlogic.gdx.graphics.Color.WHITE;
+    }
+
     public void render(SpriteBatch batch) {
         // Gambar karakter di posisi X, Y
         if (texture != null) {
             // Cek apakah texture perlu di-flip
-            // Gambar asli (aset png) karakter menghadap ke KIRI
-            // Jika isFacingRight true (mau hadap kanan), flipX harus true (dibalik)
-            // Jika isFacingRight false (mau hadap kiri), flipX false (jangan dibalik, pakai
-            // asli)
             boolean flipX = isFacingRight;
-            // [LOGIKA BARU] Gunakan renderWidth/Height jika ada. Jika tidak, pakai bounds.
             float drawWidth = (renderWidth > 0) ? renderWidth : bounds.width;
             float drawHeight = (renderHeight > 0) ? renderHeight : bounds.height;
+
+            // Set Color explicitly based on status
+            batch.setColor(getRenderColor());
+
             // Gambar dirender seukuran hitbox
             batch.draw(
                     texture,
@@ -565,8 +576,11 @@ public abstract class GameCharacter {
                     texture.getWidth(),
                     texture.getHeight(),
                     flipX,
-                    false // flipY (tidak perlu dibalik secara vertikal)
+                    false // flipY
             );
+
+            // RESET Color explicitly to avoid leaking tint to next sprites
+            batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
         }
     }
 

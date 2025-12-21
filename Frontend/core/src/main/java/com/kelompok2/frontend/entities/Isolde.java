@@ -121,6 +121,9 @@ public class Isolde extends GameCharacter {
         float renderX = position.x;
         float renderY = position.y;
 
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
         // Flip sprite jika menghadap kiri
         if (!isFacingRight && !currentFrame.isFlipX()) {
             currentFrame.flip(true, false);
@@ -130,6 +133,9 @@ public class Isolde extends GameCharacter {
 
         // Draw current animation frame
         batch.draw(currentFrame, renderX, renderY, renderWidth, renderHeight);
+
+        // Reset color
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
     }
 
     @Override

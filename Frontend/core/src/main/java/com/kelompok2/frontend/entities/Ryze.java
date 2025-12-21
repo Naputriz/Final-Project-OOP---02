@@ -105,14 +105,21 @@ public class Ryze extends GameCharacter {
     }
 
     @Override
+    protected Color getRenderColor() {
+        // Spectral Body takes precedence (Transparency)
+        if (innateSkill.isSpectralActive()) {
+            return new Color(1f, 1f, 1f, 0.5f);
+        }
+        return super.getRenderColor();
+    }
+
+    @Override
     public void render(SpriteBatch batch) {
         // Get current animation frame from state
         TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
-        // Apply transparency saat Spectral Body aktif
-        if (innateSkill.isSpectralActive()) {
-            batch.setColor(1f, 1f, 1f, 0.5f);
-        }
+        // Set Color explicitly based on status (includes Spectral Body transparency)
+        batch.setColor(getRenderColor());
 
         // Flip sprite based on facing direction
         // Sprite awalnya menghadap KIRI, jadi:
@@ -126,10 +133,8 @@ public class Ryze extends GameCharacter {
         // Draw current frame
         batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
 
-        // Reset color
-        if (innateSkill.isSpectralActive()) {
-            batch.setColor(Color.WHITE);
-        }
+        // Reset color explicitly to avoid leaking tint
+        batch.setColor(Color.WHITE);
     }
 
     @Override
