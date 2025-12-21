@@ -4,7 +4,7 @@ public class ScoreData {
     public String playerName;
     public String character;
     public int level;
-    public int value; // Waktu dalam detik
+    public int value;
 
     public ScoreData(String playerName, String character, int level, int value) {
         this.playerName = playerName;

@@ -11,7 +11,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kelompok2.frontend.Main;
-import com.kelompok2.frontend.entities.Boss; // [PENTING] Import Boss
+import com.kelompok2.frontend.entities.Boss;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.factories.CharacterFactory;
 import com.kelompok2.frontend.utils.InputHandler;
@@ -22,7 +22,7 @@ import com.kelompok2.frontend.pools.ProjectilePool;
 import com.kelompok2.frontend.pools.EnemyPool;
 import com.kelompok2.frontend.systems.GameFacade;
 import com.kelompok2.frontend.systems.MapBoundarySystem;
-import com.kelompok2.frontend.ui.GameHUD; // [PENTING] Import GameHUD
+import com.kelompok2.frontend.ui.GameHUD;
 
 public class GameScreen extends ScreenAdapter {
     private SpriteBatch batch;
@@ -42,7 +42,7 @@ public class GameScreen extends ScreenAdapter {
     private GameFacade gameFacade;
     private boolean firstFrame = true;
 
-    // [BARU] HUD UI Manager
+    // UI Manager
     private GameHUD gameHUD;
 
     // Resolusi Virtual 1920x1080
@@ -69,7 +69,6 @@ public class GameScreen extends ScreenAdapter {
             background = AssetManager.getInstance().loadTexture("dungeon_floor.png");
             background.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         } catch (Exception e) {
-            // Fallback jika file belum ada
             background = AssetManager.getInstance().loadTexture("FireflyPlaceholder.jpg");
         }
 
@@ -91,11 +90,13 @@ public class GameScreen extends ScreenAdapter {
         gameFacade.initialize(player, enemyPool, projectilePool);
         player.injectDependencies(gameFacade, enemyPool);
 
-        inputHandler = new InputHandler(player, camera, projectilePool, gameFacade.getPlayerMeleeAttacks());
+        // [PERBAIKAN 1] Tambahkan 'game' sebagai parameter pertama InputHandler
+        inputHandler = new InputHandler(game, player, camera, projectilePool, gameFacade.getPlayerMeleeAttacks());
+
         AudioManager.getInstance().playMusic("Audio/battleThemeA.mp3", true);
 
-        // [BARU] Init HUD
-        gameHUD = new GameHUD(batch);
+        // [PERBAIKAN 2] Tambahkan 'game' sebagai parameter pertama GameHUD
+        gameHUD = new GameHUD(game, batch);
 
         System.out.println("[GameScreen] Initialized.");
     }
@@ -150,7 +151,7 @@ public class GameScreen extends ScreenAdapter {
 
             gameFacade.update(delta, camera);
 
-            // [BARU] Update HUD Timer & Messages
+            // Update HUD Timer
             if (gameHUD != null) {
                 gameHUD.update(delta);
             }
@@ -162,7 +163,7 @@ public class GameScreen extends ScreenAdapter {
         // 2. Render UI Overlay (Hanya jika tidak sedang cutscene boss)
         if (!gameFacade.getBossCinematicSystem().isCinematicActive()) {
 
-            // [BARU] Ambil Boss aktif dari sistem spawning untuk ditampilkan bar darahnya
+            // Ambil Boss aktif dari sistem spawning untuk ditampilkan bar darahnya
             Boss currentBoss = gameFacade.getSpawningSystem().getCurrentBoss();
 
             // Render HUD (Pass Player & Boss)
@@ -211,7 +212,7 @@ public class GameScreen extends ScreenAdapter {
     public void resize(int width, int height) {
         viewport.update(width, height);
 
-        // [BARU] Resize HUD agar UI tetap proporsional
+        // Resize HUD agar UI tetap proporsional
         if(gameHUD != null) gameHUD.resize(width, height);
 
         if (player != null) {
@@ -224,7 +225,9 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void pause() {
-        if (!isPaused && !player.isDead()) togglePause();
+        if (!isPaused && !player.isDead()) {
+            togglePause();
+        }
     }
 
     @Override
@@ -238,7 +241,7 @@ public class GameScreen extends ScreenAdapter {
         if (projectilePool != null) projectilePool.dispose();
         if (enemyPool != null) enemyPool.dispose();
 
-        // [BARU] Dispose HUD
+        // Dispose HUD
         if (gameHUD != null) gameHUD.dispose();
     }
 }

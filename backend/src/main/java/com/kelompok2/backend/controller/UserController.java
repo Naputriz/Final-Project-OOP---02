@@ -17,12 +17,29 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    // [BARU] Endpoint Update Keybinds
+    @PostMapping("/update-keys")
+    public ResponseEntity<?> updateKeys(@RequestBody Map<String, String> payload) {
+        String username = payload.get("username");
+        String keyConfig = payload.get("keyConfig");
+
+        Optional<User> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            user.setKeyConfig(keyConfig); // Update JSON config
+            userRepository.save(user);
+            return ResponseEntity.ok().body("Keybinds updated successfully");
+        }
+        return ResponseEntity.badRequest().body("User not found");
+    }
+
+    // [FITUR LAMA] Unlock Character
     @PostMapping("/unlock")
     public ResponseEntity<?> unlockCharacter(@RequestBody Map<String, String> payload) {
         String username = payload.get("username");
         String characterName = payload.get("characterName");
 
-        Optional<User> userOpt = userRepository.findByUsername(username); // Pastikan repository punya method findByUsername
+        Optional<User> userOpt = userRepository.findByUsername(username);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             user.addUnlockedCharacter(characterName);
@@ -32,7 +49,7 @@ public class UserController {
         return ResponseEntity.badRequest().body("User not found");
     }
 
-    // Endpoint untuk mengambil data user terbaru (sync saat login)
+    // [FITUR LAMA] Get User Data
     @GetMapping("/{username}")
     public ResponseEntity<User> getUser(@PathVariable String username) {
         return userRepository.findByUsername(username)

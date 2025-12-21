@@ -148,7 +148,7 @@ public class MainMenuScreen extends ScreenAdapter {
         });
 
         // Initialize Windows
-        settingsWindow = new SettingsWindow(skin);
+        settingsWindow = new SettingsWindow(game, skin);
         createLeaderboardWindow();
         createAccountWindow();
 
