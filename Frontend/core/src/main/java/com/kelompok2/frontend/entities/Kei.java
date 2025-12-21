@@ -32,6 +32,10 @@ public class Kei extends GameCharacter {
         this.atk = 20f;
         this.arts = 45f;
         this.def = 10f;
+        this.title = "The Hallucinator";
+        this.description = "The illusionist who lost sight of reality. Wielding the Maestra staff 'Hallucina,' Kei has the terrifying power to trap her victims in permanent, waking nightmares with a single strike. To Lumi, she was a savior and an anchor; but when the Maestron poisoning began to consume the young 'White Scarf,' Kei was absent. Now, the master of mental manipulation is haunted by her own clarity, the undeniable truth that she failed the one person who trusted her completely.";
+        this.skillName = "Hallucina Mist";
+        this.skillDescription = "Releases a hallucinogenic mist that confuses enemies. Cooldown: 12s";
 
         // Initialize Skill
         this.innateSkill = new PhantomHazeSkill();

@@ -30,6 +30,10 @@ public class Isolde extends GameCharacter {
         this.atk = 20f; // Ranged ATK (balanced with Blaze)
         this.arts = 55f; // High Arts (main damage stat, similar to Insania)
         this.def = 15f; // Moderate Defence (ranged glass cannon)
+        this.title = "The Frost Kaiser";
+        this.description = "They say Blaze brings the apocalypse of fire, but Isolde brings the silence that follows. The Frost Kaiser is a being of elegant cruelty, believing that the only way to truly 'save' the world is to stop it entirely. With her return, she intends to drape the nations in an eternal winter, reclaiming the control stripped from her centuries ago. Where Blaze burns, she preserves—trapping her victims in ice for eternity.";
+        this.skillName = "Glacial Breath";
+        this.skillDescription = "Cone attack that freezes enemies. Damage: Arts x1.0, Cooldown: 10s";
 
         // Placeholder (Ini karakter Arknight cok mati kita kalo pake ini di versi
         // akhir)

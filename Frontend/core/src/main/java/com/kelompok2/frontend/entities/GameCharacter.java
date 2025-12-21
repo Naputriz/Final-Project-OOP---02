@@ -22,6 +22,10 @@ public abstract class GameCharacter {
     protected float atk;
     protected float arts;
     protected float def;
+    protected String title = "Unknown";
+    protected String description = "No information available.";
+    protected String skillName = "Unknown Skill";
+    protected String skillDescription = "No skill info.";
 
     // Texture
     protected boolean isFacingRight;
@@ -704,6 +708,39 @@ public abstract class GameCharacter {
         this.speed = speed;
     }
 
+    // Getter dan setter untuk description
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getSkillName() {
+        return skillName;
+    }
+
+    public void setSkillName(String skillName) {
+        this.skillName = skillName;
+    }
+
+    public String getSkillDescription() {
+        return skillDescription;
+    }
+
+    public void setSkillDescription(String skillDescription) {
+        this.skillDescription = skillDescription;
+    }
+
     // Getter dan setter untuk level-up pending flag
     public boolean isLevelUpPending() {
         return levelUpPending;
@@ -720,6 +757,23 @@ public abstract class GameCharacter {
 
     public AttackStrategy getAttackStrategy() {
         return attackStrategy;
+    }
+
+    // Getter and Setter for Render Dimensions
+    public float getRenderWidth() {
+        return renderWidth;
+    }
+
+    public void setRenderWidth(float renderWidth) {
+        this.renderWidth = renderWidth;
+    }
+
+    public float getRenderHeight() {
+        return renderHeight;
+    }
+
+    public void setRenderHeight(float renderHeight) {
+        this.renderHeight = renderHeight;
     }
 
     // Reset movement/attack state (used when pausing/leveling up)

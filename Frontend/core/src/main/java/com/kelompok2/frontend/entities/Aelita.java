@@ -29,6 +29,10 @@ public class Aelita extends GameCharacter {
         this.atk = 15f;
         this.arts = 30f;
         this.def = 20f;
+        this.title = "The Evergreen Healer";
+        this.description = "For over a century, she has used her Maestra, Genezia to cure the wounded, capable of reversing any non-lethal damage. However, she is now slowly dying from Maestron poisoning, a direct result of wielding the very tool she uses to save lives.";
+        this.skillName = "Verdant Domain";
+        this.skillDescription = "Consume 25% HP to create a healing zone. Heals 50% HP over 5s and boosts ATK/Arts +25%. Cooldown: 15s";
 
         // Initialize Animation States
         // Idle: 2x2 grid, 4 frames
