@@ -88,6 +88,7 @@ public class GameScreen extends ScreenAdapter {
         System.out.println("[GameScreen] Player: " + selectedCharacter);
     }
 
+    // FIX PAUSE MENU INPUT BLEED
     @Override
     public void show(){
         Gdx.input.setInputProcessor(null);
