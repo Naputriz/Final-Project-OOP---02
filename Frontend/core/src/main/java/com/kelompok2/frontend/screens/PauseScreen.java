@@ -130,7 +130,7 @@ public class PauseScreen extends ScreenAdapter {
     // window untuk settings
     private void createSettingsWindow() {
         // Use the shared SettingsWindow class instead of manually building one
-        settingsWindow = new SettingsWindow(skin);
+        settingsWindow = new SettingsWindow(game, skin);
         stage.addActor(settingsWindow);
     }
 
