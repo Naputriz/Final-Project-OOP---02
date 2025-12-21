@@ -14,6 +14,7 @@ import com.kelompok2.frontend.managers.GameEventManager;
 import com.kelompok2.frontend.events.HealthChangedEvent;
 import com.kelompok2.frontend.events.XpChangedEvent;
 import com.kelompok2.frontend.events.CooldownChangedEvent;
+import com.kelompok2.frontend.pools.ProjectilePool;
 
 public abstract class GameCharacter {
     protected Vector2 position;
@@ -27,6 +28,7 @@ public abstract class GameCharacter {
     protected String description = "No information available.";
     protected String skillName = "Unknown Skill";
     protected String skillDescription = "No skill info.";
+    protected ProjectilePool projectilePool;
 
     // Texture
     protected boolean isFacingRight;
@@ -80,8 +82,14 @@ public abstract class GameCharacter {
         // Default implementation does nothing
     }
 
+    public void injectDependencies(com.kelompok2.frontend.systems.GameFacade facade, com.kelompok2.frontend.pools.EnemyPool enemyPool, ProjectilePool projectilePool) { // Added parameter
+        this.projectilePool = projectilePool;
+    }
+
     // Hit flash
     protected float hitFlashTimer = 0f;
+
+
 
     public GameCharacter(float x, float y, float speed, float maxHp) {
         this.position = new Vector2(x, y);
@@ -120,8 +128,11 @@ public abstract class GameCharacter {
 
     // Overload untuk skills yang aim ke mouse position
     public void performInnateSkill(Vector2 targetPos) {
-        // Default: call basic skill (untuk backward compatibility)
-        performInnateSkill();
+        Array<Projectile> projs = (projectilePool != null) ? projectilePool.getActiveProjectiles() : null;
+
+        if (innateSkill != null) {
+            innateSkill.activate(this, targetPos, projs, null);
+        }
     }
 
     public void hallucinate(float duration) {
@@ -227,6 +238,11 @@ public abstract class GameCharacter {
     public void update(float delta) {
         if (attackTimer > 0) {
             attackTimer -= delta;
+        }
+
+        // Update innate skill cooldown
+        if (innateSkill != null) {
+            innateSkill.update(delta);
         }
 
         // Update secondary skill cooldown

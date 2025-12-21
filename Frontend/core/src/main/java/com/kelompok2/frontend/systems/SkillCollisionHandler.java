@@ -8,6 +8,7 @@ import com.kelompok2.frontend.events.EnemyKilledEvent;
 import com.kelompok2.frontend.managers.GameEventManager;
 // import com.kelompok2.frontend.events.PlayerDamagedEvent; // Handled in GameCharacter
 import com.kelompok2.frontend.pools.EnemyPool;
+import com.kelompok2.frontend.skills.HurricaneBindSkill;
 
 public class SkillCollisionHandler {
     private GameCharacter player;
@@ -121,25 +122,36 @@ public class SkillCollisionHandler {
 
         // Whisperwind: Hurricane Bind
         if (player instanceof com.kelompok2.frontend.entities.Whisperwind) {
-            com.kelompok2.frontend.entities.Whisperwind whisperwind = (com.kelompok2.frontend.entities.Whisperwind) player;
-            for (Projectile hurricane : whisperwind.getHurricaneProjectiles()) {
-                if (!hurricane.active)
-                    continue;
+            if (player.getInnateSkill() instanceof HurricaneBindSkill) {
+                HurricaneBindSkill hurricaneSkill = (HurricaneBindSkill) player.getInnateSkill();
 
-                for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
-                    if (enemy.isDead())
-                        continue;
+                for (Projectile hurricane : hurricaneSkill.getActiveProjectiles()) {
+                    if (!hurricane.active) continue;
 
-                    if (hurricane.getBounds().overlaps(enemy.getBounds())) {
-                        enemy.takeDamage(hurricane.getDamage());
-                        enemy.stun(3.0f);
-                        hurricane.active = false;
-                        eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy,
-                                hurricane.getDamage(), true));
+                    for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
+                        if (enemy.isDead()) continue;
 
-                        if (enemy.isDead())
-                            handleEnemyKilled(enemy);
-                        break;
+                        if (hurricane.getBounds().overlaps(enemy.getBounds())) {
+
+                            // 1. Check if we already hit this enemy (prevents hitting same enemy every frame)
+                            if (hurricane.canHit(enemy)) {
+                                enemy.takeDamage(hurricane.getDamage());
+                                enemy.stun(3.0f);
+
+                                // 2. Add to hit list
+                                hurricane.addHit(enemy);
+
+                                eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, hurricane.getDamage(), true));
+
+                                if (enemy.isDead()) handleEnemyKilled(enemy);
+
+                                // 3. Only destroy if NOT piercing
+                                if (!hurricane.isPiercing()) {
+                                    hurricane.active = false;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -248,17 +260,27 @@ public class SkillCollisionHandler {
 
         // Whisperwind
         if (player instanceof com.kelompok2.frontend.entities.Whisperwind) {
-            com.kelompok2.frontend.entities.Whisperwind whisperwind = (com.kelompok2.frontend.entities.Whisperwind) player;
-            for (Projectile hurricane : whisperwind.getHurricaneProjectiles()) {
-                if (!hurricane.active)
-                    continue;
-                if (hurricane.getBounds().overlaps(boss.getBounds())) {
-                    boss.takeDamage(hurricane.getDamage());
-                    boss.stun(3.0f);
-                    hurricane.active = false;
-                    eventManager.publish(
-                            new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, hurricane.getDamage(), true));
-                    break;
+            if (player.getInnateSkill() instanceof HurricaneBindSkill) {
+                HurricaneBindSkill hurricaneSkill = (HurricaneBindSkill) player.getInnateSkill();
+
+                for (Projectile hurricane : hurricaneSkill.getActiveProjectiles()) {
+                    if (!hurricane.active) continue;
+
+                    if (hurricane.getBounds().overlaps(boss.getBounds())) {
+                        if (hurricane.canHit(boss)) {
+                            boss.takeDamage(hurricane.getDamage());
+                            boss.stun(3.0f);
+
+                            hurricane.addHit(boss);
+
+                            eventManager.publish(
+                                new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, hurricane.getDamage(), true));
+
+                            if (!hurricane.isPiercing()) {
+                                hurricane.active = false;
+                            }
+                        }
+                    }
                 }
             }
         }

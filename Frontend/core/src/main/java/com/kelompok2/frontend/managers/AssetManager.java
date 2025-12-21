@@ -16,6 +16,8 @@ public class AssetManager {
     // Skill Texture Path
     public static final String HELLFIRE_WARNING = "skills/HPWarn.png";
     public static final String HELLFIRE_PILLAR = "skills/HP.png";
+    public static final String AIR_SLASH = "projectiles/AirSlash.png";
+    public static final String HURRICANE_BIND = "skills/AirSlash.png";
 
     // Private constructor untuk mencegah instantiasi langsung
     private AssetManager() {
@@ -62,6 +64,8 @@ public class AssetManager {
         // Skill Texture
         loadTexture(HELLFIRE_WARNING);
         loadTexture(HELLFIRE_PILLAR);
+        loadTexture(AIR_SLASH);
+        loadTexture(HURRICANE_BIND);
 
         initialized = true;
     }

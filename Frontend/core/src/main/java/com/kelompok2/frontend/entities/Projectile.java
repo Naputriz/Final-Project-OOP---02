@@ -14,7 +14,8 @@ public class Projectile {
     private Vector2 position;
     private Vector2 velocity;
     private float speed = 400f; // Kecepatan peluru
-    private Texture texture;
+    private Texture defaultTexture;
+    private Texture customTexture;
     private Rectangle bounds;
     public boolean active; // Penanda apakah peluru masih aktif
     private float damage; // Damage yang diberikan peluru (scaling dari Arts)
@@ -27,6 +28,9 @@ public class Projectile {
     // Piercing Logic
     private boolean piercing = false;
     private Set<GameCharacter> hitEntities = new HashSet<>();
+
+    // Visual Scaling
+    private float visualSize = 16f;
 
     public Projectile(float startX, float startY, float targetX, float targetY, float damage) {
         this(startX, startY, targetX, targetY, damage, Color.YELLOW);
@@ -68,26 +72,30 @@ public class Projectile {
     }
 
     private void createTexture() {
-        // Make fireballs bigger for visual impact
         int size = isFireball ? 30 : 10;
-
         Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
-        pixmap.setColor(color); // Gunakan warna custom
+        pixmap.setColor(color);
         pixmap.fill();
-        this.texture = new Texture(pixmap);
+        this.defaultTexture = new Texture(pixmap); // Store as default
         pixmap.dispose();
 
-        // Update bounds size jika fireball
         if (isFireball) {
             this.bounds.setSize(size, size);
         }
     }
 
+    public void setVisualSize(float size) {
+        this.visualSize = size;
+    }
+
+    public void setTexture(Texture texture) {
+        this.customTexture = texture;
+    }
+
     public void setColor(Color newColor) {
         this.color = newColor;
-        // Recreate texture dengan warna baru
-        if (texture != null) {
-            texture.dispose();
+        if (defaultTexture != null) {
+            defaultTexture.dispose();
         }
         createTexture();
     }
@@ -101,6 +109,10 @@ public class Projectile {
         this.distanceTraveled = 0f;
         this.isEnemyProjectile = false;
         this.hitEntities.clear();
+
+        this.customTexture = null;
+        this.bounds.setSize(10, 10);
+        this.visualSize = 32f;
     }
 
     public void update(float delta) {
@@ -111,20 +123,35 @@ public class Projectile {
 
         // Gerakkan peluru
         position.add(moveX, moveY);
-        bounds.setPosition(position.x, position.y);
 
-        // Track distance
+
+        if (customTexture != null) {
+            // Optional: Adjust hit box to be bigger for skills
+            // this.bounds.setSize(64, 64);
+        }
+
+        bounds.setPosition(position.x, position.y);
         distanceTraveled += Math.sqrt(moveX * moveX + moveY * moveY);
 
-        // Hapus peluru kalau sudah jalan terlalu jauh
-        // Nanti diganti logika collision tembok (maybe)
         if (distanceTraveled > maxDistance) {
             active = false;
         }
     }
 
     public void render(SpriteBatch batch) {
-        batch.draw(texture, position.x, position.y);
+        if (!active) return;
+
+        if (customTexture != null) {
+            float size = this.visualSize;
+
+            float drawX = position.x - (size / 2) + (bounds.width / 2);
+            float drawY = position.y - (size / 2) + (bounds.height / 2);
+
+            batch.setColor(Color.WHITE);
+            batch.draw(customTexture, drawX, drawY, size, size);
+        } else {
+            batch.draw(defaultTexture, position.x, position.y);
+        }
     }
 
     public Rectangle getBounds() {
@@ -196,6 +223,6 @@ public class Projectile {
     }
 
     public void dispose() {
-        texture.dispose();
+        if (defaultTexture != null) defaultTexture.dispose();
     }
 }

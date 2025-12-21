@@ -111,7 +111,7 @@ public class RenderingSystem {
         // Render effects & attacks
         renderMeleeAttacks();
         renderGlacialBreaths();
-        renderHurricaneBinds();
+        // renderHurricaneBinds();
         renderMindFracture();
         renderPhantomHaze();
         // renderHellfirePillar();
@@ -265,21 +265,6 @@ public class RenderingSystem {
             }
         }
         shapeRenderer.end();
-    }
-
-    // Extracted from GameScreen lines 714-727
-    private void renderHurricaneBinds() {
-        if (!(player instanceof com.kelompok2.frontend.entities.Whisperwind))
-            return;
-
-        com.kelompok2.frontend.entities.Whisperwind whisperwind = (com.kelompok2.frontend.entities.Whisperwind) player;
-        batch.begin();
-        for (Projectile hurricaneProjectile : whisperwind.getHurricaneProjectiles()) {
-            if (hurricaneProjectile.active) {
-                hurricaneProjectile.render(batch);
-            }
-        }
-        batch.end();
     }
 
     // Extracted from GameScreen lines 729-744

@@ -91,7 +91,7 @@ public class GameScreen extends ScreenAdapter {
         // Init Game Systems (Facade)
         gameFacade = new GameFacade(batch, shapeRenderer, background);
         gameFacade.initialize(player, enemyPool, projectilePool);
-        player.injectDependencies(gameFacade, enemyPool);
+        player.injectDependencies(gameFacade, enemyPool, projectilePool);
 
         // [PERBAIKAN 1] Tambahkan 'game' sebagai parameter pertama InputHandler
         inputHandler = new InputHandler(game, player, camera, projectilePool, gameFacade.getPlayerMeleeAttacks());
