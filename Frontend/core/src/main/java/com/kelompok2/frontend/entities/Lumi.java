@@ -80,6 +80,7 @@ public class Lumi extends GameCharacter {
 
         // Innate Skill
         this.innateSkill = new ReturniousPullSkill();
+        super.innateSkill = this.innateSkill; // Fix shadowing: Set parent field so generic activation works
     }
 
     @Override

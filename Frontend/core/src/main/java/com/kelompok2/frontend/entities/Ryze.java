@@ -37,6 +37,7 @@ public class Ryze extends GameCharacter {
 
         // Initialize Skill
         this.innateSkill = new SpectralBodySkill();
+        super.innateSkill = this.innateSkill; // Fix shadowing: Set parent field so generic activation works
 
         // Initialize animation states dengan State Pattern
         // Idle: 8 frames in 3x3 grid (bottom-right is empty)
