@@ -12,8 +12,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.Align; // Penting untuk alignment
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.managers.AudioManager;
 
@@ -22,12 +22,9 @@ public class GameOverScreen extends ScreenAdapter {
     private Stage stage;
     private Skin skin;
 
-    // Data untuk restart / display
     private String lastCharacter;
     private int finalLevel;
     private float finalTime;
-
-    // Label tambahan untuk status upload
     private Label statusLabel;
 
     public GameOverScreen(Main game, String lastCharacter, int finalLevel, float finalTime) {
@@ -39,7 +36,8 @@ public class GameOverScreen extends ScreenAdapter {
 
     @Override
     public void show() {
-        stage = new Stage(new ScreenViewport());
+        // Gunakan FitViewport 1920x1080 agar konsisten
+        stage = new Stage(new FitViewport(1920, 1080));
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json"));
 
@@ -47,11 +45,9 @@ public class GameOverScreen extends ScreenAdapter {
         table.setFillParent(true);
         stage.addActor(table);
 
-        // Stop any music and play game over sound
         AudioManager.getInstance().stopMusic();
         AudioManager.getInstance().playSound("Audio/game-over-voice.mp3");
 
-        // --- UI COMPONENTS ---
         Label titleLabel = new Label("GAME OVER", skin);
         titleLabel.setFontScale(3f);
         titleLabel.setColor(Color.RED);
@@ -61,8 +57,7 @@ public class GameOverScreen extends ScreenAdapter {
             lastCharacter, finalLevel, finalTime), skin);
         scoreLabel.setAlignment(Align.center);
 
-        // Label Status Upload (Fitur Baru)
-        statusLabel = new Label("Mengirim skor ke leaderboard...", skin);
+        statusLabel = new Label("Memproses skor...", skin);
         statusLabel.setColor(Color.YELLOW);
         statusLabel.setAlignment(Align.center);
         statusLabel.setFontScale(0.8f);
@@ -71,17 +66,13 @@ public class GameOverScreen extends ScreenAdapter {
         TextButton charSelectButton = new TextButton("PILIH KARAKTER", skin);
         TextButton homeButton = new TextButton("MENU UTAMA", skin);
 
-        // --- LAYOUT ---
         table.add(titleLabel).padBottom(20).row();
         table.add(scoreLabel).padBottom(10).row();
-        table.add(statusLabel).padBottom(30).row(); // Menambahkan status label di sini
+        table.add(statusLabel).padBottom(30).row();
         table.add(restartButton).width(250).height(60).padBottom(15).row();
         table.add(charSelectButton).width(250).height(60).padBottom(15).row();
         table.add(homeButton).width(250).height(60).row();
 
-        // --- LOGIC ---
-
-        // 1. Restart
         restartButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -89,8 +80,6 @@ public class GameOverScreen extends ScreenAdapter {
                 dispose();
             }
         });
-
-        // 2. Character Select
         charSelectButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -98,8 +87,6 @@ public class GameOverScreen extends ScreenAdapter {
                 dispose();
             }
         });
-
-        // 3. Home
         homeButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -108,10 +95,18 @@ public class GameOverScreen extends ScreenAdapter {
             }
         });
 
-        // --- BACKEND INTEGRATION ---
-        // Kirim skor otomatis saat layar dibuka
-        // Kita cast finalTime (float) ke (int) karena backend biasanya menyimpan integer
-        sendScoreToBackend(game.getPlayerName(),lastCharacter, finalLevel, (int) finalTime);
+        // --- [LOGIKA PENYIMPANAN SKOR] ---
+        if (game.getPlayerName().equals("Guest")) {
+            // JIKA GUEST: Simpan di RAM (Main.java), JANGAN kirim ke server
+            game.addGuestScore(lastCharacter, finalLevel, (int) finalTime);
+
+            statusLabel.setText("Mode Tamu: Skor disimpan sementara (Sesi ini).");
+            statusLabel.setColor(Color.CYAN);
+        } else {
+            // JIKA USER: Kirim ke Database
+            statusLabel.setText("Mengirim skor ke leaderboard...");
+            sendScoreToBackend(game.getPlayerName(), lastCharacter, finalLevel, (int) finalTime);
+        }
     }
 
     private void sendScoreToBackend(String name, String charName, int level, int time) {
@@ -119,12 +114,10 @@ public class GameOverScreen extends ScreenAdapter {
         request.setUrl("http://localhost:8080/api/leaderboard");
         request.setHeader("Content-Type", "application/json");
 
-        // MEMBUAT JSON PAYLOAD BARU (Ada Level-nya)
-        // Format: {"playerName": "Nama", "level": 5, "value": 120}
         String jsonPayload = "{ " +
             "\"playerName\": \"" + name + "\", " +
             "\"character\": \"" + charName + "\", " +
-            "\"level\": " + level + ", " +   // <--- INI TAMBAHAN PENTING
+            "\"level\": " + level + ", " +
             "\"value\": " + time +
             " }";
 
@@ -134,7 +127,6 @@ public class GameOverScreen extends ScreenAdapter {
             @Override
             public void handleHttpResponse(Net.HttpResponse httpResponse) {
                 int statusCode = httpResponse.getStatus().getStatusCode();
-
                 Gdx.app.postRunnable(() -> {
                     if (statusCode == 200 || statusCode == 201) {
                         statusLabel.setText("Skor berhasil disimpan di Leaderboard!");
@@ -145,7 +137,6 @@ public class GameOverScreen extends ScreenAdapter {
                     }
                 });
             }
-
             @Override
             public void failed(Throwable t) {
                 Gdx.app.postRunnable(() -> {
@@ -153,11 +144,8 @@ public class GameOverScreen extends ScreenAdapter {
                     statusLabel.setColor(Color.RED);
                 });
             }
-
             @Override
-            public void cancelled() {
-                // Do nothing
-            }
+            public void cancelled() {}
         });
     }
 
