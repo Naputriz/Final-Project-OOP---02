@@ -181,7 +181,7 @@ Each character has a unique innate skill but has a second skill slot that can be
     * Insane enemies have increased Arts/ATK but move randomly and can friendly fire.
     * Insania deals extra damage to enemies with "Insanity".
     * **Cooldown:** 10 seconds (Arts scaling).
-* **Implementation Status:** ✅ Fully implemented as playable character
+* **Implementation Status:** ✅ Fully implemented as unlockable and playable character
 
 #### Blaze - The Flame Kaiser
 * **Role:** Arts Attacker.
@@ -191,7 +191,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 * **Cooldown:** 5 seconds.
 * **Duration:** 2 seconds active.
 * **Radius:** 40 pixels (80px diameter).
-* **Implementation Status:** ✅ Fully implemented as playable character
+* **Implementation Status:** ✅ Fully implemented as unlockable and playable character
 
 #### Isolde - The Frost Kaiser
 * **Role:** Arts Attacker.
@@ -199,7 +199,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 * **Basic Attack:** Shoot icicles.
 * **Innate Skill (Glacial Breath):** Shoots in a cone hitbox, freezing enemies on hit (Duration: 3 seconds or until hit again).
 * **Cooldown:** 10 seconds.
-* **Implementation Status:** ✅ Fully implemented as playable character
+* **Implementation Status:** ✅ Fully implemented as unlockable and playable character
 
 #### Aelita - The Evergreen Healer ✨ NEW
 * **Role:** Healing Attacker.
@@ -287,7 +287,7 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Vertical flip for left-facing attacks to maintain correct orientation
   - 7 frames per animation (3×3 grid layout)
 
-#### Playable Characters (4 Total)
+#### Playable Characters (10 Total)
 
 1. **Ryze - The Ghost of Insania** ✅
    - Role: Physical Attacker
@@ -479,7 +479,7 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Benefit:** Adding new characters requires ZERO changes to UI code.
 
 #### Backend Integration
-- **TODO:** Send game data to backend on Game Over
+- ~~**TODO:** Send game data to backend on Game Over~~ ✅ **COMPLETED**
   - Data to send: Level, Character Name, Time
   - Implementation: HTTP POST request to backend API
 
@@ -577,7 +577,7 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Location: `RenderingSystem.java` or create `UltimateSkillRenderer`
   - Benefits: Better player feedback, more strategic ultimate usage
 
-- **TODO:** Create Dedicated Sprites for New Enemy Types
+- ~~**TODO:** Create Dedicated Sprites for New Enemy Types~~ ✅ **COMPLETED**
   - **Priority:** Medium
   - Current: `FastEnemy` (Yellow), `TankEnemy` (Green), `RangedEnemy` (Orange) use tinted `DummyEnemy` sprites.
   - Goal: Create unique sprite assets for each enemy variant.
