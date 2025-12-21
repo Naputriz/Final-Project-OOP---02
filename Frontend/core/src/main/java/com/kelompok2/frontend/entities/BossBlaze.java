@@ -48,14 +48,14 @@ public class BossBlaze extends Boss {
     private Vector2 randomAttackTarget = new Vector2();
 
     public BossBlaze(float x, float y, GameCharacter player, int playerLevel) {
-        super(x, y, 150f, 450f + (playerLevel * 45f), // HP scales: 450 + 45 per level, Speed: 150
+        super(x, y, 150f, 900f + (playerLevel * 90f), // HP scales: 900 + 90 per level, Speed: 150
                 "Blaze", "The Flame Kaiser", player);
 
         this.playerLevel = playerLevel;
 
         // Stats lebih tinggi, // Stats scaling
-        this.atk = 20f + (playerLevel * 2f); // ATK scales: 20 + 2 per level (reduced from 35 + 4)
-        this.arts = 60f + (playerLevel * 5f); // Arts scales: 60 + 5 per level (primary damage)
+        this.atk = 15f + (playerLevel * 1.5f); // ATK scales: 15 + 1.5 per level (reduced from 20 + 2)
+        this.arts = 40f + (playerLevel * 3.5f); // Arts scales: 40 + 3.5 per level (reduced from 60 + 5)
         this.def = 5f + (playerLevel * 1f); // DEF scales: 5 + 1 per level
 
         // Initialize animation states (sama dengan playable version)

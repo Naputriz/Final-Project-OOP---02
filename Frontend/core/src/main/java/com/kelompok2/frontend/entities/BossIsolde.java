@@ -43,14 +43,14 @@ public class BossIsolde extends Boss {
     private Vector2 randomAttackTarget = new Vector2();
 
     public BossIsolde(float x, float y, GameCharacter player, int playerLevel) {
-        super(x, y, 120f, 400f + (playerLevel * 40f), // HP scales: 400 + 40 per level, Base speed: 120
+        super(x, y, 120f, 800f + (playerLevel * 80f), // HP scales: 800 + 80 per level, Base speed: 120
                 "Isolde", "The Frost Kaiser", player);
         this.playerLevel = playerLevel;
 
         // Stats scaling (after super call)
-        this.atk = 8f + (playerLevel * 0.8f); // ATK: 8 + 0.8 per level (reduced by ~50%)
+        this.atk = 6f + (playerLevel * 0.6f); // ATK: 6 + 0.6 per level (reduced from 8 + 0.8)
         this.def = 25f + (playerLevel * 2.5f); // DEF: 25 + 2.5 per level
-        this.arts = 15f + (playerLevel * 1.5f); // ARTS: 15 + 1.5 per level (heavily reduced from 30)
+        this.arts = 12f + (playerLevel * 1.2f); // ARTS: 12 + 1.2 per level (reduced from 15 + 1.5)
 
         // Load spritesheet (sama dengan playable version)
         Texture spritesheet = AssetManager.getInstance().loadTexture("FrostPlaceholderSprite.png");

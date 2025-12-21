@@ -662,9 +662,10 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Fix:** Overridden `takeDamage(float, GameCharacter)` in `Ryze.java` to properly intercept damage calls from the collision system.
   - **Status:** ✅ Verified fix in code.
 
-- **TODO:** Fix Lumi's Skill Damage Counter
+- ~~**TODO:** Fix Lumi's Skill Damage Counter~~ ✅ **FIXED**
   - **Issue:** Damage counter triggers on skill usage, should trigger only when enemy is pulled and damaged.
   - **Goal:** Provide accurate feedback to player.
+  - **Status:** ✅ Moved event publishing to `GameCharacter.update()` on pull arrival.
 
 - ~~**TODO:** Fix Stun Status Reset~~ ✅ **FIXED**
   - **Issue:** Enemies killed while stunned retain status when returned to pool.
@@ -710,12 +711,25 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Benefits: Better performance (no polling), cleaner code, professional HUD look.
 
 #### Known Issues & Balancing (TODO)
-- **TODO:** Leaderboard Filter Fix
+- ~~**TODO:** Leaderboard Filter Fix~~ ✅ **FIXED**
   - **Issue:** Alice currently doesn't show up on leaderboard filter options.
+  - **Status:** ✅ Added Alice to filter list.
 
-- **TODO:** Boss Balancing Adjustments
+- ~~**TODO:** Boss Balancing Adjustments~~ ✅ **COMPLETED**
   - **Issue:** Bosses deal too much damage (one-shot potential) and die too quickly (DPS race).
   - **Goal:** Increase Boss HP (longer fight) and Decrease Boss Damage (fairer fight).
+  - **Changes Implemented (Boss Insania):**
+    - **HP:** 500 -> 1000 (Base), +50 -> +100 (Per Level).
+    - **ATK:** 25 -> 15 (Base), +2.0 -> +1.5 (Per Level).
+    - **ARTS:** 35 -> 25 (Base), +3.0 -> +2.5 (Per Level).
+  - **Changes Implemented (Boss Blaze):**
+    - **HP:** 450 -> 900 (Base), +45 -> +90 (Per Level).
+    - **ATK:** 20 -> 15 (Base), +2.0 -> +1.5 (Per Level).
+    - **ARTS:** 60 -> 40 (Base), +5.0 -> +3.5 (Per Level).
+  - **Changes Implemented (Boss Isolde):**
+    - **HP:** 400 -> 800 (Base), +40 -> +80 (Per Level).
+    - **ATK:** 8 -> 6 (Base), +0.8 -> +0.6 (Per Level).
+    - **ARTS:** 15 -> 12 (Base), +1.5 -> +1.2 (Per Level).
 
 - **TODO:** Skill Visual Strategy Refactor
   - **Issue:** Some skills (Ground Slam, Wind Dash Combo) use `MeleeAttackStrategy` for visuals which looks wrong (slash animations for impact effects).
