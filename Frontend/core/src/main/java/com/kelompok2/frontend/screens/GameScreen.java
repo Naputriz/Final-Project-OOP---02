@@ -51,7 +51,7 @@ public class GameScreen extends ScreenAdapter {
         shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 1280, 720);
-        background = AssetManager.getInstance().loadTexture("FireflyPlaceholder.jpg");
+        background = AssetManager.getInstance().loadTexture("Background.png");
 
         // Initialize pools
         projectilePool = new ProjectilePool(50);
