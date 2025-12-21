@@ -117,6 +117,9 @@ public class Aegis extends GameCharacter {
         // Get current animation frame
         TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
+        // Set Color explicitly based on status
+        batch.setColor(getRenderColor());
+
         // Flip sprite based on facing direction
         boolean needsFlip = (isFacingRight && !currentFrame.isFlipX()) || (!isFacingRight && currentFrame.isFlipX());
         if (needsFlip) {
@@ -125,6 +128,9 @@ public class Aegis extends GameCharacter {
 
         // Draw character
         batch.draw(currentFrame, position.x, position.y, renderWidth, renderHeight);
+
+        // Reset color
+        batch.setColor(com.badlogic.gdx.graphics.Color.WHITE);
 
         // TODO: Draw shield icon overlay saat Shield Stance aktif
         // if (shieldStanceSkill.isActive()) {

@@ -149,7 +149,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         try {
             JsonValue root = json.parse(Gdx.files.internal("data/characters.json"));
 
-            for (JsonValue entry : root){
+            for (JsonValue entry : root) {
                 String texturePath = entry.getString("texturePath");
                 Texture texture = AssetManager.getInstance().loadTexture(texturePath);
 
@@ -158,22 +158,21 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 String cleanDesc = rawDesc.replace("\\n", "\n");
 
                 CharacterInfo info = new CharacterInfo(
-                    entry.getString("name"),
-                    entry.getString("title"),
-                    entry.getFloat("hp"),
-                    entry.getFloat("atk"),
-                    entry.getFloat("arts"),
-                    entry.getFloat("def"),
-                    entry.getFloat("speed"),
-                    entry.getString("skillName"),
-                    cleanDesc, // Use the cleaned description
-                    texturePath,
-                    texture,
-                    entry.getInt("frameCols"),
-                    entry.getInt("frameRows"),
-                    entry.getInt("totalFrames"),
-                    entry.getFloat("frameDuration")
-                );
+                        entry.getString("name"),
+                        entry.getString("title"),
+                        entry.getFloat("hp"),
+                        entry.getFloat("atk"),
+                        entry.getFloat("arts"),
+                        entry.getFloat("def"),
+                        entry.getFloat("speed"),
+                        entry.getString("skillName"),
+                        cleanDesc, // Use the cleaned description
+                        texturePath,
+                        texture,
+                        entry.getInt("frameCols"),
+                        entry.getInt("frameRows"),
+                        entry.getInt("totalFrames"),
+                        entry.getFloat("frameDuration"));
 
                 characters.add(info);
             }
@@ -200,7 +199,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         // Preview Center
         shapeRenderer.setColor(0.15f, 0.15f, 0.15f, 1);
         float previewFrameSize = PREVIEW_SIZE + 40;
-        shapeRenderer.rect(PREVIEW_CENTER_X - previewFrameSize/2, PREVIEW_CENTER_Y - previewFrameSize/2, previewFrameSize, previewFrameSize);
+        shapeRenderer.rect(PREVIEW_CENTER_X - previewFrameSize / 2, PREVIEW_CENTER_Y - previewFrameSize / 2,
+                previewFrameSize, previewFrameSize);
 
         // Right Panels
         shapeRenderer.setColor(0.1f, 0.1f, 0.1f, 1);
@@ -266,7 +266,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     // [FIX] Closed this method properly
     private void drawPortraitSprite(int index) {
-        // Legacy grid method - mostly unused in list view but kept to prevent breakage if called
+        // Legacy grid method - mostly unused in list view but kept to prevent breakage
+        // if called
         // float x, y logic...
     }
 
@@ -288,10 +289,12 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 batch.draw(character.animation.getKeyFrame(0), iconX, iconY, ICON_SIZE, ICON_SIZE);
             } else {
                 Texture p = character.getPortraitTexture();
-                if(p!=null) batch.draw(p, iconX, iconY, ICON_SIZE, ICON_SIZE);
+                if (p != null)
+                    batch.draw(p, iconX, iconY, ICON_SIZE, ICON_SIZE);
             }
         } else {
-            if (lockedTexture != null) batch.draw(lockedTexture, iconX, iconY, ICON_SIZE, ICON_SIZE);
+            if (lockedTexture != null)
+                batch.draw(lockedTexture, iconX, iconY, ICON_SIZE, ICON_SIZE);
         }
 
         float textX = iconX + ICON_SIZE + 30;
@@ -317,7 +320,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void drawPreview(int index) {
         // [FIX] Use characters.size
-        if (index < 0 || index >= characters.size) return;
+        if (index < 0 || index >= characters.size)
+            return;
         CharacterInfo character = characters.get(index);
         boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
@@ -329,15 +333,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
                 batch.draw(character.animation.getKeyFrame(stateTime), x, y, PREVIEW_SIZE, PREVIEW_SIZE);
             } else {
                 Texture p = character.getPortraitTexture();
-                if(p!=null) batch.draw(p, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
+                if (p != null)
+                    batch.draw(p, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
             }
         } else {
-            if (lockedTexture != null) batch.draw(lockedTexture, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
+            if (lockedTexture != null)
+                batch.draw(lockedTexture, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
         }
     }
 
     private void drawStatsText(int index) {
-        if (index < 0 || index >= characters.size) return;
+        if (index < 0 || index >= characters.size)
+            return;
         CharacterInfo character = characters.get(index);
         boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
@@ -355,12 +362,14 @@ public class CharacterSelectionScreen extends ScreenAdapter {
             font.draw(batch, "DEF:   " + (int) character.def, RIGHT_PANEL_X + 20, startY - gap * 3);
             font.draw(batch, "Speed: " + (int) character.speed, RIGHT_PANEL_X + 20, startY - gap * 4);
         } else {
-            for(int i=0; i<5; i++) font.draw(batch, "???", RIGHT_PANEL_X + 20, startY - gap*i);
+            for (int i = 0; i < 5; i++)
+                font.draw(batch, "???", RIGHT_PANEL_X + 20, startY - gap * i);
         }
     }
 
     private void drawSkillText(int index) {
-        if (index < 0 || index >= characters.size) return;
+        if (index < 0 || index >= characters.size)
+            return;
         CharacterInfo character = characters.get(index);
         boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
@@ -380,7 +389,8 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         font.getData().setScale(1.2f);
 
         String descriptionText = isUnlocked ? character.skillDescription : "???";
-        // The .split() will now work correctly because we fixed the string in initialization
+        // The .split() will now work correctly because we fixed the string in
+        // initialization
         String[] lines = descriptionText.split("\n");
         float yPos = SKILL_Y + SKILL_HEIGHT - 110;
         for (String line : lines) {
@@ -394,13 +404,12 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         float mouseY = Gdx.input.getY();
 
         com.badlogic.gdx.math.Vector3 worldCoords = camera.unproject(
-            new com.badlogic.gdx.math.Vector3(mouseX, mouseY, 0),
-            viewport.getScreenX(), viewport.getScreenY(),
-            viewport.getScreenWidth(), viewport.getScreenHeight()
-        );
+                new com.badlogic.gdx.math.Vector3(mouseX, mouseY, 0),
+                viewport.getScreenX(), viewport.getScreenY(),
+                viewport.getScreenWidth(), viewport.getScreenHeight());
 
         if (worldCoords.x >= LIST_X && worldCoords.x <= LIST_X + LIST_WIDTH &&
-            worldCoords.y >= LIST_Y && worldCoords.y <= LIST_Y + LIST_HEIGHT) {
+                worldCoords.y >= LIST_Y && worldCoords.y <= LIST_Y + LIST_HEIGHT) {
 
             float startY = LIST_Y + LIST_HEIGHT - ITEM_HEIGHT + scrollY;
             float itemTotalHeight = ITEM_HEIGHT + ITEM_SPACING;
@@ -419,13 +428,12 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void handleClick(int screenX, int screenY) {
         com.badlogic.gdx.math.Vector3 worldCoords = camera.unproject(
-            new com.badlogic.gdx.math.Vector3(screenX, screenY, 0),
-            viewport.getScreenX(), viewport.getScreenY(),
-            viewport.getScreenWidth(), viewport.getScreenHeight()
-        );
+                new com.badlogic.gdx.math.Vector3(screenX, screenY, 0),
+                viewport.getScreenX(), viewport.getScreenY(),
+                viewport.getScreenWidth(), viewport.getScreenHeight());
 
         if (worldCoords.x >= LIST_X && worldCoords.x <= LIST_X + LIST_WIDTH &&
-            worldCoords.y >= LIST_Y && worldCoords.y <= LIST_Y + LIST_HEIGHT) {
+                worldCoords.y >= LIST_Y && worldCoords.y <= LIST_Y + LIST_HEIGHT) {
 
             float startY = LIST_Y + LIST_HEIGHT - ITEM_HEIGHT + scrollY;
             float itemTotalHeight = ITEM_HEIGHT + ITEM_SPACING;
@@ -445,8 +453,14 @@ public class CharacterSelectionScreen extends ScreenAdapter {
 
     private void startGame() {
         if (selectedIndex >= 0 && selectedIndex < characters.size) {
-            System.out.println("Selected: " + characters.get(selectedIndex).name);
-            game.setScreen(new GameScreen(game, characters.get(selectedIndex).name));
+            String charName = characters.get(selectedIndex).name;
+            if (GameManager.getInstance().isCharacterUnlocked(charName)) {
+                System.out.println("Selected: " + charName);
+                game.setScreen(new GameScreen(game, charName));
+            } else {
+                System.out.println("Cannot select locked character: " + charName);
+                // TODO: Play error/locked sound
+            }
         }
     }
 
