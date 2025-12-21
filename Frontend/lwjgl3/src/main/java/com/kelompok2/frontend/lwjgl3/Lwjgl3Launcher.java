@@ -9,7 +9,44 @@ public class Lwjgl3Launcher {
     public static void main(String[] args) {
         if (StartupHelper.startNewJvmIfRequired())
             return; // This handles macOS support and helps on Windows.
+
+        // Auto-start backend if present
+        startBackend();
+
         createApplication();
+    }
+
+    private static Process backendProcess;
+
+    private static void startBackend() {
+        try {
+            java.io.File backendJar = new java.io.File("backend.jar");
+            if (backendJar.exists()) {
+                System.out.println("[Launcher] Found backend.jar, starting server...");
+                ProcessBuilder pb = new ProcessBuilder("java", "-jar", "backend.jar");
+                pb.directory(new java.io.File("."));
+                // Redirect output to file or inherit to see in console (inherit for now for
+                // debug)
+                // pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+                // pb.redirectError(ProcessBuilder.Redirect.INHERIT);
+
+                backendProcess = pb.start();
+
+                // Add shutdown hook to kill backend when game exits
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    System.out.println("[Launcher] Stopping backend server...");
+                    if (backendProcess != null) {
+                        backendProcess.destroy();
+                    }
+                }));
+            } else {
+                System.out.println("[Launcher] backend.jar not found in " + backendJar.getAbsolutePath()
+                        + ". Skipping backend startup.");
+            }
+        } catch (Exception e) {
+            System.err.println("[Launcher] Failed to start backend: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private static Lwjgl3Application createApplication() {
@@ -19,15 +56,22 @@ public class Lwjgl3Launcher {
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration() {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
         configuration.setTitle("Maestra Trials");
-        //// Vsync limits the frames per second to what your hardware can display, and helps eliminate
-        //// screen tearing. This setting doesn't always work on Linux, so the line after is a safeguard.
+        //// Vsync limits the frames per second to what your hardware can display, and
+        //// helps eliminate
+        //// screen tearing. This setting doesn't always work on Linux, so the line
+        //// after is a safeguard.
         configuration.useVsync(true);
-        //// Limits FPS to the refresh rate of the currently active monitor, plus 1 to try to match fractional
-        //// refresh rates. The Vsync setting above should limit the actual FPS to match the monitor.
+        //// Limits FPS to the refresh rate of the currently active monitor, plus 1 to
+        //// try to match fractional
+        //// refresh rates. The Vsync setting above should limit the actual FPS to match
+        //// the monitor.
         configuration.setForegroundFPS(Lwjgl3ApplicationConfiguration.getDisplayMode().refreshRate + 1);
-        //// If you remove the above line and set Vsync to false, you can get unlimited FPS, which can be
-        //// useful for testing performance, but can also be very stressful to some hardware.
-        //// You may also need to configure GPU drivers to fully disable Vsync; this can cause screen tearing.
+        //// If you remove the above line and set Vsync to false, you can get unlimited
+        //// FPS, which can be
+        //// useful for testing performance, but can also be very stressful to some
+        //// hardware.
+        //// You may also need to configure GPU drivers to fully disable Vsync; this can
+        //// cause screen tearing.
 
         configuration.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
         //// You can change these files; they are in lwjgl3/src/main/resources/ .
