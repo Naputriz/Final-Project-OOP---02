@@ -99,6 +99,27 @@ public class LevelUpScreen extends ScreenAdapter {
                 btnHeight);
     }
 
+    private boolean isMoving() {
+        // Logic checking if character is moving based on input or position change
+        // Since GameCharacter doesn't store velocity for players (InputHandler updates
+        // position directly),
+        // we can check if keys are pressed OR check previous position comparison.
+        // For simplicity and to match Ryze/Whisperwind logic if present:
+        // Actually, InputHandler moves position.
+        // A robust way for now: Check Gdx input or add a flag in GameCharacter.
+        // However, looking at other classes, let's look at InputHandler.
+        // But Aelita is an Entity.
+
+        // SIMPLEST: Check if user is pressing WASD (needs Gdx import)
+        // OR better: Check if position changed in update (requires storing prev pos).
+
+        // Let's rely on Input logic:
+        return com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W) ||
+                com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A) ||
+                com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S) ||
+                com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D);
+    }
+
     private void selectRandomEffects() {
         selectedEffects.clear();
         Array<LevelUpEffect> tempPool = new Array<>(allEffects);

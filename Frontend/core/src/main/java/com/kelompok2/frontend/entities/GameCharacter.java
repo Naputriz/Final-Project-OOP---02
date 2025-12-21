@@ -275,7 +275,7 @@ public abstract class GameCharacter {
         }
 
         // Update hit flash
-        if (hitFlashTimer > 0){
+        if (hitFlashTimer > 0) {
             hitFlashTimer -= delta;
         }
 
