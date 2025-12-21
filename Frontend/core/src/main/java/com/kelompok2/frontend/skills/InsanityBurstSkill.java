@@ -12,6 +12,7 @@ public class InsanityBurstSkill extends BaseSkill {
     private float radius = 500f; // Massive 500px radius
     private float damageMultiplier = 3.0f; // Arts × 3.0
     private float insanityDuration = 5.0f; // Default 5s
+    private com.kelompok2.frontend.managers.GameEventManager eventManager;
 
     @Override
     public float getRadius() {
@@ -36,6 +37,10 @@ public class InsanityBurstSkill extends BaseSkill {
     // Set boss before activate (optional)
     public void setBoss(com.kelompok2.frontend.entities.Boss boss) {
         this.currentBoss = boss;
+    }
+
+    public void setEventManager(com.kelompok2.frontend.managers.GameEventManager eventManager) {
+        this.eventManager = eventManager;
     }
 
     @Override
@@ -74,6 +79,11 @@ public class InsanityBurstSkill extends BaseSkill {
                 // Deal psychic damage
                 enemy.takeDamage(damage);
 
+                if (eventManager != null) {
+                    eventManager
+                            .publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, true));
+                }
+
                 // Grant XP if enemy was killed
                 if (enemy.isDead()) {
                     user.gainXp(enemy.getXpReward());
@@ -94,6 +104,11 @@ public class InsanityBurstSkill extends BaseSkill {
             if (bossDistanceSq <= radius * radius) {
                 currentBoss.makeInsane(insanityDuration); // Use configurable duration
                 currentBoss.takeDamage(damage);
+
+                if (eventManager != null) {
+                    eventManager.publish(
+                            new com.kelompok2.frontend.events.EnemyDamagedEvent(currentBoss, damage, true));
+                }
                 System.out.println("[ULTIMATE] Insanity Burst hit boss! Damage: " + damage + ", Insanity applied!");
             }
         }
@@ -110,6 +125,7 @@ public class InsanityBurstSkill extends BaseSkill {
         copy.damageMultiplier = this.damageMultiplier;
         copy.insanityDuration = this.insanityDuration;
         copy.description = this.description;
+        copy.setEventManager(this.eventManager);
         return copy;
     }
 

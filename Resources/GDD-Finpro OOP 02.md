@@ -143,6 +143,8 @@ Each character has a unique innate skill but has a second skill slot that can be
 * **Innate Skill (Feral Rush):** 5x scratch in quick succession while dashing forward.
 * **Cooldown:** 5 seconds.
 
+
+
 #### Alex - The Calculating Prince
 * **Role:** Arts Attacker.
 * **Stats:** Moderate HP, Low ATK, High Arts, High Defence, Low Speed.
@@ -168,6 +170,14 @@ Each character has a unique innate skill but has a second skill slot that can be
 * **Basic Attack:** Shoot gun.
 * **Innate Skill ("KNEEL!"):** Surrounding enemies are immobilized and take DoT (Damage over Time) for 3 seconds.
 
+#### Kei - The Hallucinator
+* **Role:** Arts Attacker (Ranged).
+* **Stats:** Low HP, Low ATK, High Arts, Low Def, Moderate Speed.
+* **Basic Attack:** Ranged projectiles.
+* **Innate Skill (Hallucina Mist):** Releases a hallucinogenic mist that confuses enemies.
+* **Duration:** 12 seconds.
+* **Status Effect:** Hallucination (Enemies run away from Kei).
+* **Implementation Status:** ✅ Fully implemented
 ---
 
 ## 5. List Boss
@@ -385,6 +395,23 @@ Each character has a unique innate skill but has a second skill slot that can be
    - Visual size: 128px
    - Implementation Status: ✅ Fully implemented
 
+9. **Kei - The Hallucinator** ✅ **NEW**
+   - Role: Arts Attacker (Ranged)
+   - Stats: Low HP (95), Low ATK (20), High Arts (45), Low Defence (10), Moderate Speed (190)
+   - Basic Attack: Ranged projectiles (Hallucina Shards)
+   - Innate Skill (Hallucina Mist):
+     - Releases mist causing "Hallucination" status
+     - Hallucinating enemies run away from Kei
+     - Radius: 250px
+   - Implementation Status: ✅ Fully implemented
+
+10. **Aelita - The Evergreen Healer** ✅ **NEW**
+    - Role: Healing Attacker
+    - Stats: High HP (140), Low ATK (15), Moderate Arts (30), Moderate DEF (20), Moderate Speed (170)
+    - Innate Skill (Verdant Domain): Heals HP and buffs ATK/Arts in zone
+    - Implementation Status: ✅ Fully implemented
+
+
 #### UI/UX Features
 - **HUD System:**
   - HP bar (green) - Top position, furthest from character
@@ -594,14 +621,16 @@ Each character has a unique innate skill but has a second skill slot that can be
   - Theme: Dungeon / Frost / Chaos theme matching the game
 
 - **TODO:** Future Feature Suggestions
-  - **Minimap:** 
+  - **Minimap:** ✅ **IMPLEMENTED**
     - Essential for the new 4000x4000 map size.
     - Show player (Green dot), Enemies (Red dots), Boss (Skull icon).
+    - Status: ✅ Implemented `MinimapSystem` rendering realtime map in top-right corner.
   - **Floating Damage Numbers:**
     - Visual feedback when hitting enemies.
     - Color coding: White (Normal), Yellow (Crit), Blue (Arts).
-  - **Save/Load System:**
+  - **Save/Load System:** ✅ **IMPLEMENTED**
     - Persist unlocked characters and high scores between sessions.
+    - Status: ✅ Implemented via `GameManager` (Preferences) + Backend Sync.
 
 - ~~**TODO:** Resolution Consistency and Responsive UI~~ ✅ **COMPLETED**
   - **Problem Summary:** UI was hardcoded for 1920x1080, causing issues on other screens.
@@ -638,7 +667,7 @@ Each character has a unique innate skill but has a second skill slot that can be
     - Show floating damage numbers when hitting enemies
     - Different colors for physical (red) vs arts (blue) damage
     - Critical hit indicators
-  - **Minimap:**
+  - **Minimap:** ✅ **IMPLEMENTED**
     - Small minimap showing player position and nearby enemies
     - Especially useful if map boundaries are implemented
   - Benefits: Better player feedback, more engaging gameplay, improved UX
@@ -655,13 +684,31 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Issue:** One-time use ultimates can be wasted if accidentally pressed or if targets move.
   - **Goal:** Allow canceling the "Preview Mode" without firing.
   - **Implementation:** Right-click to cancel while holding 'R'.
+    - **Damage Log:** (Optional) Text log of combat for debugging/clarity.
+
+#### Data Persistence
+#### Data Persistence
+- ~~**TODO:** Save Unlocked Bosses System~~ ✅ **FULLY IMPLEMENTED**
+  - **Goal:** Unlocked bosses (Insania, Blaze, Isolde) should remain unlocked across game sessions.
+  - **Requirements:**
+    - **Local Save:** Save unlocked character list to local storage (JSON/Prefs).
+    - **Backend Save:** Sync unlocked status to backend database (GET /api/user/unlocks).
+    - **Security:** Unlocks are KEYED by Username to prevent account hopping exploits.
+    - **Reset:** Added "Reset Save" button in Settings for testing.
+  - **Status:** ✅ Implemented in `GameManager` + `LoginWindow`. Uses `unlockedCharacters_username` key.
 
 #### 🐛 Bug Fixes (High Priority)
+- ~~**TODO:** Fix Insania's Bonus Damage vs Bosses~~ ✅ **FIXED**
+  - **Issue:** Insania is supposed to deal extra damage to enemies with "Insanity" status, but this is not triggering correctly against Bosses.
+  - **Impact:** Reduces Insania's effectiveness in boss fights.
+  - **Fix Required:** Ensure `GameCharacter.takeDamage` or collision logic checks for `isInsane` status on the target (Boss) and applies the multiplier from Insania's source.
+  - **Status:** ✅ Fixed in `PlayerCollisionHandler`. Added explicit check for Insania source + Insane target status.
+
 - ~~**TODO:** Fix Ryze's Spectral Body Skill~~ ✅ **FIXED**
   - **Issue:** Skill activates but player still takes damage (Invincibility not working).
   - **Fix:** Overridden `takeDamage(float, GameCharacter)` in `Ryze.java` to properly intercept damage calls from the collision system.
   - **Improvement:** Also prevents status effects (Freeze, Stun, Insanity) while active.
-  - **Status:** ✅ Verified fix in code.
+  - **Status:** ✅ Verified fix in code. Fixed `ProjectileCollisionHandler` to respect invulnerability against Ranged/Boss projectiles.
 
 - ~~**TODO:** Fix Lumi's Skill Damage Counter~~ ✅ **FIXED**
   - **Issue:** Damage counter triggers on skill usage, should trigger only when enemy is pulled and damaged.
@@ -772,8 +819,6 @@ Each character has a unique innate skill but has a second skill slot that can be
     - `ProjectileCollisionHandler` - Projectile collision detection
     - `SkillCollisionHandler` - Skill-specific collision (AoE, zones, etc.)
     - `CollisionSystem` - Coordinates all collision handlers
-    - `SkillCollisionHandler` - Skill-specific collision (AoE, zones, etc.)
-    - `CollisionSystem` - Coordinates all collision handlers
   - Benefits: Excellent separation of concerns, highly maintainable
 
 - ~~**TODO:** Refactor Enemy System to Polymorphism~~ ✅ **FULLY IMPLEMENTED**
@@ -808,11 +853,11 @@ Each character has a unique innate skill but has a second skill slot that can be
 - ⏳ Boss-to-playable-character unlocking (pending backend integration)
 
 #### Systems Not Yet Implemented
-- Secondary skill slot (Q key)
-- Skill looting from enemies/bosses
+- ✅ Secondary skill slot (Q key)
+- ✅ Skill looting from enemies/bosses (Implemented via Level Up Rewards)
+- ✅ Backend score submission
+- ✅ Leaderboard system
 - Settings menu (keybinds, audio controls)
-- Backend score submission
-- Leaderboard system
 - Login system
 
 #### Recommended Future Design Patterns
@@ -992,31 +1037,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 
 ---
 
-#### 9. Bug Fix: Ryze Skill vs Boss
-**Priority:** High
-**Description:** Ryze's `SpectralBodySkill` (Invulnerability) does not prevent damage from Boss attacks.
-**Action:** Ensure `takeDamage` override handles Boss damage sources correctly.
 
----
-
-#### 10. Bug Fix: Damage Numbers vs Boss
-**Priority:** Medium
-**Description:** Damage numbers (floating text) do not appear when attacking Bosses with skills.
-**Action:** Verify event publishing in `SkillCollisionHandler` for Bosses.
-
----
-
-#### 11. Balance: Melee Attack Hitbox
-**Priority:** High
-**Description:** Melee attacks require "slight range" and miss enemies directly on top of the player (point-blank).
-**Action:** Adjust `MeleeAttackStrategy` or `MeleeAttack` hitbox to include the character's own center/bounds.
-
----
-
-#### 12. Bug Fix: Ground Slam No Stun
-**Priority:** High
-**Description:** Ground slam attacks currently deal damage but fail to apply the intended stun effect.
-**Action:** Investigate `SkillCollisionHandler` or `GroundSlamSkill` to ensure stun status is applied to affected enemies.
 
 #### 13. UI: Level Up Stats Display
 **Priority:** Medium
@@ -1027,6 +1048,38 @@ Each character has a unique innate skill but has a second skill slot that can be
 **Priority:** Medium
 **Description:** Current level is not clearly visible on the main HUD or Level Up bar.
 **Action:** Add a clear Level indicator (e.g., "Lv. 5") to the XP bar or HUD.
+
+#### 15. Bug Fix: Sprite Color Accuracy
+**Priority:** High
+**Description:** Sprites colors are not accurate (often tinted), likely due to `RenderingSystem` or `GameCharacter` tinting logic overriding asset colors.
+**Action:** Investigate rendering logic and ensure sprites are rendered with their natural colors unless a specific effect (Freeze, etc.) is active.
+
+#### 16. Balance: Increase Blade Fury Range
+**Priority:** Medium
+**Description:** The range of Blade Fury feels too short/close.
+**Action:** Increase the radius/range of the Blade Fury skill to improve usability.
+
+#### 17. Bug Fix: Enemy Hitboxes ✅ **FIXED**
+**Priority:** Done
+**Description:** Enemy hitboxes do not match their sprite visuals.
+**Action:** Adjust hitbox sizes and offsets to align with sprite dimensions.
+**Status:** ✅ Adjusted bounds for Dummy (40x80), Tank (60x100), Ranged (32x50), Fast (30x60).
+
+#### 18. Bug Fix: Locked Character Selection ✅ **FIXED**
+**Priority:** Done
+**Description:** Locked characters (Bosses) can currently be picked in the selection screen.
+**Action:** Implement a check to prevent selection of locked characters.
+**Status:** ✅ `GameManager` now strictly enforces lock status. Bosses are removed from Default Unlocks.
+
+#### 19. UI: Reorder Character List
+**Priority:** Low
+**Description:** Move the 3 unlockable boss characters (Insania, Blaze, Isolde) to the bottom of the character list.
+**Action:** Update the character list order in `characters.json` or the loading logic.
+
+#### 20. Bug Fix: Lumi's Skill Not Working
+**Priority:** High
+**Description:** Lumi's "Returnious Pull" skill is reportedly not functioning as expected.
+**Action:** Investigate `ReturniousPullSkill.java` and collision logic. Ensure marks are applied and pull logic triggers correctly.
 
 ---
 

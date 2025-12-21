@@ -10,6 +10,7 @@ import com.kelompok2.frontend.entities.Projectile;
 public class FrozenApocalypseSkill extends BaseSkill {
 
     private float damageMultiplier = 2.5f;
+    private com.kelompok2.frontend.managers.GameEventManager eventManager;
 
     @Override
     public float getRadius() {
@@ -36,6 +37,10 @@ public class FrozenApocalypseSkill extends BaseSkill {
         this.currentBoss = boss;
     }
 
+    public void setEventManager(com.kelompok2.frontend.managers.GameEventManager eventManager) {
+        this.eventManager = eventManager;
+    }
+
     @Override
     protected boolean executeSkill(GameCharacter user, Vector2 targetPos,
             Array<Projectile> projectiles,
@@ -59,6 +64,11 @@ public class FrozenApocalypseSkill extends BaseSkill {
             enemy.takeDamage(damage);
             enemy.freeze();
 
+            if (eventManager != null) {
+                eventManager
+                        .publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(enemy, damage, true));
+            }
+
             // Grant XP if enemy was killed
             if (enemy.isDead()) {
                 user.gainXp(enemy.getXpReward());
@@ -71,6 +81,10 @@ public class FrozenApocalypseSkill extends BaseSkill {
         if (currentBoss != null && !currentBoss.isDead()) {
             currentBoss.takeDamage(damage); // Damage first
             currentBoss.freeze(5.0f); // 5 second freeze after damage
+            if (eventManager != null) {
+                eventManager.publish(
+                        new com.kelompok2.frontend.events.EnemyDamagedEvent(currentBoss, damage, true));
+            }
             System.out.println("[ULTIMATE] Frozen Apocalypse hit boss! Damage: " + damage);
         }
 
@@ -84,6 +98,7 @@ public class FrozenApocalypseSkill extends BaseSkill {
         FrozenApocalypseSkill copy = new FrozenApocalypseSkill();
         copy.damageMultiplier = this.damageMultiplier;
         copy.description = this.description;
+        copy.setEventManager(this.eventManager);
         return copy;
     }
 
