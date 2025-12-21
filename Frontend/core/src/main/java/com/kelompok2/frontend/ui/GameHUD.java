@@ -22,12 +22,12 @@ public class GameHUD {
     private ShapeRenderer shapeRenderer;
 
     // Fonts
-    private BitmapFont font;       // Angka Level
-    private BitmapFont fontSmall;  // Deskripsi kecil
-    private BitmapFont fontTitle;  // Judul Stats
-    private BitmapFont fontBoss;   // Nama Boss
+    private BitmapFont font; // Angka Level
+    private BitmapFont fontSmall; // Deskripsi kecil
+    private BitmapFont fontTitle; // Judul Stats
+    private BitmapFont fontBoss; // Nama Boss
     private BitmapFont fontMessage; // Notifikasi Besar
-    private BitmapFont fontTimer;   // Timer
+    private BitmapFont fontTimer; // Timer
 
     // --- LAYOUT CONSTANTS (Resolusi 1920x1080) ---
     private static final float SCREEN_W = 1920;
@@ -44,7 +44,8 @@ public class GameHUD {
     private static final float BOSS_BAR_WIDTH = 800;
     private static final float BOSS_BAR_HEIGHT = 35;
     private static final float BOSS_BAR_X = (SCREEN_W - BOSS_BAR_WIDTH) / 2;
-    // Turunkan sedikit (950) agar ada ruang untuk Nama Boss di atasnya tanpa nabrak Timer/HP
+    // Turunkan sedikit (950) agar ada ruang untuk Nama Boss di atasnya tanpa nabrak
+    // Timer/HP
     private static final float BOSS_BAR_Y = 950;
 
     // 3. SKILL SLOTS (Tengah Bawah)
@@ -54,7 +55,8 @@ public class GameHUD {
 
     // 4. STATS PANEL (Kiri Bawah)
     // Box Stats tingginya sekitar 180px.
-    // Agar margin bawahnya 40px (sama kayak margin atas HP Bar), kita set Y text-nya.
+    // Agar margin bawahnya 40px (sama kayak margin atas HP Bar), kita set Y
+    // text-nya.
     // Rumus: Margin Bawah + Tinggi Box - Offset Text
     private static final float STATS_X = MARGIN;
     private static final float STATS_Y = MARGIN + 140; // 40 + 140 = 180
@@ -118,7 +120,8 @@ public class GameHUD {
         gameTimer += delta;
         if (messageTimer > 0) {
             messageTimer -= delta;
-            if (messageTimer <= 0) notificationMessage = "";
+            if (messageTimer <= 0)
+                notificationMessage = "";
         }
     }
 
@@ -134,8 +137,10 @@ public class GameHUD {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         // A. Player Bars (Kiri Atas)
-        drawProgressBar(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, player.getHp(), player.getMaxHp(), Color.FIREBRICK, Color.LIME);
-        drawProgressBar(BAR_X, BAR_Y - 30, BAR_WIDTH * 0.8f, 15, player.getCurrentXp(), player.getXpToNextLevel(), Color.NAVY, Color.CYAN);
+        drawProgressBar(BAR_X, BAR_Y, BAR_WIDTH, BAR_HEIGHT, player.getHp(), player.getMaxHp(), Color.FIREBRICK,
+                Color.LIME);
+        drawProgressBar(BAR_X, BAR_Y - 30, BAR_WIDTH * 0.8f, 15, player.getCurrentXp(), player.getXpToNextLevel(),
+                Color.NAVY, Color.CYAN);
 
         // B. Boss Bar (Tengah Atas)
         if (currentBoss != null && !currentBoss.isDead()) {
@@ -145,7 +150,8 @@ public class GameHUD {
             shapeRenderer.rect(BOSS_BAR_X - 5, BOSS_BAR_Y - 5, BOSS_BAR_WIDTH + 10, BOSS_BAR_HEIGHT + 10);
 
             // Gambar Bar Merah di atasnya
-            drawProgressBar(BOSS_BAR_X, BOSS_BAR_Y, BOSS_BAR_WIDTH, BOSS_BAR_HEIGHT, currentBoss.getHp(), currentBoss.getMaxHp(), new Color(0,0,0,0), Color.RED);
+            drawProgressBar(BOSS_BAR_X, BOSS_BAR_Y, BOSS_BAR_WIDTH, BOSS_BAR_HEIGHT, currentBoss.getHp(),
+                    currentBoss.getMaxHp(), new Color(0, 0, 0, 0), Color.RED);
         }
 
         // C. Skill Slots (Tengah Bawah)
@@ -157,13 +163,20 @@ public class GameHUD {
         float secTimer = 0, secMax = 1;
         if (player.hasSecondarySkill()) {
             Skill s = player.getSecondarySkill();
-            secTimer = s.getRemainingCooldown(); secMax = s.getCooldown();
+            secTimer = s.getRemainingCooldown();
+            secMax = s.getCooldown();
         }
-        drawSkillSlot(startX + SLOT_SIZE + SLOT_SPACING, SLOT_Y, player.hasSecondarySkill() ? Color.ROYAL : Color.DARK_GRAY, secTimer, secMax);
+        drawSkillSlot(startX + SLOT_SIZE + SLOT_SPACING, SLOT_Y,
+                player.hasSecondarySkill() ? Color.ROYAL : Color.DARK_GRAY, secTimer, secMax);
 
-        Color ultColor = Color.DARK_GRAY; float ultTimer = 0;
-        if (player.hasUltimateSkill()) ultColor = Color.PURPLE;
-        else if (player.isUltimateUsed()) { ultColor = Color.GRAY; ultTimer = 1; }
+        Color ultColor = Color.DARK_GRAY;
+        float ultTimer = 0;
+        if (player.hasUltimateSkill())
+            ultColor = Color.PURPLE;
+        else if (player.isUltimateUsed()) {
+            ultColor = Color.GRAY;
+            ultTimer = 1;
+        }
         drawSkillSlot(startX + (SLOT_SIZE + SLOT_SPACING) * 2, SLOT_Y, ultColor, ultTimer, 1);
 
         // D. Stats Panel (Kiri Bawah)
@@ -194,12 +207,13 @@ public class GameHUD {
         // --- PHASE 3: TEXT ---
         batch.begin();
 
-        // 1. Timer
+        // 1. Timer (Top Middle)
         int minutes = (int) (gameTimer / 60);
         int seconds = (int) (gameTimer % 60);
         String timeStr = String.format("%02d:%02d", minutes, seconds);
         GlyphLayout timerLayout = new GlyphLayout(fontTimer, timeStr);
-        fontTimer.draw(batch, timeStr, 1920 - 40 - timerLayout.width, 1000); // Kanan Atas
+        // Center: (ScreenW - TextW) / 2
+        fontTimer.draw(batch, timeStr, (1920 - timerLayout.width) / 2f, 1000);
 
         // 2. Notification
         if (messageTimer > 0 && !notificationMessage.isEmpty()) {
@@ -208,7 +222,7 @@ public class GameHUD {
         }
 
         // 3. Player Info
-        String hpText = (int)player.getHp() + " / " + (int)player.getMaxHp();
+        String hpText = (int) player.getHp() + " / " + (int) player.getMaxHp();
         fontSmall.setColor(Color.WHITE);
         fontSmall.draw(batch, hpText, BAR_X + 10, BAR_Y + 24);
         font.setColor(Color.GOLD);
@@ -229,15 +243,15 @@ public class GameHUD {
         fontTitle.draw(batch, "STATS", STATS_X, STATS_Y + 25);
         fontSmall.setColor(Color.WHITE);
         float gap = 30;
-        fontSmall.draw(batch, "ATK: " + (int)player.getAtk(), STATS_X, STATS_Y - 10);
-        fontSmall.draw(batch, "ARTS: " + (int)player.getArts(), STATS_X, STATS_Y - 10 - gap);
-        fontSmall.draw(batch, "DEF: " + (int)player.getDef(), STATS_X, STATS_Y - 10 - gap*2);
-        fontSmall.draw(batch, "SPD: " + (int)player.getSpeed(), STATS_X, STATS_Y - 10 - gap*3);
+        fontSmall.draw(batch, "ATK: " + (int) player.getAtk(), STATS_X, STATS_Y - 10);
+        fontSmall.draw(batch, "ARTS: " + (int) player.getArts(), STATS_X, STATS_Y - 10 - gap);
+        fontSmall.draw(batch, "DEF: " + (int) player.getDef(), STATS_X, STATS_Y - 10 - gap * 2);
+        fontSmall.draw(batch, "SPD: " + (int) player.getSpeed(), STATS_X, STATS_Y - 10 - gap * 3);
 
         // 6. Boss Info
         if (currentBoss != null && !currentBoss.isDead()) {
             String bossInfo = currentBoss.getBossName() + " - " + currentBoss.getBossTitle();
-            String bossHp = (int)currentBoss.getHp() + " / " + (int)currentBoss.getMaxHp();
+            String bossHp = (int) currentBoss.getHp() + " / " + (int) currentBoss.getMaxHp();
 
             // [PERUBAHAN 2] Naikkan posisi Y teks nama Boss
             // Dari +45 menjadi +75 agar tidak menempel ke bar
@@ -279,6 +293,17 @@ public class GameHUD {
         font.draw(batch, text, textX, textY);
     }
 
-    public void resize(int width, int height) { viewport.update(width, height, true); }
-    public void dispose() { shapeRenderer.dispose(); font.dispose(); fontSmall.dispose(); fontTitle.dispose(); fontBoss.dispose(); fontMessage.dispose(); fontTimer.dispose(); }
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
+    }
+
+    public void dispose() {
+        shapeRenderer.dispose();
+        font.dispose();
+        fontSmall.dispose();
+        fontTitle.dispose();
+        fontBoss.dispose();
+        fontMessage.dispose();
+        fontTimer.dispose();
+    }
 }

@@ -9,9 +9,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Window;
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.graphics.Color;
 import com.kelompok2.frontend.managers.AudioManager;
 
@@ -26,10 +29,44 @@ public class SettingsWindow extends Window {
         this.setModal(true);
         this.setMovable(true);
         this.setVisible(false);
-        this.setSize(450, 250);
+        this.setMovable(true);
+        this.setVisible(false);
+        this.setSize(500, 400); // Increased size for new options
         // Center position will be handled by the screen resize/show,
         // but we can set a default center here relative to current Gdx graphics
         this.setPosition(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f, Align.center);
+
+        // --- DISPLAY SETTINGS ---
+        Label displayLabel = new Label("--- TAMPILAN ---", skin);
+        displayLabel.setColor(Color.GOLD);
+
+        // Fullscreen Checkbox
+        final CheckBox fullscreenCheckbox = new CheckBox(" Fullscreen", skin);
+        fullscreenCheckbox.setChecked(Gdx.graphics.isFullscreen());
+
+        // Resolution SelectBox
+        final SelectBox<String> resolutionSelect = new SelectBox<>(skin);
+        Array<String> resolutions = new Array<>();
+        resolutions.add("1280x720");
+        resolutions.add("1366x768");
+        resolutions.add("1600x900");
+        resolutions.add("1920x1080");
+        resolutionSelect.setItems(resolutions);
+
+        // Set current selection based on window size
+        int currentW = Gdx.graphics.getWidth();
+        int currentH = Gdx.graphics.getHeight();
+        String currentRes = currentW + "x" + currentH;
+        if (resolutions.contains(currentRes, false)) {
+            resolutionSelect.setSelected(currentRes);
+        } else {
+            // If custom/unknown, default to logic or just keep first
+            resolutionSelect.setSelected("1280x720");
+        }
+
+        // --- AUDIO SETTINGS ---
+        Label audioLabel = new Label("--- AUDIO ---", skin);
+        audioLabel.setColor(Color.GOLD);
 
         // Music Controls
         final Label musicLabel = new Label("Musik: " + (int) (AudioManager.getInstance().getMusicVolume() * 100) + "%",
@@ -47,6 +84,37 @@ public class SettingsWindow extends Window {
         TextButton closeButton = new TextButton("Tutup", skin);
 
         // Listeners
+        // Listeners
+        fullscreenCheckbox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                boolean full = fullscreenCheckbox.isChecked();
+                if (full) {
+                    Gdx.graphics.setFullscreenMode(Gdx.graphics.getDisplayMode());
+                } else {
+                    // Revert to windowed (use current selection or default)
+                    String[] res = resolutionSelect.getSelected().split("x");
+                    int w = Integer.parseInt(res[0]);
+                    int h = Integer.parseInt(res[1]);
+                    Gdx.graphics.setWindowedMode(w, h);
+                }
+            }
+        });
+
+        resolutionSelect.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (fullscreenCheckbox.isChecked())
+                    return; // Ignore if fullscreen (or force windowed?)
+
+                String selected = resolutionSelect.getSelected();
+                String[] parts = selected.split("x");
+                int w = Integer.parseInt(parts[0]);
+                int h = Integer.parseInt(parts[1]);
+                Gdx.graphics.setWindowedMode(w, h);
+            }
+        });
+
         musicSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -86,10 +154,17 @@ public class SettingsWindow extends Window {
         });
 
         // Layout
-        this.add(musicLabel).width(120).pad(10);
-        this.add(musicSlider).width(250).pad(10).row();
-        this.add(soundLabel).width(120).pad(10);
-        this.add(soundSlider).width(250).pad(10).row();
+        // Layout
+        this.add(displayLabel).colspan(2).padTop(10).row();
+        this.add(new Label("Resolusi:", skin)).right().pad(5);
+        this.add(resolutionSelect).width(200).left().pad(5).row();
+        this.add(fullscreenCheckbox).colspan(2).center().pad(5).row();
+
+        this.add(audioLabel).colspan(2).padTop(20).padBottom(5).row();
+        this.add(musicLabel).width(120).right().pad(5);
+        this.add(musicSlider).width(250).left().pad(5).row();
+        this.add(soundLabel).width(120).right().pad(5);
+        this.add(soundSlider).width(250).left().pad(5).row();
 
         this.add(resetButton).colspan(2).width(150).padTop(10).padBottom(10).row();
 
