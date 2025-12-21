@@ -93,6 +93,13 @@ public class PlayerCollisionHandler {
                 }
 
                 float damage = attack.getDamage();
+
+                // Insania deals 50% extra damage to insane bosses
+                if (player instanceof com.kelompok2.frontend.entities.Insania && boss.isInsane()) {
+                    damage *= 1.5f;
+                    System.out.println("[Insania] Bonus melee vs insane BOSS: " + damage);
+                }
+
                 boss.takeDamage(damage);
                 attack.markAsHit(boss);
                 eventManager

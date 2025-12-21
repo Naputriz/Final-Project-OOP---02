@@ -16,7 +16,7 @@ public class TankEnemy extends BaseEnemy {
 
         this.atk = 20f;
         this.def = 25f; // Has defense
-        this.bounds.setSize(48, 48); // Bigger size
+        this.bounds.setSize(60, 100); // Bigger size, adjusted to 60x100
 
         // Visual Setup: ~2.6x Hitbox (128x128) - User requested larger size
         this.renderWidth = 128f;

@@ -31,6 +31,7 @@ public class GameFacade {
     // [HAPUS] private UISystem uiSystem;
     private BossCinematicSystem bossCinematicSystem;
     private MapBoundarySystem mapBoundarySystem;
+    private MinimapSystem minimapSystem;
 
     private Array<MeleeAttack> playerMeleeAttacks;
     private Array<MeleeAttack> bossMeleeAttacks;
@@ -52,6 +53,7 @@ public class GameFacade {
         // [HAPUS] uiSystem = new UISystem(batch, shapeRenderer);
         bossCinematicSystem = new BossCinematicSystem();
         mapBoundarySystem = new MapBoundarySystem();
+        minimapSystem = new MinimapSystem(shapeRenderer);
 
         System.out.println("[GameFacade] All subsystems created");
     }
@@ -65,6 +67,7 @@ public class GameFacade {
         spawningSystem.initialize(player, enemyPool, eventManager, bossMeleeAttacks, bossProjectiles);
         // [HAPUS] uiSystem.initialize(player, enemyPool, eventManager);
         bossCinematicSystem.initialize(player, enemyPool);
+        minimapSystem.initialize(player, enemyPool, spawningSystem);
 
         subscribeToEvents();
         System.out.println("[GameFacade] All subsystems initialized");
@@ -147,7 +150,12 @@ public class GameFacade {
     public void render(OrthographicCamera camera) {
         Boss currentBoss = spawningSystem.getCurrentBoss();
         renderingSystem.render(camera, currentBoss);
-        // [HAPUS] uiSystem.render(...) -> Sudah pindah ke GameScreen
+
+        // Render UI overlay (Hide during cinematic)
+        if (!bossCinematicSystem.isCinematicActive()) {
+            uiSystem.render(camera, currentBoss);
+            minimapSystem.render(camera);
+        }
     }
 
     private void updateMeleeAttacks(float delta) {
@@ -172,9 +180,14 @@ public class GameFacade {
     }
 
     private String mapBossToCharacter(String bossName) {
-        if (bossName.contains("Isolde")) return "Isolde";
-        if (bossName.contains("Insania")) return "Insania";
-        if (bossName.contains("Blaze")) return "Blaze";
+        // nama boss
+        if (bossName.contains("Isolde"))
+            return "Isolde";
+        if (bossName.contains("Insania"))
+            return "Insania";
+        if (bossName.contains("Blaze"))
+            return "Blaze";
+        // boss lain belum ditambahkan
         return null;
     }
 

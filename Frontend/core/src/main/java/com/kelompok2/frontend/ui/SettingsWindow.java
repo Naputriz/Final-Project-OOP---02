@@ -12,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Window;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.graphics.Color;
 import com.kelompok2.frontend.managers.AudioManager;
 
 public class SettingsWindow extends Window {
@@ -71,12 +72,28 @@ public class SettingsWindow extends Window {
             }
         });
 
+        // Reset Button
+        TextButton resetButton = new TextButton("Reset Save", skin);
+        resetButton.setColor(Color.RED);
+
+        resetButton.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                com.kelompok2.frontend.managers.GameManager.getInstance().resetProgress();
+                resetButton.setText("Reset OK!");
+                // Optional: Revert text after delay
+            }
+        });
+
         // Layout
         this.add(musicLabel).width(120).pad(10);
         this.add(musicSlider).width(250).pad(10).row();
         this.add(soundLabel).width(120).pad(10);
         this.add(soundSlider).width(250).pad(10).row();
-        this.add(closeButton).colspan(2).width(100).padTop(20);
+
+        this.add(resetButton).colspan(2).width(150).padTop(10).padBottom(10).row();
+
+        this.add(closeButton).colspan(2).width(100).padTop(10);
     }
 
     public void show(Stage stage) {
