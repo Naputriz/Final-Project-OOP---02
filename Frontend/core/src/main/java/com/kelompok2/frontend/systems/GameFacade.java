@@ -171,7 +171,7 @@ public class GameFacade {
 
         // Render UI overlay (Hide during cinematic)
         if (!bossCinematicSystem.isCinematicActive()) {
-            // [HAPUS] uiSystem.render(camera, currentBoss);
+            //uiSystem.render(camera, currentBoss);
             minimapSystem.render(camera);
         }
     }
