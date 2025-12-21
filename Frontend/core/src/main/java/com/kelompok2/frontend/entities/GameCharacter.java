@@ -82,14 +82,16 @@ public abstract class GameCharacter {
         // Default implementation does nothing
     }
 
-    public void injectDependencies(com.kelompok2.frontend.systems.GameFacade facade, com.kelompok2.frontend.pools.EnemyPool enemyPool, ProjectilePool projectilePool) { // Added parameter
+    public void injectDependencies(com.kelompok2.frontend.systems.GameFacade facade,
+            com.kelompok2.frontend.pools.EnemyPool enemyPool, ProjectilePool projectilePool) { // Added parameter
         this.projectilePool = projectilePool;
+        // CHAIN CALL to ensure subclasses overriding the 2-arg version get their
+        // dependencies
+        injectDependencies(facade, enemyPool);
     }
 
     // Hit flash
     protected float hitFlashTimer = 0f;
-
-
 
     public GameCharacter(float x, float y, float speed, float maxHp) {
         this.position = new Vector2(x, y);
