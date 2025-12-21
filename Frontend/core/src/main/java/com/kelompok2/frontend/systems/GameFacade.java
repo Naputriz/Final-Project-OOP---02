@@ -14,6 +14,7 @@ import com.kelompok2.frontend.events.BossDefeatedEvent;
 import com.kelompok2.frontend.events.BossSpawnedEvent;
 import com.kelompok2.frontend.managers.GameEventManager;
 import com.kelompok2.frontend.managers.AudioManager;
+import com.kelompok2.frontend.managers.GameManager;
 import com.kelompok2.frontend.pools.EnemyPool;
 import com.kelompok2.frontend.pools.ProjectilePool;
 import com.kelompok2.frontend.skills.FrozenApocalypseSkill;
@@ -131,6 +132,14 @@ public class GameFacade {
         // Resume normal BGM
         AudioManager.getInstance().stopMusic();
         AudioManager.getInstance().playMusic("Audio/battleThemeA.mp3", true);
+
+        String bossName = event.getBossName();
+        String characterToUnlock = mapBossToCharacter(bossName);
+
+        if (characterToUnlock != null) {
+            GameManager.getInstance().unlockCharacter(characterToUnlock);
+            System.out.println("[GameFacade] Defeated " + bossName + ", unlocking " + characterToUnlock);
+        }
     }
 
     public void update(float delta, OrthographicCamera camera) {
@@ -261,6 +270,15 @@ public class GameFacade {
 
     public void startBossCinematic(Vector2 bossPosition, OrthographicCamera camera) {
         bossCinematicSystem.startBossPanSequence(bossPosition, camera);
+    }
+
+    private String mapBossToCharacter(String bossName) {
+        // nama boss
+        if (bossName.contains("Isolde")) return "Isolde";
+        if (bossName.contains("Insania")) return "Insania";
+        if (bossName.contains("Blaze")) return "Blaze";
+        // boss lain belum ditambahkan
+        return null;
     }
 
     // Getters for subsystems

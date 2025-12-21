@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.models.CharacterInfo;
+import com.kelompok2.frontend.managers.GameManager;
 
 public class CharacterSelectionScreen extends ScreenAdapter {
     private final Main game;
@@ -27,6 +28,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
     private ShapeRenderer shapeRenderer;
     private BitmapFont font;
     private BitmapFont titleFont;
+    private Texture lockedTexture;
 
     // Character data
     private CharacterInfo[] characters;
@@ -75,7 +77,7 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         titleFont.getData().setScale(3f);
 
         stateTime = 0;
-
+        lockedTexture = AssetManager.getInstance().loadTexture("question_mark.png");
         // Initialize character data
         initializeCharacters();
     }
@@ -302,76 +304,130 @@ public class CharacterSelectionScreen extends ScreenAdapter {
         x = GRID_X + col * PORTRAIT_SPACING * 2;
         y = GRID_Y + (1 - row) * PORTRAIT_SPACING;
 
-        // Draw character sprite in portrait (batch already begun from main render)
-        // If character has animation, use first frame; otherwise use texture
-        if (character.animation != null) {
-            TextureRegion firstFrame = character.animation.getKeyFrame(0);
-            batch.draw(firstFrame, x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
+        // CEK STATUS UNLOCK
+        boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
+
+        // LOGIKA GAMBAR
+        if (isUnlocked) {
+            // Jika terbuka: Render animasi/gambar asli
+            if (character.animation != null) {
+                TextureRegion firstFrame = character.animation.getKeyFrame(0);
+                batch.draw(firstFrame, x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
+            } else {
+                Texture portrait = character.getPortraitTexture();
+                if (portrait != null) {
+                    batch.draw(portrait, x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
+                }
+            }
         } else {
-            Texture portrait = character.getPortraitTexture();
-            if (portrait != null) {
-                batch.draw(portrait, x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
+            // Jika terkunci: Render gambar "?" (Menggunakan FrostPlaceholderSprite.png sesuai request)
+            // Pastikan string path ini sama persis dengan yang di-load di AssetManager
+            Texture lockedTexture = AssetManager.getInstance().getTexture("question_mark.png");
+            if (lockedTexture != null) {
+                batch.draw(lockedTexture, x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
             }
         }
 
-        // Character name
+        // LOGIKA TEXT (NAMA & JULUKAN)
         font.setColor(Color.WHITE);
-        font.draw(batch, character.name, x + PORTRAIT_SIZE + 10, y + PORTRAIT_SIZE / 2 + 10);
-        font.setColor(Color.LIGHT_GRAY);
-        font.getData().setScale(1f);
-        font.draw(batch, character.title, x + PORTRAIT_SIZE + 10, y + PORTRAIT_SIZE / 2 - 10);
-        font.getData().setScale(1.5f);
+        if (isUnlocked) {
+            font.draw(batch, character.name, x + PORTRAIT_SIZE + 10, y + PORTRAIT_SIZE / 2 + 10);
+            font.setColor(Color.LIGHT_GRAY);
+            font.getData().setScale(1f);
+            font.draw(batch, character.title, x + PORTRAIT_SIZE + 10, y + PORTRAIT_SIZE / 2 - 10);
+        } else {
+            // Jika terkunci
+            font.draw(batch, "???", x + PORTRAIT_SIZE + 10, y + PORTRAIT_SIZE / 2 + 10);
+            font.setColor(Color.LIGHT_GRAY);
+            font.getData().setScale(1f);
+            font.draw(batch, "???", x + PORTRAIT_SIZE + 10, y + PORTRAIT_SIZE / 2 - 10);
+        }
+        font.getData().setScale(1.5f); // Kembalikan scale
     }
 
     private void drawPreview(int index) {
         CharacterInfo character = characters[index];
+        boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
-        // Draw animated character or static sprite (batch already begun)
-        if (character.animation != null) {
-            TextureRegion currentFrame = character.animation.getKeyFrame(stateTime);
-            batch.draw(currentFrame, PREVIEW_X, PREVIEW_Y, PREVIEW_SIZE, PREVIEW_SIZE);
+        if (isUnlocked) {
+            // Draw animated character or static sprite (Normal)
+            if (character.animation != null) {
+                TextureRegion currentFrame = character.animation.getKeyFrame(stateTime);
+                batch.draw(currentFrame, PREVIEW_X, PREVIEW_Y, PREVIEW_SIZE, PREVIEW_SIZE);
+            } else {
+                Texture preview = character.getPortraitTexture();
+                if (preview != null) {
+                    batch.draw(preview, PREVIEW_X, PREVIEW_Y, PREVIEW_SIZE, PREVIEW_SIZE);
+                }
+            }
         } else {
-            Texture preview = character.getPortraitTexture();
-            if (preview != null) {
-                batch.draw(preview, PREVIEW_X, PREVIEW_Y, PREVIEW_SIZE, PREVIEW_SIZE);
+            // Draw Locked Preview
+            Texture lockedTexture = AssetManager.getInstance().getTexture("question_mark.png");
+            if (lockedTexture != null) {
+                batch.draw(lockedTexture, PREVIEW_X, PREVIEW_Y, PREVIEW_SIZE, PREVIEW_SIZE);
             }
         }
     }
 
     private void drawStatsText(int index) {
         CharacterInfo character = characters[index];
+        boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
-        // Draw stats text (batch already begun)
         font.setColor(Color.YELLOW);
         font.draw(batch, "Stats", STATS_PANEL_X + 10, STATS_PANEL_Y + STATS_PANEL_HEIGHT - 10);
 
         font.setColor(Color.WHITE);
         float yPos = STATS_PANEL_Y + STATS_PANEL_HEIGHT - 50;
-        font.draw(batch, "HP:    " + (int) character.hp, STATS_PANEL_X + 10, yPos);
-        yPos -= 30;
-        font.draw(batch, "ATK:   " + (int) character.atk, STATS_PANEL_X + 10, yPos);
-        yPos -= 30;
-        font.draw(batch, "Arts:  " + (int) character.arts, STATS_PANEL_X + 10, yPos);
-        yPos -= 30;
-        font.draw(batch, "DEF:   " + (int) character.def, STATS_PANEL_X + 10, yPos);
-        yPos -= 30;
-        font.draw(batch, "Speed: " + (int) character.speed, STATS_PANEL_X + 10, yPos);
+
+        if (isUnlocked) {
+            font.draw(batch, "HP:    " + (int) character.hp, STATS_PANEL_X + 10, yPos);
+            yPos -= 30;
+            font.draw(batch, "ATK:   " + (int) character.atk, STATS_PANEL_X + 10, yPos);
+            yPos -= 30;
+            font.draw(batch, "Arts:  " + (int) character.arts, STATS_PANEL_X + 10, yPos);
+            yPos -= 30;
+            font.draw(batch, "DEF:   " + (int) character.def, STATS_PANEL_X + 10, yPos);
+            yPos -= 30;
+            font.draw(batch, "Speed: " + (int) character.speed, STATS_PANEL_X + 10, yPos);
+        } else {
+            font.draw(batch, "HP:    ???", STATS_PANEL_X + 10, yPos);
+            yPos -= 30;
+            font.draw(batch, "ATK:   ???", STATS_PANEL_X + 10, yPos);
+            yPos -= 30;
+            font.draw(batch, "Arts:  ???", STATS_PANEL_X + 10, yPos);
+            yPos -= 30;
+            font.draw(batch, "DEF:   ???", STATS_PANEL_X + 10, yPos);
+            yPos -= 30;
+            font.draw(batch, "Speed: ???", STATS_PANEL_X + 10, yPos);
+        }
     }
 
     private void drawSkillText(int index) {
         CharacterInfo character = characters[index];
+        boolean isUnlocked = GameManager.getInstance().isCharacterUnlocked(character.name);
 
-        // Draw skill text (batch already begun)
         font.setColor(Color.YELLOW);
         font.draw(batch, "Innate Skill", SKILL_PANEL_X + 10, SKILL_PANEL_Y + SKILL_PANEL_HEIGHT - 10);
 
         font.setColor(Color.CYAN);
-        font.draw(batch, character.skillName, SKILL_PANEL_X + 10, SKILL_PANEL_Y + SKILL_PANEL_HEIGHT - 50);
+        if (isUnlocked) {
+            font.draw(batch, character.skillName, SKILL_PANEL_X + 10, SKILL_PANEL_Y + SKILL_PANEL_HEIGHT - 50);
+        } else {
+            font.draw(batch, "???", SKILL_PANEL_X + 10, SKILL_PANEL_Y + SKILL_PANEL_HEIGHT - 50);
+        }
 
         font.setColor(Color.WHITE);
         font.getData().setScale(1.2f);
+
+        String descriptionText;
+        if (isUnlocked) {
+            descriptionText = character.skillDescription;
+        } else {
+            descriptionText = "???";
+        }
+
         // Draw multi-line description
-        String[] lines = character.skillDescription.split("\n");
+        String[] lines = descriptionText.split("\n");
         float yPos = SKILL_PANEL_Y + SKILL_PANEL_HEIGHT - 90;
         for (String line : lines) {
             font.draw(batch, line, SKILL_PANEL_X + 10, yPos);
@@ -403,12 +459,18 @@ public class CharacterSelectionScreen extends ScreenAdapter {
             Rectangle portraitBounds = new Rectangle(x, y, PORTRAIT_SIZE, PORTRAIT_SIZE);
 
             if (portraitBounds.contains(worldX, worldY)) {
-                hoveredIndex = i;
+                hoveredIndex = i; // Hover tetap jalan (biar player bisa liat info "???")
 
                 // Click to select
                 if (Gdx.input.justTouched()) {
-                    selectedIndex = i;
-                    startGame();
+                    // CEK DULU APAKAH UNLOCKED
+                    if (GameManager.getInstance().isCharacterUnlocked(characters[i].name)) {
+                        selectedIndex = i;
+                        startGame();
+                    } else {
+                        System.out.println("Character Locked: " + characters[i].name);
+                        // Opsional: Play sound effect "Access Denied" disini
+                    }
                 }
                 break;
             }

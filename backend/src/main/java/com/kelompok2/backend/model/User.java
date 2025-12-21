@@ -1,6 +1,8 @@
 package com.kelompok2.backend.model;
 
-import jakarta.persistence.*; // Pastikan import ini ada
+import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity // Menandakan ini tabel database
 @Table(name = "users")
@@ -16,7 +18,14 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    public User() {}
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_unlocked_characters", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "character_name")
+    private Set<String> unlockedCharacters = new HashSet<>();
+
+    public User() {
+        this.unlockedCharacters.add("Ryze"); // default char
+    }
 
     public User(String username, String password) {
         this.username = username;
@@ -32,4 +41,16 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public Set<String> getUnlockedCharacters() {
+        return unlockedCharacters;
+    }
+
+    public void setUnlockedCharacters(Set<String> unlockedCharacters) {
+        this.unlockedCharacters = unlockedCharacters;
+    }
+
+    public void addUnlockedCharacter(String characterName) {
+        this.unlockedCharacters.add(characterName);
+    }
 }
