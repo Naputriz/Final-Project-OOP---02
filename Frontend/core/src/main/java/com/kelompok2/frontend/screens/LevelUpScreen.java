@@ -8,8 +8,12 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.effects.*;
 import com.kelompok2.frontend.entities.GameCharacter;
@@ -34,8 +38,10 @@ public class LevelUpScreen extends ScreenAdapter {
     private int selectedCardIndex = -1; // -1 artinya belum ada yang dipilih
 
     // Screen dimensions
-    private static final int SCREEN_WIDTH = 1920;
-    private static final int SCREEN_HEIGHT = 1080;
+    // Screen dimensions
+    private static final int VIRTUAL_WIDTH = 1920;
+    private static final int VIRTUAL_HEIGHT = 1080;
+    private Viewport viewport;
 
     // Layout
     private static final float CARD_WIDTH = 300;
@@ -58,6 +64,11 @@ public class LevelUpScreen extends ScreenAdapter {
         font.getData().setScale(1.5f);
         titleFont = new BitmapFont();
         titleFont.getData().setScale(3.5f);
+        titleFont.getData().setScale(3.5f);
+
+        // Setup Viewport for scaling
+        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
 
         // Setup Pools & Selection (Tetap sama)
         allEffects = new Array<>();
@@ -82,10 +93,31 @@ public class LevelUpScreen extends ScreenAdapter {
         float btnWidth = 300;
         float btnHeight = 80;
         confirmButtonBounds = new Rectangle(
-                (SCREEN_WIDTH - btnWidth) / 2,
+                (VIRTUAL_WIDTH - btnWidth) / 2,
                 100,
                 btnWidth,
                 btnHeight);
+    }
+
+    private boolean isMoving() {
+        // Logic checking if character is moving based on input or position change
+        // Since GameCharacter doesn't store velocity for players (InputHandler updates
+        // position directly),
+        // we can check if keys are pressed OR check previous position comparison.
+        // For simplicity and to match Ryze/Whisperwind logic if present:
+        // Actually, InputHandler moves position.
+        // A robust way for now: Check Gdx input or add a flag in GameCharacter.
+        // However, looking at other classes, let's look at InputHandler.
+        // But Aelita is an Entity.
+
+        // SIMPLEST: Check if user is pressing WASD (needs Gdx import)
+        // OR better: Check if position changed in update (requires storing prev pos).
+
+        // Let's rely on Input logic:
+        return com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.W) ||
+                com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.A) ||
+                com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.S) ||
+                com.badlogic.gdx.Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.D);
     }
 
     private void selectRandomEffects() {
@@ -101,8 +133,8 @@ public class LevelUpScreen extends ScreenAdapter {
 
     private void setupCardPositions() {
         effectCards.clear();
-        float centerX = SCREEN_WIDTH / 2f;
-        float centerY = SCREEN_HEIGHT / 2f;
+        float centerX = VIRTUAL_WIDTH / 2f;
+        float centerY = VIRTUAL_HEIGHT / 2f;
         float totalWidth = (CARD_WIDTH * 3) + (CARD_SPACING * 2);
         float startX = centerX - totalWidth / 2;
 
@@ -123,9 +155,15 @@ public class LevelUpScreen extends ScreenAdapter {
         // 2. RENDER OVERLAY GELAP
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+
+        // Apply Viewport
+        viewport.apply();
+        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+        batch.setProjectionMatrix(viewport.getCamera().combined);
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(0, 0, 0, 0.85f); // Sedikit lebih gelap dari pause
-        shapeRenderer.rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
@@ -147,12 +185,14 @@ public class LevelUpScreen extends ScreenAdapter {
             return;
 
         int mouseX = Gdx.input.getX();
-        int mouseY = SCREEN_HEIGHT - Gdx.input.getY();
+        int mouseY = Gdx.input.getY();
+        Vector2 touchPos = new Vector2(mouseX, mouseY);
+        viewport.unproject(touchPos);
 
         // Cek Hover Cards
         hoveredCardIndex = -1;
         for (int i = 0; i < effectCards.size; i++) {
-            if (effectCards.get(i).contains(mouseX, mouseY)) {
+            if (effectCards.get(i).contains(touchPos.x, touchPos.y)) {
                 hoveredCardIndex = i;
                 break;
             }
@@ -164,7 +204,10 @@ public class LevelUpScreen extends ScreenAdapter {
 
     private void handleClick() {
         int mouseX = Gdx.input.getX();
-        int mouseY = SCREEN_HEIGHT - Gdx.input.getY();
+        int mouseY = Gdx.input.getY();
+
+        Vector2 touchPos = new Vector2(mouseX, mouseY);
+        viewport.unproject(touchPos);
 
         // Handle Click
         if (Gdx.input.justTouched()) {
@@ -174,7 +217,7 @@ public class LevelUpScreen extends ScreenAdapter {
             }
 
             // Logic Klik Confirm
-            if (selectedCardIndex != -1 && confirmButtonBounds.contains(mouseX, mouseY)) {
+            if (selectedCardIndex != -1 && confirmButtonBounds.contains(touchPos.x, touchPos.y)) {
                 applyAndClose();
             }
         }
@@ -234,8 +277,11 @@ public class LevelUpScreen extends ScreenAdapter {
 
         // Cek Hover Button
         int mouseX = Gdx.input.getX();
-        int mouseY = SCREEN_HEIGHT - Gdx.input.getY();
-        boolean isHoveringBtn = confirmButtonBounds.contains(mouseX, mouseY);
+        int mouseY = Gdx.input.getY();
+        Vector2 touchPos = new Vector2(mouseX, mouseY);
+        viewport.unproject(touchPos);
+
+        boolean isHoveringBtn = confirmButtonBounds.contains(touchPos.x, touchPos.y);
 
         if (isHoveringBtn)
             shapeRenderer.setColor(Color.GOLD);
@@ -264,7 +310,7 @@ public class LevelUpScreen extends ScreenAdapter {
         titleFont.setColor(Color.GOLD);
         String title = "LEVEL UP!";
         GlyphLayout layout = new GlyphLayout(titleFont, title);
-        titleFont.draw(batch, title, (SCREEN_WIDTH - layout.width) / 2, SCREEN_HEIGHT - 100);
+        titleFont.draw(batch, title, (VIRTUAL_WIDTH - layout.width) / 2, VIRTUAL_HEIGHT - 100);
 
         // Instruction
         font.setColor(Color.LIGHT_GRAY);
@@ -273,7 +319,7 @@ public class LevelUpScreen extends ScreenAdapter {
             sub = "..."; // Loading
 
         layout.setText(font, sub);
-        font.draw(batch, sub, (SCREEN_WIDTH - layout.width) / 2, SCREEN_HEIGHT - 180);
+        font.draw(batch, sub, (VIRTUAL_WIDTH - layout.width) / 2, VIRTUAL_HEIGHT - 180);
 
         // Card Content
         for (int i = 0; i < selectedEffects.size; i++) {
@@ -305,6 +351,11 @@ public class LevelUpScreen extends ScreenAdapter {
         }
 
         batch.end();
+    }
+
+    @Override
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
     }
 
     @Override

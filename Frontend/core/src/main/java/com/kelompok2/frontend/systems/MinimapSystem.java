@@ -138,10 +138,10 @@ public class MinimapSystem {
 
     private void drawEntity(float worldX, float worldY, float miniX, float miniY, float miniSize, float halfMapW,
             float halfMapH, float dotSize) {
-        // Normalize to 0-1 range (Check MapBoundarySystem later if this is wrong)
-        // Assuming World 0,0 is center
-        float normX = (worldX + halfMapW) / (halfMapW * 2);
-        float normY = (worldY + halfMapH) / (halfMapH * 2);
+        // Fix: Map is 0-4000, not -2000 to 2000.
+        // Normalize 0-4000 to 0-1
+        float normX = worldX / (halfMapW * 2);
+        float normY = worldY / (halfMapH * 2);
 
         // Clamp to 0-1 to prevent drawing outside minimap
         normX = Math.max(0, Math.min(1, normX));

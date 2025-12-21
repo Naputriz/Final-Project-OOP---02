@@ -1,5 +1,6 @@
 package com.kelompok2.frontend.entities;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
@@ -70,6 +71,9 @@ public abstract class GameCharacter {
             com.kelompok2.frontend.pools.EnemyPool enemyPool) {
         // Default implementation does nothing
     }
+
+    // Hit flash
+    protected float hitFlashTimer = 0f;
 
     public GameCharacter(float x, float y, float speed, float maxHp) {
         this.position = new Vector2(x, y);
@@ -268,6 +272,11 @@ public abstract class GameCharacter {
             if (hallucinationTimer <= 0) {
                 clearHallucination();
             }
+        }
+
+        // Update hit flash
+        if (hitFlashTimer > 0) {
+            hitFlashTimer -= delta;
         }
 
         // Update per-attacker cooldowns (Fix for bosses only hitting once)
@@ -472,6 +481,8 @@ public abstract class GameCharacter {
             GameEventManager.getInstance()
                     .publish(new com.kelompok2.frontend.events.PlayerDamagedEvent(this, actualDamage, this.hp));
         }
+
+        this.hitFlashTimer = 0.1f;
     }
 
     public void heal(float amount) {
@@ -542,6 +553,8 @@ public abstract class GameCharacter {
     }
 
     protected com.badlogic.gdx.graphics.Color getRenderColor() {
+        if (hitFlashTimer > 0)
+            return com.badlogic.gdx.graphics.Color.RED;
         if (isFrozen)
             return new com.badlogic.gdx.graphics.Color(0.5f, 0.8f, 1f, 0.7f); // Cyan
         if (isInsane)

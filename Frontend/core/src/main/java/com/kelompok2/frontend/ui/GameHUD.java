@@ -102,7 +102,8 @@ public class GameHUD {
         gameTimer += delta;
         if (messageTimer > 0) {
             messageTimer -= delta;
-            if (messageTimer <= 0) notificationMessage = "";
+            if (messageTimer <= 0)
+                notificationMessage = "";
         }
     }
 
@@ -133,13 +134,20 @@ public class GameHUD {
         float secTimer = 0, secMax = 1;
         if (player.hasSecondarySkill()) {
             Skill s = player.getSecondarySkill();
-            secTimer = s.getRemainingCooldown(); secMax = s.getCooldown();
+            secTimer = s.getRemainingCooldown();
+            secMax = s.getCooldown();
         }
-        drawSkillSlot(startX + SLOT_SIZE + SLOT_SPACING, SLOT_Y, player.hasSecondarySkill() ? Color.ROYAL : Color.DARK_GRAY, secTimer, secMax);
+        drawSkillSlot(startX + SLOT_SIZE + SLOT_SPACING, SLOT_Y,
+                player.hasSecondarySkill() ? Color.ROYAL : Color.DARK_GRAY, secTimer, secMax);
 
-        Color ultColor = Color.DARK_GRAY; float ultTimer = 0;
-        if (player.hasUltimateSkill()) ultColor = Color.PURPLE;
-        else if (player.isUltimateUsed()) { ultColor = Color.GRAY; ultTimer = 1; }
+        Color ultColor = Color.DARK_GRAY;
+        float ultTimer = 0;
+        if (player.hasUltimateSkill())
+            ultColor = Color.PURPLE;
+        else if (player.isUltimateUsed()) {
+            ultColor = Color.GRAY;
+            ultTimer = 1;
+        }
         drawSkillSlot(startX + (SLOT_SIZE + SLOT_SPACING) * 2, SLOT_Y, ultColor, ultTimer, 1);
 
         shapeRenderer.setColor(0, 0, 0, 0.6f);
@@ -201,10 +209,10 @@ public class GameHUD {
         fontTitle.draw(batch, "STATS", STATS_X, STATS_Y + 25);
         fontSmall.setColor(Color.WHITE);
         float gap = 30;
-        fontSmall.draw(batch, "ATK: " + (int)player.getAtk(), STATS_X, STATS_Y - 10);
-        fontSmall.draw(batch, "ARTS: " + (int)player.getArts(), STATS_X, STATS_Y - 10 - gap);
-        fontSmall.draw(batch, "DEF: " + (int)player.getDef(), STATS_X, STATS_Y - 10 - gap*2);
-        fontSmall.draw(batch, "SPD: " + (int)player.getSpeed(), STATS_X, STATS_Y - 10 - gap*3);
+        fontSmall.draw(batch, "ATK: " + (int) player.getAtk(), STATS_X, STATS_Y - 10);
+        fontSmall.draw(batch, "ARTS: " + (int) player.getArts(), STATS_X, STATS_Y - 10 - gap);
+        fontSmall.draw(batch, "DEF: " + (int) player.getDef(), STATS_X, STATS_Y - 10 - gap * 2);
+        fontSmall.draw(batch, "SPD: " + (int) player.getSpeed(), STATS_X, STATS_Y - 10 - gap * 3);
 
         if (currentBoss != null && !currentBoss.isDead()) {
             String bossInfo = currentBoss.getBossName() + " - " + currentBoss.getBossTitle();
@@ -246,6 +254,17 @@ public class GameHUD {
         font.draw(batch, text, textX, textY);
     }
 
-    public void resize(int width, int height) { viewport.update(width, height, true); }
-    public void dispose() { shapeRenderer.dispose(); font.dispose(); fontSmall.dispose(); fontTitle.dispose(); fontBoss.dispose(); fontMessage.dispose(); fontTimer.dispose(); }
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
+    }
+
+    public void dispose() {
+        shapeRenderer.dispose();
+        font.dispose();
+        fontSmall.dispose();
+        fontTitle.dispose();
+        fontBoss.dispose();
+        fontMessage.dispose();
+        fontTimer.dispose();
+    }
 }
