@@ -6,7 +6,7 @@ public class RecoverHPEffect implements LevelUpEffect {
 
     @Override
     public void apply(GameCharacter character) {
-        float healAmount = character.getMaxHp() * 0.2f;
+        float healAmount = character.getMaxHp() * 0.25f;
         character.heal(healAmount);
         System.out.println("[RecoverHPEffect] Healed " + healAmount + " HP!");
     }
@@ -18,6 +18,6 @@ public class RecoverHPEffect implements LevelUpEffect {
 
     @Override
     public String getDescription() {
-        return "Pulihkan 20% Max HP";
+        return "Pulihkan 25% Max HP";
     }
 }

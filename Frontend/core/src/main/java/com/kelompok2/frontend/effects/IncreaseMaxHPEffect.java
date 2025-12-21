@@ -6,7 +6,7 @@ public class IncreaseMaxHPEffect implements LevelUpEffect {
 
     @Override
     public void apply(GameCharacter character) {
-        float newMaxHp = character.getMaxHp() * 1.15f;
+        float newMaxHp = character.getMaxHp() * 1.10f;
         character.setMaxHp(newMaxHp);
         System.out.println("[IncreaseMaxHPEffect] Max HP increased to " + newMaxHp);
     }
@@ -18,6 +18,6 @@ public class IncreaseMaxHPEffect implements LevelUpEffect {
 
     @Override
     public String getDescription() {
-        return "+15% Max HP";
+        return "+10% Max HP";
     }
 }

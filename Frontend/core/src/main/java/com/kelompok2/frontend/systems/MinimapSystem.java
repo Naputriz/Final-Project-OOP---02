@@ -20,7 +20,7 @@ public class MinimapSystem {
 
     // Minimap UI Settings
     private static final float MINIMAP_SIZE = 200f; // 200x200 px
-    private static final float PADDING = 20f; // Padding from screen edge
+    private static final float PADDING = 40f; // Padding from screen edge
 
     private OrthographicCamera uiCamera;
 

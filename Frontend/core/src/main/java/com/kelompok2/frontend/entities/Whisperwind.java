@@ -32,6 +32,10 @@ public class Whisperwind extends GameCharacter {
         this.atk = 15f; // Low ATK
         this.arts = 38f; // High Arts
         this.def = 12f; // Moderate Defence
+        this.title = "The Silent Caster";
+        this.description = "Death usually knocks, but Whisperwind does not even breathe. Known as 'The Silent Caster,' she is the master of the silent kill. Her spells travel faster than sound and strike with the weight of a cannonball, yet they make no noise upon launch or impact. Legends say that if the battlefield suddenly goes quiet, it means Whisperwind has taken a position, and you are already in her sights.";
+        this.skillName = "Hurricane Bind";
+        this.skillDescription = "Wind ball with knockback and stun. Damage: Arts x2.0, Cooldown: 10s";
 
         // Initialize Animation States
         // Idle: 2x2 grid, 4 frames

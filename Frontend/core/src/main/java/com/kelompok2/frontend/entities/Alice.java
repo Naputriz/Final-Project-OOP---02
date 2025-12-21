@@ -22,6 +22,10 @@ public class Alice extends GameCharacter {
         this.atk = 40f; // High ATK
         this.arts = 10f; // Low Arts
         this.def = 10f; // Low Defence
+        this.title = "The Reckless Princess";
+        this.description = "The 'Reckless Princess' of Lumina. Once defined solely by her impulsive spirit and refusal to adhere to royal tradition, her life was shattered by the ambush that took her mother and brother. Now, she channels her grief into a singular, aggressive purpose: hunting down the 'White Scarf' for revenge";
+        this.skillName = "Feral Rush";
+        this.skillDescription = "Dashes forward rapidly and unleashes 5x scratch attacks. Cooldown: 5s";
 
         // Load asset placeholder
         this.texture = AssetManager.getInstance().loadTexture("AlicePlaceholder.png");

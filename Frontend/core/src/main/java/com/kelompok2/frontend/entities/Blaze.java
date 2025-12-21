@@ -29,6 +29,10 @@ public class Blaze extends GameCharacter {
         this.atk = 25f; // Moderate ATK
         this.arts = 40f; // High Arts - primary damage source
         this.def = 5f; // Low Defence
+        this.title = "The Flame Kaiser";
+        this.description = "The reawakened Kaiser, rising from the ashes of banishment. Once a supreme ruler imprisoned for his dangerous ambition, he has shattered his chains to ignite a new revolution. Driven by a fury that survived in the dark, he has returned with a singular ultimatum: the world will bow to his control, or he will use his one shot to burn it all down.";
+        this.skillName = "Hellfire Pillar";
+        this.skillDescription = "Summons a damage pillar at cursor. Damage: High, Cooldown: 5s";
 
         // Initialize Skill
         this.setInnateSkill(new com.kelompok2.frontend.skills.HellfirePillarSkill());
