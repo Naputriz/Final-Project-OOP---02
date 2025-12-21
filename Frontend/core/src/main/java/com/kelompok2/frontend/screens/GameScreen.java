@@ -8,6 +8,8 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.kelompok2.frontend.Main;
 import com.kelompok2.frontend.entities.GameCharacter;
 import com.kelompok2.frontend.factories.CharacterFactory;
@@ -20,40 +22,43 @@ import com.kelompok2.frontend.pools.EnemyPool;
 import com.kelompok2.frontend.systems.GameFacade;
 
 public class GameScreen extends ScreenAdapter {
-    // Core resources
     private SpriteBatch batch;
     private ShapeRenderer shapeRenderer;
     private OrthographicCamera camera;
+    private Viewport viewport;
     private Texture background;
 
-    // Game entities
     private GameCharacter player;
     private ProjectilePool projectilePool;
     private EnemyPool enemyPool;
-
-    // Input & Game Control
     private InputHandler inputHandler;
     private Main game;
     private String selectedCharacter;
     private boolean isPaused = false;
     private boolean isDisposed = false;
-
-    // ✨ FACADE PATTERN - Coordinates all subsystems
     private GameFacade gameFacade;
     private boolean firstFrame = true;
+
+    // Resolusi Virtual 1920x1080
+    private static final float VIRTUAL_WIDTH = 1920;
+    private static final float VIRTUAL_HEIGHT = 1080;
 
     public GameScreen(Main game, String selectedCharacter) {
         this.game = game;
         this.selectedCharacter = selectedCharacter;
 
-        // Initialize core resources
+        // [PENTING] Reset Input Processor agar Stage dari Menu sebelumnya tidak aktif
+        Gdx.input.setInputProcessor(null);
+
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 1280, 720);
-        background = AssetManager.getInstance().loadTexture("FireflyPlaceholder.jpg");
 
-        // Initialize pools
+        // Setup FitViewport
+        viewport = new FitViewport(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, camera);
+        camera.position.set(VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT / 2, 0);
+
+        background = AssetManager.getInstance().loadTexture("FireflyPlaceholder.jpg");
         projectilePool = new ProjectilePool(50);
 
         float mapW = com.kelompok2.frontend.systems.MapBoundarySystem.getMapWidth();
@@ -64,92 +69,59 @@ public class GameScreen extends ScreenAdapter {
         float startY = com.badlogic.gdx.math.MathUtils.random(padding, mapH - padding);
 
         player = CharacterFactory.createCharacter(selectedCharacter, startX, startY);
-
-        // Initialize EnemyPool
         enemyPool = new EnemyPool(player, 30, projectilePool);
-
-        // Initialize GameManager
         GameManager.getInstance().startNewGame(this.selectedCharacter);
 
-        // ✨ Initialize GameFacade - coordinates all subsystems
         gameFacade = new GameFacade(batch, shapeRenderer, background);
         gameFacade.initialize(player, enemyPool, projectilePool);
-
-        // Inject dependencies into player (e.g. Lumi needs access to pools)
         player.injectDependencies(gameFacade, enemyPool);
 
-        // Setup Input Handler (uses facade's attack arrays)
         inputHandler = new InputHandler(player, camera, projectilePool, gameFacade.getPlayerMeleeAttacks());
-
-        // Play BGM
         AudioManager.getInstance().playMusic("Audio/battleThemeA.mp3", true);
 
-        System.out.println("[GameScreen] Initialized with Facade Pattern");
-        System.out.println("[GameScreen] Player: " + selectedCharacter);
+        System.out.println("[GameScreen] Initialized. ESC should now Toggle Pause.");
     }
 
-    public String getSelectedCharacter() {
-        return selectedCharacter;
-    }
+    public String getSelectedCharacter() { return selectedCharacter; }
 
     @Override
     public void render(float delta) {
-        // Cap delta time to prevent physics explosion on resume/lag
         delta = Math.min(delta, 0.1f);
 
-        // Handle pause toggle
+        // [LOGIKA PAUSE] Hanya di sini logika ESC berada
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             togglePause();
         }
 
-        // Game over check
-        if (player.isDead()) {
-            handleGameOver();
-            return;
-        }
+        if (player.isDead()) { handleGameOver(); return; }
 
-        // Clear screen (ALWAYS DO THIS to prevent afterimages)
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Update logic (ONLY IF NOT PAUSED)
         if (!isPaused) {
             if (player.canLevelUp()) {
                 isPaused = true;
-                player.stop(); // Stop any active charging/aiming
+                player.stop();
                 game.setScreen(new LevelUpScreen(game, this, player));
                 return;
             }
-
-            // Update camera to follow player
             updateCamera(delta);
+            GameManager.getInstance().updateGameTime(delta);
 
-            com.kelompok2.frontend.managers.GameManager.getInstance().updateGameTime(delta);
-
-            // Handle input (movement, attacks, skills)
+            // Input Handler dipanggil di sini
             inputHandler.update(delta);
 
-            // Update player
             player.update(delta);
-
-            if (!gameFacade.getBossCinematicSystem().isCinematicActive()) {
-                projectilePool.update(delta);
-            }
-
-            // NOTE: Enemy updates moved to GameFacade to prevent double-updating
+            if (!gameFacade.getBossCinematicSystem().isCinematicActive()) projectilePool.update(delta);
 
             for (int i = enemyPool.getActiveEnemies().size - 1; i >= 0; i--) {
                 com.kelompok2.frontend.entities.BaseEnemy enemy = enemyPool.getActiveEnemies().get(i);
                 if (enemy.isDead()) {
                     enemyPool.free(enemy);
-                    System.out.println("[GameScreen] Removed dead enemy from pool");
                 }
             }
-
             gameFacade.update(delta, camera);
         }
-
-        // ✨ Render all game systems via Facade (ALWAYS RENDER to show frozen state)
         gameFacade.render(camera);
     }
 
@@ -162,56 +134,35 @@ public class GameScreen extends ScreenAdapter {
             camera.position.y = targetY;
             firstFrame = false;
         } else {
-            // Smooth camera follow (Lerp)
             float lerpSpeed = 5f;
             camera.position.x += (targetX - camera.position.x) * lerpSpeed * delta;
             camera.position.y += (targetY - camera.position.y) * lerpSpeed * delta;
-
-            // Snap to target if very close (prevents micro-jitter when stopped)
-            if (Math.abs(camera.position.x - targetX) < 0.5f)
-                camera.position.x = targetX;
-            if (Math.abs(camera.position.y - targetY) < 0.5f)
-                camera.position.y = targetY;
+            if (Math.abs(camera.position.x - targetX) < 0.5f) camera.position.x = targetX;
+            if (Math.abs(camera.position.y - targetY) < 0.5f) camera.position.y = targetY;
         }
-
         camera.update();
     }
 
     private void togglePause() {
         isPaused = true;
-        player.stop(); // Prevent input bleeding
+        player.stop();
+        // Pindah ke PauseScreen
         game.setScreen(new PauseScreen(game, this));
     }
 
-    public void resumeGame() {
-        isPaused = false;
-    }
-
-    public void resumeFromPause() {
-        isPaused = false;
-        // Snap camera to player to prevent wrong interpolation
-        firstFrame = true;
-        System.out.println("[GameScreen] Resumed from pause");
-    }
-
-    public void resumeFromLevelUp() {
-        isPaused = false;
-        // Snap camera to player to prevent "shift/swoop" from potential resize resets
-        firstFrame = true;
-    }
+    public void resumeGame() { isPaused = false; }
+    public void resumeFromPause() { isPaused = false; firstFrame = true; }
+    public void resumeFromLevelUp() { isPaused = false; firstFrame = true; }
 
     private void handleGameOver() {
-        System.out.println("[GameScreen] Game Over!");
-        // Get final stats from GameManager
-        int finalLevel = com.kelompok2.frontend.managers.GameManager.getInstance().getCurrentLevel();
-        float finalTime = com.kelompok2.frontend.managers.GameManager.getInstance().getGameTime();
+        int finalLevel = GameManager.getInstance().getCurrentLevel();
+        float finalTime = GameManager.getInstance().getGameTime();
         game.setScreen(new GameOverScreen(game, selectedCharacter, finalLevel, finalTime));
     }
 
     @Override
     public void resize(int width, int height) {
-        camera.setToOrtho(false, width, height);
-        // Fix: Recenter camera on player to prevent it resetting to 0,0
+        viewport.update(width, height);
         if (player != null) {
             float targetX = Math.round(player.getPosition().x + player.getVisualWidth() / 2);
             float targetY = Math.round(player.getPosition().y + player.getVisualHeight() / 2);
@@ -222,43 +173,17 @@ public class GameScreen extends ScreenAdapter {
 
     @Override
     public void pause() {
-        // Auto-pause when window loses focus or is minimized
-        if (!isPaused && !player.isDead()) {
-            togglePause();
-            System.out.println("[GameScreen] Auto-paused due to focus loss/minimize");
-        }
+        if (!isPaused && !player.isDead()) togglePause();
     }
 
     @Override
     public void dispose() {
-        if (isDisposed) {
-            return;
-        }
+        if (isDisposed) return;
         isDisposed = true;
-
-        System.out.println("[GameScreen] Disposing resources...");
-
-        // Dispose rendering resources
-        if (batch != null) {
-            batch.dispose();
-        }
-        if (shapeRenderer != null) {
-            shapeRenderer.dispose();
-        }
-
-        // Dispose facade (which disposes UISystem)
-        if (gameFacade != null) {
-            gameFacade.dispose();
-        }
-
-        // Dispose pools
-        if (projectilePool != null) {
-            projectilePool.dispose();
-        }
-        if (enemyPool != null) {
-            enemyPool.dispose();
-        }
-
-        System.out.println("[GameScreen] Disposed successfully");
+        if (batch != null) batch.dispose();
+        if (shapeRenderer != null) shapeRenderer.dispose();
+        if (gameFacade != null) gameFacade.dispose();
+        if (projectilePool != null) projectilePool.dispose();
+        if (enemyPool != null) enemyPool.dispose();
     }
 }
