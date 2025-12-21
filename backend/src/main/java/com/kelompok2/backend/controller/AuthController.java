@@ -1,7 +1,7 @@
 package com.kelompok2.backend.controller;
 
 import com.kelompok2.backend.model.User;
-import com.kelompok2.backend.repository.UserRepository; // Import repository yg baru dibuat
+import com.kelompok2.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,19 +15,19 @@ import java.util.Optional;
 public class AuthController {
 
     @Autowired
-    private UserRepository userRepository; // Koneksi ke Database
+    private UserRepository userRepository;
 
     // --- LOGIN ---
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User loginData) {
-        // Cari user di database Neon
+    public ResponseEntity<?> login(@RequestBody User loginData) {
         Optional<User> userOpt = userRepository.findByUsername(loginData.getUsername());
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            // Cek password
             if (user.getPassword().equals(loginData.getPassword())) {
-                return ResponseEntity.ok("Login Berhasil");
+                // [PENTING] Mengembalikan Object User lengkap (JSON)
+                // Ini memungkinkan frontend membaca keyConfig & unlockedCharacters
+                return ResponseEntity.ok(user);
             }
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username atau Password salah");
@@ -36,12 +36,9 @@ public class AuthController {
     // --- REGISTER ---
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody User newUser) {
-        // Cek apakah username sudah ada di Neon
         if (userRepository.findByUsername(newUser.getUsername()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username sudah digunakan");
         }
-
-        // Simpan user baru ke Neon
         userRepository.save(newUser);
         return ResponseEntity.ok("Registrasi Berhasil");
     }

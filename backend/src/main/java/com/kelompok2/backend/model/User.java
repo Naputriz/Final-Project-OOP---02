@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity // Menandakan ini tabel database
+@Entity
 @Table(name = "users")
 public class User {
 
@@ -12,36 +12,56 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false) // Username tidak boleh kembar
+    @Column(unique = true, nullable = false)
     private String username;
 
     @Column(nullable = false)
     private String password;
 
+    // [BARU] Menyimpan konfigurasi tombol sebagai JSON String
+    // Menggunakan TEXT agar muat menampung string JSON yang panjang
+    @Column(columnDefinition = "TEXT")
+    private String keyConfig;
+
+    // [FITUR LAMA ANDA - TETAP DIPERTAHANKAN]
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_unlocked_characters", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "character_name")
     private Set<String> unlockedCharacters = new HashSet<>();
 
     public User() {
-        // default char
-        this.unlockedCharacters.add("Ryze"); // default char
+        // [FITUR LAMA] Default characters
+        this.unlockedCharacters.add("Ryze");
         this.unlockedCharacters.add("Whisperwind");
         this.unlockedCharacters.add("Aelita");
         this.unlockedCharacters.add("Aegis");
         this.unlockedCharacters.add("Lumi");
         this.unlockedCharacters.add("Alice");
         this.unlockedCharacters.add("Kei");
-        // Karakter Boss (Blaze, Insania, Isolde) TIDAK ditambahkan di sini
-        // karena mereka harus di-unlock lewat gameplay.
+
+        this.keyConfig = ""; // Default config kosong
     }
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+        // Inisialisasi default characters juga di constructor ini agar user baru punya karakter
+        this.unlockedCharacters.add("Ryze");
+        this.unlockedCharacters.add("Whisperwind");
+        this.unlockedCharacters.add("Aelita");
+        this.unlockedCharacters.add("Aegis");
+        this.unlockedCharacters.add("Lumi");
+        this.unlockedCharacters.add("Alice");
+        this.unlockedCharacters.add("Kei");
+
+        this.keyConfig = ""; // Default config kosong
     }
 
-    // Getter Setter
+    // --- GETTER & SETTER BARU (KEYCONFIG) ---
+    public String getKeyConfig() { return keyConfig; }
+    public void setKeyConfig(String keyConfig) { this.keyConfig = keyConfig; }
+
+    // --- GETTER & SETTER LAMA ---
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -51,13 +71,8 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public Set<String> getUnlockedCharacters() {
-        return unlockedCharacters;
-    }
-
-    public void setUnlockedCharacters(Set<String> unlockedCharacters) {
-        this.unlockedCharacters = unlockedCharacters;
-    }
+    public Set<String> getUnlockedCharacters() { return unlockedCharacters; }
+    public void setUnlockedCharacters(Set<String> unlockedCharacters) { this.unlockedCharacters = unlockedCharacters; }
 
     public void addUnlockedCharacter(String characterName) {
         this.unlockedCharacters.add(characterName);

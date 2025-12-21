@@ -25,10 +25,9 @@ public class LoginWindow extends Window {
     private TextButton actionButton, switchModeLink, guestLink, cancelButton;
 
     private boolean isRegisterMode = false;
-    private boolean canCancel; // Menentukan apakah tombol Kembali muncul
+    private boolean canCancel;
     private static final String BASE_URL = "http://localhost:8080/api";
 
-    // Callback untuk memberitahu MainMenuScreen kalau login sukses
     private Runnable onSuccessCallback;
 
     public LoginWindow(String title, Skin skin, Main game, boolean canCancel, Runnable onSuccessCallback) {
@@ -38,10 +37,10 @@ public class LoginWindow extends Window {
         this.canCancel = canCancel;
         this.onSuccessCallback = onSuccessCallback;
 
-        setModal(true); // Agar background tidak bisa diklik
-        setMovable(false); // Agar tidak bisa digeser-geser
-        setSize(500, 450); // Ukuran Pop-up
-        setPosition(Gdx.graphics.getWidth() / 2f - 250, Gdx.graphics.getHeight() / 2f - 225); // Tengah Layar
+        setModal(true);
+        setMovable(false);
+        setSize(500, 450);
+        setPosition(Gdx.graphics.getWidth() / 2f - 250, Gdx.graphics.getHeight() / 2f - 225);
 
         rebuildUI();
     }
@@ -49,14 +48,12 @@ public class LoginWindow extends Window {
     private void rebuildUI() {
         clearChildren();
 
-        // Style untuk Link Text
         TextButton.TextButtonStyle linkStyle = new TextButton.TextButtonStyle();
         linkStyle.font = skin.getFont("default-font");
         linkStyle.fontColor = Color.GRAY;
         linkStyle.overFontColor = Color.WHITE;
         linkStyle.up = null;
 
-        // Title diganti Label di dalam window agar lebih fleksibel
         Label headerLabel = new Label(isRegisterMode ? "DAFTAR AKUN" : "LOGIN", skin);
         headerLabel.setFontScale(1.2f);
         headerLabel.setAlignment(Align.center);
@@ -83,7 +80,6 @@ public class LoginWindow extends Window {
 
         actionButton = new TextButton(isRegisterMode ? "DAFTAR" : "MASUK", skin);
 
-        // --- Layout Table ---
         Table contentTable = new Table();
         contentTable.add(headerLabel).padBottom(20).row();
         contentTable.add(usernameField).width(280).height(40).padBottom(10).row();
@@ -96,7 +92,6 @@ public class LoginWindow extends Window {
         contentTable.add(messageLabel).padBottom(10).row();
         contentTable.add(actionButton).width(200).height(50).padBottom(20).row();
 
-        // Tombol Kembali (Hanya muncul jika boleh cancel)
         if (canCancel) {
             cancelButton = new TextButton("Kembali (Batal)", linkStyle);
             cancelButton.setColor(Color.ORANGE);
@@ -105,7 +100,7 @@ public class LoginWindow extends Window {
             cancelButton.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
-                    remove(); // Tutup window tanpa ubah login
+                    remove();
                 }
             });
         }
@@ -113,41 +108,24 @@ public class LoginWindow extends Window {
         add(contentTable).expand().top().padTop(30);
         row();
 
-        // --- Bottom Navigation ---
         Table bottomTable = new Table();
-        // bottomTable.setDebug(true); // Hapus komentar ini jika ingin melihat garis
-        // bantu
-
         String switchText = isRegisterMode ? "Sudah punya akun? Login" : "Belum punya akun? Daftar";
         switchModeLink = new TextButton(switchText, linkStyle);
         guestLink = new TextButton("Masuk sebagai Tamu", linkStyle);
 
-        // Logic Layout:
-        // 1. Tambahkan Link Kiri -> Align Left -> expandX() agar mendorong ke kiri
-        // 2. Tambahkan Link Kanan -> Align Right -> expandX() agar mendorong ke kanan
-        // 3. Beri padLeft dan padRight yang sama agar jarak ke dinding window seimbang
-
         bottomTable.add(switchModeLink).left().expandX().padLeft(20);
         bottomTable.add(guestLink).right().expandX().padRight(20);
 
-        // Masukkan bottomTable ke Window
-        // growX() agar tabel bawah melebar memenuhi lebar window
         add(bottomTable).growX().bottom().padBottom(20);
 
-        // --- Listeners ---
         actionButton.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                if (isRegisterMode)
-                    handleRegister();
-                else
-                    handleLogin();
+            @Override public void clicked(InputEvent event, float x, float y) {
+                if (isRegisterMode) handleRegister(); else handleLogin();
             }
         });
 
         switchModeLink.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
+            @Override public void clicked(InputEvent event, float x, float y) {
                 isRegisterMode = !isRegisterMode;
                 messageLabel.setText("");
                 rebuildUI();
@@ -155,9 +133,8 @@ public class LoginWindow extends Window {
         });
 
         guestLink.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                finishLogin("Guest");
+            @Override public void clicked(InputEvent event, float x, float y) {
+                finishLogin("Guest", null, null); // Guest has no key config
             }
         });
     }
@@ -180,77 +157,83 @@ public class LoginWindow extends Window {
             @Override
             public void handleHttpResponse(Net.HttpResponse httpResponse) {
                 if (httpResponse.getStatus().getStatusCode() == 200) {
-                    // Login Success -> Now Fetch Unlocks
-                    Gdx.app.postRunnable(() -> fetchUserUnlocks(user));
+                    // [UPDATE PENTING] Parse JSON User Lengkap
+                    String responseString = httpResponse.getResultAsString();
+                    JsonValue root = new JsonReader().parse(responseString);
+
+                    // Ambil Key Config (String JSON di dalam JSON)
+                    String keyConfig = root.getString("keyConfig", "");
+
+                    // Ambil Unlocked Characters (Array) jika ada di response login langsung
+                    // (Tergantung implementasi backend Anda apakah unlockedChars dikirim saat login)
+                    Set<String> unlockedChars = new HashSet<>();
+                    if (root.has("unlockedCharacters")) {
+                        for (JsonValue val : root.get("unlockedCharacters")) {
+                            unlockedChars.add(val.asString());
+                        }
+                    }
+
+                    // Jika unlockedChars kosong dari login, coba fetch manual (opsional, tapi aman)
+                    if (unlockedChars.isEmpty()) {
+                        Gdx.app.postRunnable(() -> fetchUserUnlocksAndFinish(user, keyConfig));
+                    } else {
+                        Gdx.app.postRunnable(() -> finishLogin(user, unlockedChars, keyConfig));
+                    }
                 } else {
                     showError("Login Gagal!");
                 }
             }
 
             @Override
-            public void failed(Throwable t) {
-                showError("Koneksi Error!");
-            }
-
+            public void failed(Throwable t) { showError("Koneksi Error!"); }
             @Override
-            public void cancelled() {
-            }
+            public void cancelled() {}
         });
     }
 
-    private void fetchUserUnlocks(String user) {
+    private void fetchUserUnlocksAndFinish(String user, String keyConfig) {
         Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.GET);
-        // Assuming endpoint exists. If not, this might 404, which we handle.
-        request.setUrl(BASE_URL + "/user/unlocks?username=" + user);
+        // Pastikan endpoint ini ada di backend Anda (UserController)
+        request.setUrl(BASE_URL + "/user/" + user); // Menggunakan endpoint getUser yang return User object lengkap
         request.setHeader("Content-Type", "application/json");
 
         Gdx.net.sendHttpRequest(request, new Net.HttpResponseListener() {
             @Override
             public void handleHttpResponse(Net.HttpResponse httpResponse) {
                 Set<String> unlocked = new HashSet<>();
-
                 if (httpResponse.getStatus().getStatusCode() == 200) {
-                    String result = httpResponse.getResultAsString();
-                    if (result != null && !result.isEmpty()) {
-                        try {
-                            JsonValue root = new JsonReader().parse(result);
-                            // Assuming response is JSON Array of strings: ["Ryze", "Insania", ...]
-                            for (JsonValue val : root) {
+                    try {
+                        String result = httpResponse.getResultAsString();
+                        JsonValue root = new JsonReader().parse(result);
+
+                        // Parse Unlocked Characters
+                        if (root.has("unlockedCharacters")) {
+                            for (JsonValue val : root.get("unlockedCharacters")) {
                                 unlocked.add(val.asString());
                             }
-                        } catch (Exception e) {
-                            System.err.println("[LoginWindow] Error parsing unlocks: " + e.getMessage());
                         }
+                    } catch (Exception e) {
+                        System.err.println("[LoginWindow] Error parsing user data: " + e.getMessage());
                     }
                 }
-
-                // Proceed to finish login (even if fetch fails, unlocked will be empty/null,
-                // triggering local load)
-                Gdx.app.postRunnable(() -> finishLogin(user, unlocked));
+                Gdx.app.postRunnable(() -> finishLogin(user, unlocked, keyConfig));
             }
 
             @Override
             public void failed(Throwable t) {
-                // Ignore error, proceed with local load
-                Gdx.app.postRunnable(() -> finishLogin(user, null));
+                // If fail, proceed with empty/default
+                Gdx.app.postRunnable(() -> finishLogin(user, null, keyConfig));
             }
-
-            @Override
-            public void cancelled() {
-            }
+            @Override public void cancelled() {}
         });
     }
 
     private void handleRegister() {
-        // ... (Logika Register sama seperti sebelumnya, dipersingkat) ...
         String user = usernameField.getText().trim();
         String pass = passwordField.getText().trim();
         String confirm = confirmPasswordField.getText().trim();
 
-        if (!pass.equals(confirm)) {
-            showError("Password beda!");
-            return;
-        }
+        if (!pass.equals(confirm)) { showError("Password beda!"); return; }
 
         Net.HttpRequest request = new Net.HttpRequest(Net.HttpMethods.POST);
         request.setUrl(BASE_URL + "/register");
@@ -268,19 +251,10 @@ public class LoginWindow extends Window {
                         messageLabel.setColor(Color.GREEN);
                         rebuildUI();
                     });
-                } else {
-                    showError("Username dipakai!");
-                }
+                } else { showError("Username dipakai!"); }
             }
-
-            @Override
-            public void failed(Throwable t) {
-                showError("Error!");
-            }
-
-            @Override
-            public void cancelled() {
-            }
+            @Override public void failed(Throwable t) { showError("Error!"); }
+            @Override public void cancelled() {}
         });
     }
 
@@ -291,19 +265,18 @@ public class LoginWindow extends Window {
         });
     }
 
-    private void finishLogin(String name) {
-        finishLogin(name, null);
-    }
-
-    private void finishLogin(String name, Set<String> unlockedChars) {
+    // [DIUPDATE] Menambahkan parameter keyConfig
+    private void finishLogin(String name, Set<String> unlockedChars, String keyConfig) {
         game.setPlayerName(name);
         game.setLoggedIn(true);
 
-        // Push to GameManager to handle sync and persistence
+        // 1. Sync Unlock Characters
         GameManager.getInstance().loginUser(name, unlockedChars);
 
-        if (onSuccessCallback != null)
-            onSuccessCallback.run();
-        remove(); // Tutup Pop-up
+        // 2. [BARU] Load Key Bindings
+        game.loadKeyBindings(keyConfig);
+
+        if (onSuccessCallback != null) onSuccessCallback.run();
+        remove();
     }
 }
