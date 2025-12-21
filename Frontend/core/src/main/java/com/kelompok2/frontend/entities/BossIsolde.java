@@ -1,12 +1,9 @@
 package com.kelompok2.frontend.entities;
 
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
-import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.strategies.RangedAttackStrategy;
 import com.kelompok2.frontend.skills.Skill;
 import com.kelompok2.frontend.skills.FrozenApocalypseSkill;
@@ -14,9 +11,15 @@ import com.badlogic.gdx.graphics.Color;
 
 public class BossIsolde extends Boss {
 
-    // Animation system
-    private Animation<TextureRegion> idleAnimation;
+    // Animation state system
+    private com.kelompok2.frontend.states.AnimationState currentState;
+    private com.kelompok2.frontend.states.AnimationState idleState;
+    private com.kelompok2.frontend.states.AnimationState runState;
     private float stateTime;
+
+    // Movement tracking
+    private Vector2 previousPosition;
+    private boolean isMoving;
 
     // Glacial Breath skill cooldown
     private float skillCooldown = 12f; // 12 seconds untuk boss
@@ -52,32 +55,20 @@ public class BossIsolde extends Boss {
         this.def = 25f + (playerLevel * 2.5f); // DEF: 25 + 2.5 per level
         this.arts = 12f + (playerLevel * 1.2f); // ARTS: 12 + 1.2 per level (reduced from 15 + 1.5)
 
-        // Load spritesheet (sama dengan playable version)
-        Texture spritesheet = AssetManager.getInstance().loadTexture("FrostPlaceholderSprite.png");
+        // Initialize Animation States
+        // Both Idle and Run use the same asset (Isolde/pcgp-isolde.png): 2 cols, 3
+        // rows, 5 frames
+        idleState = new com.kelompok2.frontend.states.IdleState("Isolde/pcgp-isolde.png", 2, 3, 5, 0.15f);
+        runState = new com.kelompok2.frontend.states.RunningState("Isolde/pcgp-isolde.png", 2, 3, 5, 0.1f);
 
-        // Split spritesheet (10x10)
-        int FRAME_COLS = 10;
-        int FRAME_ROWS = 10;
-        TextureRegion[][] tmp = TextureRegion.split(
-                spritesheet,
-                spritesheet.getWidth() / FRAME_COLS,
-                spritesheet.getHeight() / FRAME_ROWS);
-
-        // Convert 2D array ke 1D
-        TextureRegion[] idleFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
-        int index = 0;
-        for (int i = 0; i < FRAME_ROWS; i++) {
-            for (int j = 0; j < FRAME_COLS; j++) {
-                idleFrames[index++] = tmp[i][j];
-            }
-        }
-
-        // Create idle animation
-        idleAnimation = new Animation<>(0.1f, idleFrames);
-        idleAnimation.setPlayMode(Animation.PlayMode.LOOP);
-
+        // Start with idle state
+        currentState = idleState;
+        currentState.enter(this);
         stateTime = 0f;
-        this.texture = spritesheet;
+
+        // Initialize movement tracking
+        previousPosition = new Vector2(x, y);
+        isMoving = false;
 
         // Ukuran visual dan hitbox
         float visualSize = 128f;
@@ -108,6 +99,12 @@ public class BossIsolde extends Boss {
         super.update(delta);
         stateTime += delta;
 
+        // Check movement for state transition
+        checkMovementState();
+
+        // Update animation state
+        currentState.update(this, delta);
+
         // Update skill cooldown
         if (skillTimer > 0) {
             skillTimer -= delta;
@@ -127,8 +124,32 @@ public class BossIsolde extends Boss {
             }
         }
 
-        // Projectiles are updated by GameFacade's main loop, tidak perlu update di sini
+        // Projectiles are updated by GameFacade's main loop, tidak perlu update di
+        // sini,
         // Removing duplicate update to fix 2x speed bug
+    }
+
+    private void checkMovementState() {
+        // Compare current position with previous position
+        isMoving = !position.epsilonEquals(previousPosition, 0.1f);
+
+        // Transition states
+        if (isMoving && currentState == idleState) {
+            // Idle -> Run
+            currentState.exit(this);
+            currentState = runState;
+            currentState.enter(this);
+            stateTime = 0f;
+        } else if (!isMoving && currentState == runState) {
+            // Run -> Idle
+            currentState.exit(this);
+            currentState = idleState;
+            currentState.enter(this);
+            stateTime = 0f;
+        }
+
+        // Update previous position
+        previousPosition.set(position);
     }
 
     @Override
@@ -207,6 +228,10 @@ public class BossIsolde extends Boss {
                 move(approachDir, delta);
             }
             // If within preferred range, stay still and attack
+            else {
+                // Update facing direction even if not moving
+                setFacingRight(direction.x > 0);
+            }
 
             // Shoot icicles at player when in range
             if (distance <= preferredDistance + 200f && canAttack() && projectiles != null && meleeAttacks != null) {
@@ -228,12 +253,17 @@ public class BossIsolde extends Boss {
     @Override
     public void render(SpriteBatch batch) {
         // Get current animation frame
-        TextureRegion currentFrame = idleAnimation.getKeyFrame(stateTime);
+        TextureRegion currentFrame = currentState.getCurrentFrame(stateTime);
 
         // Flip sprite based on facing direction
-        if (!isFacingRight && !currentFrame.isFlipX()) {
+        // Isolde asset is LEFT-FACING, so valid flip logic is INVERTED compared to
+        // standard
+        // If facing RIGHT, we need to flip it
+        if (isFacingRight && !currentFrame.isFlipX()) {
             currentFrame.flip(true, false);
-        } else if (isFacingRight && currentFrame.isFlipX()) {
+        }
+        // If facing LEFT, we need to ensure it is NOT flipped (original state)
+        else if (!isFacingRight && currentFrame.isFlipX()) {
             currentFrame.flip(true, false);
         }
 

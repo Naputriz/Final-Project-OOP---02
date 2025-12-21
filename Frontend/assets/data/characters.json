@@ -25,11 +25,11 @@
     "speed": 190,
     "skillName": "Hurricane Bind",
     "skillDesc": "Wind ball with knockback and stun.\nDamage: Arts x2.0, Cooldown: 10s",
-    "texturePath": "WhisperwindPlaceholder.png",
-    "frameCols": 1,
-    "frameRows": 1,
-    "totalFrames": 1,
-    "frameDuration": 0.1
+    "texturePath": "Whisperwind/pcgp-whisperwind_1.png",
+    "frameCols": 2,
+    "frameRows": 2,
+    "totalFrames": 4,
+    "frameDuration": 0.15
   },
   {
     "name": "Aelita",
@@ -41,11 +41,11 @@
     "speed": 170,
     "skillName": "Verdant Domain",
     "skillDesc": "Consume 25% HP to create a healing\nzone. Heals 50% HP over 5s and boosts\nATK/Arts +25%. Cooldown: 15s",
-    "texturePath": "AelitaPlaceholder.png",
-    "frameCols": 1,
-    "frameRows": 1,
-    "totalFrames": 1,
-    "frameDuration": 0.1
+    "texturePath": "Aelita/pcgp-aelita.png",
+    "frameCols": 2,
+    "frameRows": 2,
+    "totalFrames": 4,
+    "frameDuration": 0.15
   },
   {
     "name": "Aegis",
@@ -89,10 +89,10 @@
     "speed": 200,
     "skillName": "Feral Rush",
     "skillDesc": "Dashes forward rapidly and unleashes\n5x scratch attacks.\nCooldown: 5s",
-    "texturePath": "AlicePlaceholder.png",
-    "frameCols": 1,
-    "frameRows": 1,
-    "totalFrames": 1,
+    "texturePath": "Alice/pcgp-alice.png",
+    "frameCols": 2,
+    "frameRows": 2,
+    "totalFrames": 4,
     "frameDuration": 0.1
   },
   {
@@ -121,11 +121,11 @@
     "speed": 180,
     "skillName": "Glacial Breath",
     "skillDesc": "Cone attack that freezes enemies.\nDamage: Arts x1.0, Cooldown: 10s",
-    "texturePath": "FrostPlaceholderSprite.png",
-    "frameCols": 10,
-    "frameRows": 10,
-    "totalFrames": 100,
-    "frameDuration": 0.1
+    "texturePath": "Isolde/pcgp-isolde.png",
+    "frameCols": 2,
+    "frameRows": 3,
+    "totalFrames": 5,
+    "frameDuration": 0.15
   },
   {
     "name": "Insania",
