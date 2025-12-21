@@ -39,13 +39,13 @@ public class BossInsania extends Boss {
     private Vector2 randomAttackTarget = new Vector2();
 
     public BossInsania(float x, float y, GameCharacter player, int playerLevel) {
-        super(x, y, 150f, 500f + (playerLevel * 50f), // HP scales: 500 + 50 per level, Speed: 150
+        super(x, y, 150f, 1000f + (playerLevel * 100f), // HP scales: 1000 + 100 per level, Speed: 150
                 "Insania", "The Chaos Kaiser", player);
         this.playerLevel = playerLevel;
 
         // Stats lebih tinggi dari playable version, scale dengan level
-        this.atk = 25f + (playerLevel * 2f); // ATK scales: 25 + 2 per level (reduced from 50 + 5)
-        this.arts = 35f + (playerLevel * 3f); // Arts scales: 35 + 3 per level
+        this.atk = 15f + (playerLevel * 1.5f); // ATK scales: 15 + 1.5 per level (reduced from 25 + 2)
+        this.arts = 25f + (playerLevel * 2.5f); // Arts scales: 25 + 2.5 per level (reduced from 35 + 3)
         this.def = 10f + (playerLevel * 2f); // DEF scales: 10 + 2 per level
 
         // Load spritesheet yang sama dengan playable Insania

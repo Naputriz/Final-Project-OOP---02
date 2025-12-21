@@ -253,7 +253,8 @@ public class MainMenuScreen extends ScreenAdapter {
 
         filterTable.add(new Label("Filter:", skin)).padRight(10);
         charFilterBox = new SelectBox<>(skin);
-        charFilterBox.setItems("All", "Isolde", "Ryze", "Insania", "Blaze", "Whisperwind", "Aelita", "Aegis", "Lumi");
+        charFilterBox.setItems("All", "Isolde", "Ryze", "Insania", "Blaze", "Whisperwind", "Aelita", "Aegis", "Lumi",
+                "Alice");
         filterTable.add(charFilterBox).width(120).padRight(20);
 
         filterTable.add(new Label("Urutkan:", skin)).padRight(10);

@@ -251,6 +251,11 @@ public abstract class GameCharacter {
                 takeDamage(pullDamageOnArrival);
                 stun(pullStunOnArrival);
 
+                // Publish Damage Event (moved from ReturniousPullSkill)
+                // False for Physical damage (White numbers)
+                com.kelompok2.frontend.managers.GameEventManager.getInstance().publish(
+                        new com.kelompok2.frontend.events.EnemyDamagedEvent(this, pullDamageOnArrival, false));
+
                 // Award XP if enemy died from pull damage (same pattern as
                 // FrozenApocalypseSkill)
                 if (isDead() && pullAttacker != null && this instanceof DummyEnemy) {
