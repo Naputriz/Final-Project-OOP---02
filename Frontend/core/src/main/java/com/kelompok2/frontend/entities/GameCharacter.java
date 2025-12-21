@@ -125,8 +125,15 @@ public abstract class GameCharacter {
         return isInsane;
     }
 
+    public boolean isInvulnerable() {
+        return false;
+    }
+
     // Freeze status (for player)
     public void freeze(float duration) {
+        if (isInvulnerable()) {
+            return;
+        }
         this.isFrozen = true;
         this.freezeTimer = duration;
     }
@@ -142,6 +149,9 @@ public abstract class GameCharacter {
 
     // Slow status (for player)
     public void slow(float duration) {
+        if (isInvulnerable()) {
+            return;
+        }
         this.isSlowed = true;
         this.slowTimer = duration;
     }
@@ -157,6 +167,9 @@ public abstract class GameCharacter {
 
     // Stun status (for Hurricane Bind and other stun effects)
     public void stun(float duration) {
+        if (isInvulnerable()) {
+            return;
+        }
         this.isStunned = true;
         this.stunTimer = duration;
     }
@@ -167,11 +180,14 @@ public abstract class GameCharacter {
 
     public void clearStun() {
         this.isStunned = false;
-        this.stunTimer = 0f;
+        this.stunTimer = 0;
     }
 
     // Insanity status (for player hit by Mind Fracture)
     public void makeInsane(float duration) {
+        if (isInvulnerable()) {
+            return;
+        }
         this.isInsane = true;
         this.insanityTimer = duration;
     }

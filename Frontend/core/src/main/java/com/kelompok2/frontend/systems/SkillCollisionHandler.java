@@ -177,7 +177,7 @@ public class SkillCollisionHandler {
                     float damagePerSecond = blaze.getArts() * 1.25f;
                     float damage = damagePerSecond * currentDelta;
                     boss.takeDamage(damage);
-                    if (damage > 1) {
+                    if (damage > 0.1f) {
                         eventManager.publish(new com.kelompok2.frontend.events.EnemyDamagedEvent(boss, damage, true));
                     }
                 }

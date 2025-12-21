@@ -660,6 +660,7 @@ Each character has a unique innate skill but has a second skill slot that can be
 - ~~**TODO:** Fix Ryze's Spectral Body Skill~~ ✅ **FIXED**
   - **Issue:** Skill activates but player still takes damage (Invincibility not working).
   - **Fix:** Overridden `takeDamage(float, GameCharacter)` in `Ryze.java` to properly intercept damage calls from the collision system.
+  - **Improvement:** Also prevents status effects (Freeze, Stun, Insanity) while active.
   - **Status:** ✅ Verified fix in code.
 
 - ~~**TODO:** Fix Lumi's Skill Damage Counter~~ ✅ **FIXED**
@@ -687,6 +688,21 @@ Each character has a unique innate skill but has a second skill slot that can be
   - **Fix:** Refactored `GameScreen.render` to always clear screen and render game world (frozen) even when paused.
   - **Status:** ✅ Verified fix.
 
+- ~~**TODO:** Fix Melee Attack Hitbox Blind Spot~~ ✅ **FIXED**
+  - **Issue:** Melee attacks missed enemies standing directly on top of the player (point-blank).
+  - **Fix:** Implemented "Dual Hitbox System" (Visible Range + Invisible Point-Blank) with shared hit registry.
+  - **Status:** ✅ Fixed for all melee characters (including Aegis dash).
+
+- ~~**TODO:** Fix Ground Slam Stun Effect~~ ✅ **FIXED**
+  - **Issue:** Ground Slam skill dealt damage but failed to apply stun.
+  - **Fix:** Added `stunDuration` to `MeleeAttack` and updated `PlayerCollisionHandler` to apply it.
+  - **Status:** ✅ Verified fix.
+
+- ~~**TODO:** Fix Boss Damage Numbers Visibility~~ ✅ **FIXED**
+  - **Issue:** Damage numbers were invisible for DoT skills (threshold too high) and obscured by boss sprites.
+  - **Fix:** Lowered event threshold (1.0 -> 0.1) and added `+20px` vertical padding.
+  - **Status:** ✅ Verified fix.
+
 - **TODO:** Suggestion: Visual Polish
   - **Goal:** Enhance game feel.
   - **Ideas:**
@@ -695,10 +711,11 @@ Each character has a unique innate skill but has a second skill slot that can be
     - **Damage Log:** (Optional) Text log of combat for debugging/clarity.
 
 #### Game Balancing (New)
-- **TODO:** Aegis Balance Improvements
+- ~~**TODO:** Aegis Balance Improvements~~ ✅ **COMPLETED**
   - **Skill Range:** Shield Stance currently only blocks frontal. Change to 360-degree protection or Omni-directional block/reflect.
   - **Basic Attack Hitbox:** Fix issue where enemies "on top" of Aegis (point-blank) are missed.
-    - *Technical Note:* `MeleeAttackStrategy` starts hitbox at `edgeOffset + 5px`. Needs to start closer to center or include character bounds.
+    - *Technical Note:* Fixed via "Dual Hitbox System" in `ShieldBashAttackStrategy`. start closer to center or include character bounds.
+  - **Status:** ✅ Fully Implemented.
 
 #### UI System Improvements
 - **TODO:** Implement Observer Pattern for UI Bars ✅ **COMPLETED**
