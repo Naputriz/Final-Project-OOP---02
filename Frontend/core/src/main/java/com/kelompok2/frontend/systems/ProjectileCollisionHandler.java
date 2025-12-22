@@ -36,6 +36,10 @@ public class ProjectileCollisionHandler {
             if (projectile.isHandledBySkill())
                 continue;
 
+            // FIX: Skip enemy projectiles in this check (they shouldn't hit other enemies or self)
+            if (projectile.isEnemyProjectile())
+                continue;
+
             Rectangle projBounds = projectile.getBounds();
 
             for (BaseEnemy enemy : enemyPool.getActiveEnemies()) {
