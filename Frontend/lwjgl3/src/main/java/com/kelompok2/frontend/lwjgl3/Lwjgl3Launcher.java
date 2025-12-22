@@ -45,11 +45,18 @@ public class Lwjgl3Launcher {
             java.io.File backendJar = new java.io.File("backend.jar");
             if (backendJar.exists()) {
                 System.out.println("[Launcher] Found backend.jar, starting server...");
-                ProcessBuilder pb = new ProcessBuilder("java", "-jar", "backend.jar");
-                pb.directory(new java.io.File("."));
 
-                // PENTING: Mengaktifkan output agar terlihat di console log
-                // Ini membantu melihat error jika backend crash saat startup
+                // --- PERUBAHAN UTAMA DI SINI ---
+                // Gunakan path ke java yang sedang menjalankan program ini
+                String javaBin = System.getProperty("java.home")
+                    + java.io.File.separator + "bin"
+                    + java.io.File.separator + "java";
+
+                // Gunakan javaBin, bukan "java" saja
+                ProcessBuilder pb = new ProcessBuilder(javaBin, "-jar", "backend.jar");
+                // -------------------------------
+
+                pb.directory(new java.io.File("."));
                 pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
                 pb.redirectError(ProcessBuilder.Redirect.INHERIT);
 
