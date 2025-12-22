@@ -143,7 +143,7 @@ public class SkillCollisionHandler {
                             // frame)
                             if (hurricane.canHit(enemy)) {
                                 enemy.takeDamage(hurricane.getDamage());
-                                enemy.stun(3.0f);
+                                enemy.stun(1.0f);
 
                                 // 2. Add to hit list
                                 hurricane.addHit(enemy);
@@ -281,7 +281,7 @@ public class SkillCollisionHandler {
                     if (hurricane.getBounds().overlaps(boss.getBounds())) {
                         if (hurricane.canHit(boss)) {
                             boss.takeDamage(hurricane.getDamage());
-                            boss.stun(3.0f);
+                            boss.stun(1.0f);
 
                             hurricane.addHit(boss);
 

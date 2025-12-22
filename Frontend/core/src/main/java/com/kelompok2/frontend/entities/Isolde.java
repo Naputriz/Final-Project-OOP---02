@@ -1,10 +1,12 @@
 package com.kelompok2.frontend.entities;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
+import com.kelompok2.frontend.managers.AssetManager;
 import com.kelompok2.frontend.strategies.RangedAttackStrategy;
 
 public class Isolde extends GameCharacter {
@@ -31,7 +33,7 @@ public class Isolde extends GameCharacter {
 
         // Set stats sesuai role Arts Attacker
         this.atk = 20f; // Ranged ATK (balanced with Blaze)
-        this.arts = 55f; // High Arts (main damage stat, similar to Insania)
+        this.arts = 40f; // High Arts (main damage stat, similar to Insania)
         this.def = 15f; // Moderate Defence (ranged glass cannon)
         this.title = "The Frost Kaiser";
         this.description = "They say Blaze brings the apocalypse of fire, but Isolde brings the silence that follows. The Frost Kaiser is a being of elegant cruelty, believing that the only way to truly 'save' the world is to stop it entirely. With her return, she intends to drape the nations in an eternal winter, reclaiming the control stripped from her centuries ago. Where Blaze burns, she preserves—trapping her victims in ice for eternity.";
@@ -70,10 +72,11 @@ public class Isolde extends GameCharacter {
         // Update posisi bounds awal
         setPosition(x, y);
 
+        Texture iceBallTexture = AssetManager.getInstance().loadTexture(AssetManager.ICE_BALL);
         // Ranged Attack Strategy - Shoot icicles (projectile dengan Arts scaling)
         // RangedAttackStrategy(damageMultiplier, color) - Light blue untuk frost theme
         // Damage lowered to 0.5x untuk testing freeze mechanics
-        this.attackStrategy = new RangedAttackStrategy(0.5f, new Color(0.5f, 0.8f, 1f, 1f)); // Light blue/cyan
+        this.attackStrategy = new RangedAttackStrategy(0.8f, 400, iceBallTexture); // Light blue/cyan
 
         // Auto attack (hold to shoot continuously)
         this.autoAttack = true;
@@ -187,7 +190,7 @@ public class Isolde extends GameCharacter {
                 mousePos.y - playerCenterY).nor();
 
         // Calculate damage (Arts scaling x 1.0)
-        float damage = this.arts * 1.5f;
+        float damage = this.arts * 1.0f;
 
         // Create Glacial Breath cone attack (0.5s duration) aiming toward mouse
         GlacialBreath glacialBreath = new GlacialBreath(this, direction, damage, 0.5f);

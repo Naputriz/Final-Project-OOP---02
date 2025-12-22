@@ -27,7 +27,7 @@ public class Ryze extends GameCharacter {
 
     public Ryze(float x, float y) {
         super(x, y, 200f, 100f);
-        this.atk = 30f; // High ATK untuk melee
+        this.atk = 40f; // High ATK untuk melee
         this.arts = 10f; // Low Arts
         this.def = 5f; // Low Defence
         this.title = "The Ghost of Insania";

@@ -25,7 +25,7 @@ public class Insania extends GameCharacter {
         super(x, y, 180f, 110f);
 
         // Set stats sesuai role Hybrid Attacker
-        this.atk = 35f; // High ATK - primary damage
+        this.atk = 40f; // High ATK - primary damage
         this.arts = 25f; // Moderate Arts - untuk skill
         this.def = 5f; // Low Defence - glass cannon style
         this.title = "The Chaos Kaiser";

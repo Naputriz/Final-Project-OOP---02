@@ -57,7 +57,7 @@ public class PlayerCollisionHandler {
 
                     // Lumi applies Mark
                     if (attack.appliesMark()) {
-                        enemy.mark(5f); // Mark for 5 seconds
+                        enemy.mark(10f); // Mark for 5 seconds
                         System.out.println("[Lumi] Enemy marked!");
                     }
 
@@ -88,7 +88,7 @@ public class PlayerCollisionHandler {
             if (attack.canHit(boss)) {
                 // Lumi applies Mark to bosses
                 if (attack.appliesMark()) {
-                    boss.mark(5f); // Mark for 5 seconds
+                    boss.mark(10f); // Mark for 5 seconds
                     System.out.println("[Lumi] Boss marked!");
                 }
 
