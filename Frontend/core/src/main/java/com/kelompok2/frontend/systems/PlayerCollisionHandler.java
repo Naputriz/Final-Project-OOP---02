@@ -92,6 +92,12 @@ public class PlayerCollisionHandler {
                     System.out.println("[Lumi] Boss marked!");
                 }
 
+                // Apply Stun (Ground Slam, etc.)
+                if (attack.getStunDuration() > 0) {
+                    boss.stun(attack.getStunDuration());
+                    System.out.println("[Collision] Boss stunned for " + attack.getStunDuration() + "s");
+                }
+
                 float damage = attack.getDamage();
 
                 // Insania deals 50% extra damage to insane bosses
